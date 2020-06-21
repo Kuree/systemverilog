@@ -1,0 +1,4 @@
+# for xrun artifacts
+xrun.*
+INCA_libs
+xcelium.d
