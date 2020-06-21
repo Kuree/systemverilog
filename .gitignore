@@ -2,3 +2,6 @@
 xrun.*
 INCA_libs
 xcelium.d
+
+# build
+systemverilog.pdf
