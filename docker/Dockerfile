@@ -7,7 +7,7 @@ ARG DEBIAN_FRONTEND=noninteractive
 ENV TZ=America/Los_Angeles
 
 RUN apt-get update \
-    && apt-get install -y --no-install-recommends pandoc pdf2svg texlive-full python3-pip python3-dev build-essential && apt-get clean \
+    && apt-get install -y --no-install-recommends pandoc pdf2svg librsvg2-bin texlive-full python3-pip python3-dev build-essential && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
 # install requirements

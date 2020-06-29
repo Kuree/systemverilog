@@ -5,6 +5,8 @@ xcelium.d
 
 # build
 systemverilog.pdf
+*.aux
+*.log
 
 # env
 env
