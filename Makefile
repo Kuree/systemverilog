@@ -3,7 +3,7 @@ FILTERS=pandoc-xnos
 DOCKER_USER=--user 1000:1000
 
 docker: book/title.txt $(shell find book/**/*.md)
-	docker run --rm -v `(pwd)`:/systemverilog ${DOCKER_USER} 3ec4b4203657 /systemverilog/scripts/build.sh
+	docker run --rm -v `(pwd)`:/systemverilog ${DOCKER_USER} keyiz/pandoc /systemverilog/scripts/build.sh
 
 
 systemverilog.pdf: book/title.txt $(shell find book/**/*.md)
