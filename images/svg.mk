@@ -13,4 +13,4 @@ all: $(SVG_FILES)
 	pdf2svg $< $@
 
 clean:
-	rm -rf *.svg *.pdf
+	rm -rf *.svg *.pdf *.aux *.log

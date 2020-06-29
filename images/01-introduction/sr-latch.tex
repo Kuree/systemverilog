@@ -1,0 +1,21 @@
+\documentclass[border=3mm]{standalone}
+\usepackage{circuitikz}
+\begin{document}
+\ctikzset{
+    logic ports=ieee,
+    logic ports/scale=0.7,
+}
+\begin{circuitikz} \draw
+    (0,2) node[nor port] (NOR1) {}
+    (1.5,2) node[anchor=east] {Q}
+    (1.5,0) node[anchor=east] {$\overline{Q}$}
+    (0,0) node[nor port] (NOR2) {}
+    (NOR1.in 1) node[anchor=east] {R}
+    (NOR2.in 2) node[anchor=east] {S}
+    (NOR1.out) -- ++(0,-0.5) -- ($(NOR2.in 1) +(0,0.5)$) -- (NOR2.in 1)
+    (NOR2.out) -- ++(0,+0.5) -- ($(NOR1.in 2) +(0,-0.5)$)--(NOR1.in 2)
+    (NOR1.out) -- ++(0.25,0)
+    (NOR2.out) -- ++(0.25,0)
+    ;
+\end{circuitikz}
+\end{document}
