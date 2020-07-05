@@ -1,0 +1,25 @@
+\documentclass[border=3mm]{standalone}
+\usepackage{tikz-timing}
+\begin{document}
+\definecolor{red}{rgb}{1,0,0}
+\definecolor{blue}{rgb}{0,0,1}
+\begin{tikztimingtable}[timing/lslope=0.8,]
+Clock & 4{8c}\\
+Setup Time & 5c 27t\\
+Hold Time & 9h23t\\
+\extracode
+\begin{pgfonlayer}{background}
+\begin{scope}[semitransparent, semithick]
+    \draw (4,1) -- (4,-4);
+\end{scope}
+\begin{scope}[semitransparent, semithick, blue]
+    \draw (2.9,-1) -- (2.9,-2);
+    \draw (2.9,-1.5) -- (4,-1.5);
+\end{scope}
+\begin{scope}[semitransparent, semithick, red]
+    \draw (4.9,-3) -- (4.9,-4);
+    \draw (4.9,-3.5) -- (4,-3.5);
+\end{scope}
+\end{pgfonlayer}
+\end{tikztimingtable}
+\end{document}

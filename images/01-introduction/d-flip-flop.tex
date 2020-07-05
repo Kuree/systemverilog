@@ -1,0 +1,12 @@
+\documentclass[border=3mm]{standalone}
+\usepackage{circuitikz}
+\begin{document}
+\tikzset {
+    flipflop D/.style={flipflop, flipflop def={t1=D, t6=Q, c3=1,
+    t4=\ctikztextnot{Q}}},
+}
+\begin{circuitikz} \draw
+    (0,0) node[flipflop D] {}
+    ;
+\end{circuitikz}
+\end{document}
