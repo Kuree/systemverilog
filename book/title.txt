@@ -3,4 +3,10 @@ title: SystemVerilog for RTL Modeling, Simulation, and Verification
 author: Keyi Zhang
 rights:  Creative Commons Non-Commercial Share Alike 3.0
 language: en-US
+titlepage: true
+book: true
+footer-left:
+caption-justification: centering
+listings-no-page-break: true
+papersize: a4
 ...
