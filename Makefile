@@ -11,6 +11,8 @@ docker: book/title.txt $(shell find book/**/*.md)
 systemverilog.pdf: book/title.txt $(shell find book/**/*.md)
 	pandoc ${SV_SYNTAX}  -o $@ $^ --filter ${FILTERS} ${PANDOC_FLAGS} --template=${LATEX_TEMPLATE}
 
+html/index.html:
+	pandoc ${SV_SYNTAX} -s -o index.html --highlight-style pygments --filter ${FILTERS} ${PANDOC_FLAGS}
 
 clean:
 	rm -rf *.pdf
