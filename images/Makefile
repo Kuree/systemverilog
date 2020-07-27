@@ -1,4 +1,4 @@
-DIRS=$(shell find *-* -type d)
+DIRS=$(shell find * -type d)
 TEX_FILES=
 
 all:
