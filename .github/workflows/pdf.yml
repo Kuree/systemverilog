@@ -26,13 +26,13 @@ jobs:
       with:
         name: PDF_book
         path: systemverilog.pdf
-    - name: Create Release
-      id: create_release
-      uses: actions/create-release@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    - uses: meeDamian/github-release@2.0
       with:
-        tag_name: ${{ github.ref }}
-        release_name: PDF Book Release
-        draft: false
+        token: ${{ secrets.GITHUB_TOKEN }}
+        tag: latest
+        name: PDF Book Release
+        body: Latest PDF release of the book.
+        gzip: false
+        files: systemverilog.pdf
+        allow_override: true
         prerelease: true
