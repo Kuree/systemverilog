@@ -9,4 +9,9 @@ caption-justification: centering
 listings-no-page-break: true
 papersize: a4
 classoption: oneside
+titlepage: true
+titlepage-text-color: "FFFFFF"
+titlepage-rule-color: "360049"
+titlepage-rule-height: 0
+titlepage-background: "../images/cover.pdf"
 ...

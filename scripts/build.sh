@@ -6,4 +6,5 @@ ROOT_DIR=$(dirname ${FILE_DIR})
 
 cd ${ROOT_DIR}
 make -C images/
+make -C images/ cover.pdf
 make systemverilog.pdf
