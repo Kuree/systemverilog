@@ -16,6 +16,9 @@ jobs:
         auth_header="$(git config --local --get http.https://github.com/.extraheader)"
         git submodule sync --recursive
         git -c "http.extraheader=$auth_header" -c protocol.version=2 submodule update --init --force --recursive --depth=1
+    - name: Pull pandoc docker image
+      shell: bash
+      run: docker pull keyiz/pandoc
     - name: Make PDF via pandoc docker image
       shell: bash
       run: docker run --rm -v `(pwd)`:/systemverilog keyiz/pandoc /systemverilog/scripts/build.sh
