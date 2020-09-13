@@ -26,11 +26,17 @@ jobs:
       with:
         name: PDF_book
         path: systemverilog.pdf
+    - name: Update latest tag
+      uses: richardsimko/update-tag@master
+      with:
+        tag_name: latest
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     - uses: meeDamian/github-release@2.0
       with:
         token: ${{ secrets.GITHUB_TOKEN }}
         tag: latest
-        name: PDF Book Release
+        name: PDF book release
         body: Latest PDF release of the book.
         gzip: false
         files: systemverilog.pdf
