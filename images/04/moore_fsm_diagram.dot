@@ -1,0 +1,20 @@
+digraph G {
+  rankdir=LR
+  
+  reset [shape="none"];
+  COUNT_0 [label="S0\n0"];
+  COUNT_1 [label="S1\n0"];
+  COUNT_2 [label="S2\n1"];
+
+  COUNT_0 -> COUNT_1 [ label="1" ];
+  COUNT_0 -> COUNT_0 [ label="0" ];
+  
+  COUNT_1 -> COUNT_2 [ label="1" ];
+  COUNT_1 -> COUNT_0 [ label="0" ];
+  
+  COUNT_2 -> COUNT_2 [ label="1" ];
+  COUNT_2 -> COUNT_0 [ label="0" ];
+  
+  // reset
+  reset -> COUNT_0
+}

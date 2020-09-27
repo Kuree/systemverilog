@@ -1,0 +1,16 @@
+digraph G {
+  rankdir=LR
+  
+  reset [shape="none"];
+  COUNT_0 [label="S0"];
+  COUNT_1 [label="S1"];
+
+  COUNT_0 -> COUNT_1 [ label="1/0" ];
+  COUNT_0 -> COUNT_0 [ label="0/0" ];
+  
+  COUNT_1 -> COUNT_1 [ label="1/1" ];
+  COUNT_1 -> COUNT_0 [ label="0/0" ];
+  
+  // reset
+  reset -> COUNT_0
+}
