@@ -7,8 +7,15 @@ ARG DEBIAN_FRONTEND=noninteractive
 ENV TZ=America/Los_Angeles
 
 RUN apt-get update \
-    && apt-get install -y --no-install-recommends pandoc pdf2svg librsvg2-bin texlive-full python3-pip python3-dev build-essential && apt-get clean \
+    && apt-get install -y --no-install-recommends pdf2svg librsvg2-bin wget \
+                                                  texlive-full python3-pip \
+                                                  python3-dev build-essential \
+                                                  graphviz && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
+
+RUN wget -q https://github.com/jgm/pandoc/releases/download/2.6/pandoc-2.6-1-amd64.deb -O pandoc.deb && \
+    dpkg -i pandoc.deb && \
+    rm *.deb
 
 # install requirements
 COPY . /docker
