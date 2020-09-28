@@ -16,5 +16,8 @@ all: $(SVG_FILES)
 %.svg: %.pdf
 	pdf2svg $< $@
 
+%.svg: %.dot
+	dot -Tsvg $< > $@
+
 clean:
-	rm -rf *.svg *.pdf *.aux *.log
+	rm -rf *.pdf *.aux *.log
