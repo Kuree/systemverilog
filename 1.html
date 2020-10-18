@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="UTF-8">
+        <title>title - Introduction</title>
+        <link rel="stylesheet" href="https://unpkg.com/purecss@2.0.3/build/pure-min.css" integrity="sha384-cg6SkqEOCV1NbJoCu11+bm0NvBRc8IYLRGXkmNrqUBfTjmMYwNKPWBTIKyw9mHNJ" crossorigin="anonymous">
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.1.2/es5/tex-mml-chtml.min.js" integrity="sha512-7rZgZU/u5XjLaO7dBpkcvZ2+ilGXbdIak0FXUgMoO+adNy7RUceort055Wn7LkZY3VLwEsSDpi8Ui+32N1vrfw==" crossorigin="anonymous"></script>
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <link rel="stylesheet" href="/assets/css/styles.css">
+        <link rel="stylesheet" href="/assets/css/pandoc.css">
+    </head>
+    <body>
+        <div id="layout">
+            <!-- Menu toggle -->
+            <a href="#menu" id="menuLink" class="menu-link">
+                <!-- Hamburger icon -->
+                <span></span>
+            </a>
+
+            <div id="menu">
+                <div class="pure-menu">
+                    <a class="pure-menu-heading" href="#">Content</a>
+
+                    <ul class="pure-menu-list">
+                        <li class="pure-menu-item"><a href="/1.html" class="pure-menu-link">Chapter 1</a></li>
+<li class="pure-menu-item"><a href="/2.html" class="pure-menu-link">Chapter 2</a></li>
+<li class="pure-menu-item"><a href="/3.html" class="pure-menu-link">Chapter 3</a></li>
+<li class="pure-menu-item"><a href="/4.html" class="pure-menu-link">Chapter 4</a></li>
+<li class="pure-menu-item"><a href="/5.html" class="pure-menu-link">Chapter 5</a></li>
+<li class="pure-menu-item"><a href="/6.html" class="pure-menu-link">Chapter 6</a></li>
+<li class="pure-menu-item"><a href="/7.html" class="pure-menu-link">Chapter 7</a></li>
+<li class="pure-menu-item"><a href="/8.html" class="pure-menu-link">Chapter 8</a></li>
+<li class="pure-menu-item"><a href="/9.html" class="pure-menu-link">Chapter 9</a></li>
+<li class="pure-menu-item"><a href="/10.html" class="pure-menu-link">Chapter 10</a></li>
+                    </ul>
+                </div>
+            </div>
+
+            <div id="main">
+                <div class="content">
+                    <h1>Introduction</h1>
+<p>SystemVerilog is a hardware description language (HDL) to model, simulate, and verify electronic systems. It is standardized as IEEE-1800 with latest revision in 2017. This chapter will cover its history, provide some simply example to get started, and conclude with the scope of this book. At the end of this chapter you should understand why SystemVerilog is the <em>de facto standard</em> for modern hardware systems design and verification and how this book can help you learn SystemVerilog.</p>
+<h2 data-number="1.1" id="a-brief-history-of-systemverilog"><span class="header-section-number">1.1</span> A brief history of SystemVerilog</h2>
+<p>SystemVerilog is the ultimate combination following language designs as well as other technologies donation such as BlueSpec:</p>
+<ol type="1">
+<li>Verilog, which is an IEEE standard (IEEE 1364);</li>
+<li>Superlog, donated to Accellebra from the startup company Co-Design Automation (acquired by Synopsys);</li>
+<li>OpenVera, donated by Synopsys.</li>
+</ol>
+<p>Before we delve into the history of SystemVerilog, we need to take a step back and appreciate the evolution of Verilog, SystemVerilog’s precursor. Verilog was original develop between 1983 and 1984 and the company that created the language was eventually bought by Cadence in 1990. About 10 years later, Verilog is transferred by Cadence into the public domain and latter submitted to IEEE and becomes IEEE 1364-1995 standard, commonly referred as Verilog-95.</p>
+<p>As Verilog gained much popularity, significantly improvement had been made into Verilog-95, leading to a newer version of the standard, IEEE 1364-2001, known as Verilog-2001. Lots of syntax enhancement made the language simpler and more expressive.</p>
+<p>IEEE 1364-2005 is the last version of Verilog, where minor improvements were made into the standard. This standard marks the end of Verilog and was later merged into SystemVerilog and became a subset of SystemVerilog in IEEE 1800-2009.</p>
+<p>One common misconception is that Verilog is the HDL that is synthesizable, that is, able to be synthesized by the synthesis tools, and SystemVerilog is a verification language not synthesizable. This is completely wrong as Verilog is a strict subset of SystemVerilog and only a subset of SystemVerilog is synthesizable. The confusion got worse when the IEEE 1364-2005 (Verilog) merged with IEEE 1800-2005 (SystemVerilog) and the name “Verilog” ceased to exist in IEEE’s nomenclature. We will use SystemVerilog throughout the book, but you may hear people use Verilog when referring to SystemVerilog.</p>
+<p>With the donation from Superlog, SystemVerilog gains advanced syntax to boost design productivity, such as <code>struct</code> and <code>enum</code>, which itself is heavily influenced by C/C++. OpenVera greatly enhanced SystemVerilog’s ability to express assertion under various conditions, easing simulation coverage collection and formal verification.</p>
+<p>Asides from the unification of these three languages, SystemVerilog also introduce the concept of object-oriented-programming (OOP), which is influenced by C++ and Java. Unfortunately, design code that uses OOP cannot be synthesized for all synthesis tools, yet it is still commonly used in verification.</p>
+<p>First standardized in 2005 as IEEE 1800-2005, SystemVerilog enjoys a new and refined standard every 4-5 years. IEEE 1800-2009 marked the maturity of SystemVerilog as it merges in Verilog and integrates with Verilog-AMS. It also ensures interoperability with other HDLs such as SystemC and VHDL. Two subsequent revision standard IEEE 1800-2012 and IEEE 1800-2017 further refined and clarified the language specification.</p>
+<p>In introspect, the entire digital system design community witnessed the trend where a number of proprietary design languages fight for market and the only winners are the one that open up their specification. Remaining open allows EDA vendors as well as designers voice their critiques and concerns during the standardization process, which lead to wider adoption. There was a significant amount of concern in early 2010s where designers were uncertain whether SystemVerilog would ever be used. However, almost a decade later SystemVerilog is used by most hardware companies and supported by all popular EDA vendors.</p>
+<h2 data-number="1.2" id="getting-started"><span class="header-section-number">1.2</span> Getting started</h2>
+<p>SystemVerilog files are text-based and end mostly in <code>.sv</code> for implementation and <code>.svh</code> for header and definition files. Some EDA tools, e.g. Verilator, can parse SystemVerilog from normal Verilog file extension (<code>.v</code>), but most tools will report syntax error and a special flag needed to inform their internal language parser. In this book we will use <code>.sv</code> and <code>.svh</code> for file extensions.</p>
+<p>We will use the simple hello world example to help you get started. Save the following code as <code>example1.sv</code>.</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode systemverilog"><code class="sourceCode systemverilog"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true"></a><span class="kw">module</span> example1;</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true"></a></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true"></a><span class="kw">initial</span> <span class="kw">begin</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true"></a>    <span class="kw">$display</span>(<span class="st">&quot;hello world&quot;</span>);</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true"></a><span class="kw">end</span></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true"></a></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true"></a><span class="kw">endmodule</span></span></code></pre></div>
+<p>To run it, simply do</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true"></a>$ <span class="ex">xrun</span> example1.sv</span></code></pre></div>
+<p>You will see the following output along with other compilation information in the console output.</p>
+<pre><code>xcelium&gt; run
+hello world</code></pre>
+<h3 data-number="1.2.1" id="a-note-on-eda-tools-used-in-the-book"><span class="header-section-number">1.2.1</span> A note on EDA tools used in the book</h3>
+<p>By default, the book assumes you have the following commercial EDA tools installed:</p>
+<ol type="1">
+<li>Xcelium, which provides <code>xrun</code> command.</li>
+<li>JasperGold, which provides <code>jaspergold</code> command.</li>
+</ol>
+<p>While we understand that accessing these tools is difficult for most people, given their absurd license cost, these tools are selected due to their support for SystemVerilog features covered in this book. If you only have access to VCS, you should be able to run all the code examples by translating the simulator flags appropriately.</p>
+<p>If you do not have access to any commercial EDA tools, you can use <a href="https://www.edaplayground.com/">EDA Playground</a> for free. Notice that you have to register an account and accept its limited use terms. Most of the design and simulation code used here can be run on EDA Playground. Unfortunately EDA Playground does not have JasperGold installed.</p>
+<p>That being said, if you really need to use FOSS software, here is a list of tools that might work with the code examples below. However, we will not cover any command in this book, nor will we offer workaround to run the tools in case things do work.</p>
+<ol type="1">
+<li><a href="http://iverilog.icarus.com/">iverilog</a></li>
+<li><a href="https://www.veripool.org/wiki/verilator">Verilator</a></li>
+<li><a href="http://www.clifford.at/yosys/">yosys</a>. Notice that you need to purchase a Verific licence so that yosys can parse SystemVerilog files. The default support for SystemVerilog in yosys is very limited.</li>
+</ol>
+<h2 data-number="1.3" id="a-gentle-introduction-on-digital-systems"><span class="header-section-number">1.3</span> A gentle introduction on digital systems</h2>
+<p>Digital system has been studied for decades and its complexity warrants several books to cover the content in details. This chapter will only cover the basics and we will introduce more digital system concepts as we learn more SystemVerilog.</p>
+<h3 data-number="1.3.1" id="number-systems"><span class="header-section-number">1.3.1</span> Number systems</h3>
+<p>There are many ways to represent numbers in digital systems. The most approach is called <em>positional number representation</em>: a number <span class="math inline">\(N\)</span> with <span class="math inline">\(n\)</span> digits can be represented as followings with base <span class="math inline">\(b\)</span>: <span class="math display">\[
+(N)_{b} = d_{n-1} \times b^{n-1} + d_{n-2} \times b^{n-2} + \dots + d_0 \times b^0
+\]</span></p>
+<p>Due to the usage of logic gates, where data is represented as 0’s and 1’s, base 2, 8, 10, and 16 are commonly used in practice. Depends on the design needs, people choose one base over another for a particular number. For instance, if a number is used for storing flag information, then binary representation would be a better idea; if the number is used for instructions, then hexadecimal representation could be easier to read. Nevertheless, keep in mind that these are just different <em>representation</em> for the same number: choosing different base does not change the actual value of the number.</p>
+<p>Unlike natural numbers where there is no upper bound of maximum value, numbers in digital systems have a maximum value determined by its bit width. For instance, for a 4-bit number, the maximum value is <span class="math inline">\(2^4 - 1 = 15\)</span>. One direct implication for that is <em>overflow</em>, where the arithmetic operation result is bigger than the maximum value defined by the bit width. Overflow occurs very often and should be treated with extreme care.</p>
+<p>Another important attribute about number systems is that the number can be either signed or unsigned. Although the value of each bit remains the same, signed or unsigned representation can change the values of the number. For an unsigned number, the actual value and arithmetics follows that of natural numbers. For a signed number, the most common approach is using two’s complement. For instance, suppose we have a 4-bit number and we want to represent <span class="math inline">\(-2\)</span>. The procedure is as follows:</p>
+<ol type="1">
+<li>represent <span class="math inline">\(|-2| = 2\)</span> in binary, which is <span class="math inline">\(0010\)</span>;</li>
+<li>invert each bit, which is <span class="math inline">\(1101\)</span>;</li>
+<li>add 1 to the previous result, which becomes <span class="math inline">\(1110\)</span>.</li>
+</ol>
+<p>After the procedure, <span class="math inline">\(-2\)</span> can be represented as <span class="math inline">\(1110\)</span> using two’s complement. To simply check if the arithmetic works out under two’s complement scheme, we can compute <span class="math inline">\((-2) + 4\)</span> as follows: <span class="math display">\[
+(-2)_{10} + 4_{10} = 1110_{2} + 0100_{2} = 0010_{2} = 2_{10}
+\]</span> Notice that although the addition overflows, it is intentional. Using two’s complement, we can reuse all the arithmetics and let arithmetic overflowing taking care of the sign, which is the major advantage of using two’s complement.</p>
+<h3 data-number="1.3.2" id="boolean-algebra-and-logic-gates"><span class="header-section-number">1.3.2</span> Boolean algebra and logic gates</h3>
+<p>Boolean algebra is the branch of algebra where the values of the variable are either <em>true</em> or <em>false</em>. It was introduced by George Boole in 1847, hence the name boolean. Boolean algebra is fundamental in the development of digital systems. It is particularly used in logic synthesis, where the synthesis tools use boolean algebra to simplify the circuit while maintaining the same logic. Commonly used boolean algebra theory include Consensus Theorem and DeMorgan’s Theorem. Due to the scope of the book, we will not cover boolean algebra in details.</p>
+<p>Logic gates are the building blocks of a digital system. Commonly used logic gates such as AND, OR, XOR, and NOT gate. These gates can be wired tother to form more useful logic blocks such as multiplexer and adder.</p>
+<p>In many cases, a logic gate is abstracted as a block that dissipates no power and changes its value <em>instantaneously</em> whenever the inputs changes, a.k.a. ideal logic gate. Its behavior can be described mathematically as a step function, a visualization commonly shown in the debug interface. In reality, however, the logic gates does dissipates power, and it cannot change its output instantaneously, a delay called <em>propagation delay</em> that is critical to the timing analysis.</p>
+<p>In addition, contrary to ideal logic gate where the value can either be 0 or 1, real logic gate can exhibit un unstable equilibrium or <em>metastable</em> state. In such state, the circuit is unable to settle into a stable high (1) or low (0) voltage state within the required time. Metastability is one of the major design concern for clock domain crossing designs, which we will cover in details later in the book.</p>
+<h3 data-number="1.3.3" id="combinational-and-sequential-logic"><span class="header-section-number">1.3.3</span> Combinational and sequential logic</h3>
+<p>Combinational logic are logic consist of basic logic such as NAND, NOR, and NOT gate that are “combined” i.e. connected together to produce more complex circuits. Mathematically, a combination logic is a function that map the inputs to outputs. This mapping is deterministic, that is, two sets of identical inputs shall yell two identical outputs.</p>
+<p>Sequential logic, on the other hand, outputs values based on both current and <em>past</em> inputs. These past inputs, stored somewhere inside the memory elements, are referred as <em>state</em> of the circuit. Mathematically, it means that the circuit function <span class="math inline">\(f\)</span> takes two different types of input, <span class="math inline">\(i\)</span> and <span class="math inline">\(S\)</span>, and produce two kinds of outputs, <span class="math inline">\(o\)</span> and <span class="math inline">\(S\prime\)</span>. <span class="math inline">\(S\)</span> is the state of current circuit and <span class="math inline">\(S\prime\)</span> is the next state after the circuit computes its output.</p>
+<p>The states in sequential logic are commonly stored in latches and flip-flops. A latch is a sequential circuit that changes its outputs independently of a clock signal whereas a flip-flop changes its outputs only at times determined by a clock signal. This difference is critical and has implication on how we reason about digital design, as they have different power/timing charastics.</p>
+<h4 data-number="1.3.3.1" id="latches"><span class="header-section-number">1.3.3.1</span> Latches</h4>
+<p>There are many different types of latches. We will discuss only one of them here.</p>
+<p>A set/reset latch, or SR latch, works by relying on the the values of the <span class="math inline">\(S\)</span> and <span class="math inline">\(R\)</span> signals. It can be made from two NOR gates that have cross-feedback loop, as shown in Figure <a href="#fig:sr-latch">1</a>.</p>
+<div id="fig:sr-latch" class="fignos">
+<figure>
+<img src="images/01/sr-latch.svg" alt="" /><figcaption><span>Figure 1:</span> Using two NOR gates to build a SR-Latch.</figcaption>
+</figure>
+</div>
+<p>The truth table for the SR-Latch is shown in Table <a href="#tbl:sr-latch">1</a>. Readers are encouraged to work out the details on different <span class="math inline">\(S\)</span> <span class="math inline">\(R\)</span> conditions, especially when <span class="math inline">\(Q\)</span> is metastable.</p>
+<div id="tbl:sr-latch" class="tablenos">
+<table>
+<caption><span>Table 1:</span> Truth table for SR-Latch. </caption>
+<thead>
+<tr class="header">
+<th style="text-align: center;"><span class="math inline">\(S\)</span></th>
+<th style="text-align: center;"><span class="math inline">\(R\)</span></th>
+<th style="text-align: center;"></th>
+<th style="text-align: center;"><span class="math inline">\(Q\)</span></th>
+<th style="text-align: center;"><span class="math inline">\(\bar{Q}\)</span></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: center;">0</td>
+<td style="text-align: center;">0</td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;">Latched</td>
+<td style="text-align: center;">Latched</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">0</td>
+<td style="text-align: center;">1</td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;">0</td>
+<td style="text-align: center;">1</td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;">1</td>
+<td style="text-align: center;">0</td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;">1</td>
+<td style="text-align: center;">0</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">1</td>
+<td style="text-align: center;">1</td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;">Metastable</td>
+<td style="text-align: center;">Metastable</td>
+</tr>
+</tbody>
+</table>
+</div>
+<h4 data-number="1.3.3.2" id="d-flip-flop"><span class="header-section-number">1.3.3.2</span> D Flip-Flop</h4>
+<p>The D-flip-flop is one of the most widely used flip-flop design, as shown in Figure <a href="#fig:d-flip-flop">2</a>. The major difference between D flip-flop and SR latch is that data latched at clock edge. This latching behavior related to clock edges makes the design <em>synchronous</em>. A single D flip-flop can hold 1-bit memory.</p>
+<div id="fig:d-flip-flop" class="fignos">
+<figure>
+<img src="images/01/d-flip-flop.svg" alt="" /><figcaption><span>Figure 2:</span> D flip-flop symbol. Triangle indicates clock input.</figcaption>
+</figure>
+</div>
+<p>There are many variants of D flip-flop that are suitable for various conditions, for instance, classical positive-edge-triggered D flip-flop and master-slave edge-triggered D flip-flop. However, their exact designs are beyond the scope of this book.</p>
+<p>Due to the physical constraints on the logic gates, we have two critical timing characteristics regarding synchronous circuit design: setup time and hold time. Setup time refers to the amount of time at the synchronous input <em>before</em> the active clock edge. Hold tim refers to the amount of time at the synchronous input much be stable <em>after</em> the active clock edge, as shown in Figure <a href="#fig:setup-hold-time">3</a>. In other words, the signal has to be stable during both setup and hold time, otherwise there will be a timing violation.</p>
+<div id="fig:setup-hold-time" class="fignos">
+<figure>
+<img src="images/01/setup-hold-time.svg" alt="" /><figcaption><span>Figure 3:</span> Timing diagram for setup time and hold time</figcaption>
+</figure>
+</div>
+<h2 data-number="1.4" id="what-will-this-book-cover"><span class="header-section-number">1.4</span> What will this book cover</h2>
+<p>SystemVerilog by no means is a complex language and the IEEE 1800-2017 standard spans more than a thousand pages. This book mainly focus on the following aspects of SystemVerilog for digital system design and the EDA tool-chains associated with it:</p>
+<ol type="1">
+<li>Design technique for digital systems synthesis. The book will first cover comprehensive SystemVerilog language features for synthesis and how they can be used to model hardware. It will focus on vender and technology independent modeling techniques, which can be applied to both ASIC and FPGA design. How to use ASIC/FPGA synthesis tools, however, is beyond the scope of discussion.</li>
+<li>RTL simulation. This book will gradually transit from simple test bench to object-oriented and reusable test bench design.</li>
+<li>Software co-verification. This book will cover Verilog Procedural Interface (VPI) and Direct Programming Interface (DPI) in details and how they can be used to offer functional models for verification as well as perform other useful tasks.</li>
+<li>SystemVerilog Assertions (SVAs). This book will discuss various usages in details and how can SVAs be used in traditional simulation for coverage reports, and serve a foundation for formal verification.</li>
+<li>Advanced design techniques. This book will briefly cover topics such as clock domain crossing (CDC) and interconnect protocols.</li>
+</ol>
+<p>We hope by the end of book you will be confident in writing SystemVerilog for digital system design and verification.</p>
+                </div>
+            </div>
+        </div>
+        <script src="/assets/js/ui.js"></script>
+    </body>
+</html>
