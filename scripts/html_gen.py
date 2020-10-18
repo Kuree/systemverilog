@@ -2,6 +2,7 @@ import sys
 import os
 from html.parser import HTMLParser as HParser
 import shutil
+import glob
 
 
 class HTMLNode:
@@ -106,23 +107,28 @@ class Content:
 
         content = []
         chapter_name = ""
-        chapter_id = ""
         idx = 0
-        for node in body.children:
-            if node.tag == "header":
-                continue
+        while idx < len(body.children):
+            node = body.children[idx]
             if node.tag == "h1":
-                if idx != 0:
-                    assert chapter_name
-                    self.chapters[chapter_id] = (chapter_name, content)
-                    content = []
-                chapter_name = node.data
-                chapter_id = node.attr["id"]
-            content.append(str(node))
-
-            idx += 1
-        # the last one
-        self.chapters[chapter_id] = (chapter_name, content)
+                chapter_name = node.data.strip()
+                content.append("<h1>{0}</h1>".format(chapter_name))
+                # search until the next h1 or end
+                search_index = idx + 1
+                while search_index < len(body.children):
+                    n = body.children[search_index]
+                    if n.tag == "h1":
+                        break
+                    content.append(str(n))
+                    search_index += 1
+                # add WIP
+                if len(content) == 1:
+                    content.append("<p>Working in progress.</p>")
+                self.chapters[len(self.chapters) + 1] = (chapter_name, content)
+                idx = search_index
+                content = []
+            else:
+                idx += 1
 
 
 def read_out_template(root_dir):
@@ -133,10 +139,9 @@ def read_out_template(root_dir):
 
 def produce_menu_link(chapters):
     result = []
-    for name, content in chapters.items():
-        ch_name = content[0]
-        s = '<li class="pure-menu-item"><a href="/{0}.html" class="pure-menu-link">{1}</a></li>'.format(name,
-                                                                                                        ch_name)
+    for idx in chapters:
+        s = '<li class="pure-menu-item"><a href="/{0}.html" class="pure-menu-link">Chapter {1}</a></li>'.format(idx,
+                                                                                                                idx)
         result.append(s)
     return '\n'.join(result)
 
@@ -150,6 +155,25 @@ def copy_assets(root_dir, output_dir):
         shutil.rmtree(dst_dir)
     shutil.copytree(assets_dir, dst_dir)
 
+def copy_images(root_dir, output_dir):
+    if not os.path.isdir(output_dir):
+        os.mkdir(output_dir)
+    image_dir = os.path.join(root_dir, "images")
+    dst_dir = os.path.join(output_dir, "images")
+    if os.path.isdir(dst_dir):
+        shutil.rmtree(dst_dir)
+    # recursively walk all interested files
+    files = glob.glob(os.path.join(image_dir, "**/*"), recursive=True)
+    for filename in files:
+        ext = os.path.splitext(filename)[-1]
+        if ext in {".svg", ".png", ".jpg"}:
+            rel_path = os.path.relpath(filename, image_dir)
+            dst_path = os.path.join(dst_dir, rel_path)
+            d_dir = os.path.dirname(dst_path)
+            if not os.path.isdir(d_dir):
+                os.makedirs(d_dir, exist_ok=True)
+            shutil.copyfile(filename, dst_path)
+
 
 def output_css(output_dir, css):
     dst_path = os.path.join(output_dir, "assets", "css", "pandoc.css")
@@ -161,16 +185,22 @@ def output_css(output_dir, css):
 def output_html(output_dir, chapters, template_data, title):
     menu = produce_menu_link(chapters)
     menu_name = "Content"
-    for name, content in chapters.items():
+    for idx, content in chapters.items():
         ch_title, content = content
         c_s = "\n".join(content)
-        s = template_data.format(title=title,
+        s = template_data.format(title="{0} - {1}".format(title, ch_title),
                                  menu_name=menu_name,
                                  menu_list=menu,
                                  content=c_s)
-        dst = os.path.join(output_dir, "{0}.html".format(name))
+        dst = os.path.join(output_dir, "{0}.html".format(idx))
         with open(dst, "w+") as f:
             f.write(s)
+    # output index using cover page
+    content_s = '<img id="cover-img" src="images/cover.svg"></img>'
+    s = template_data.format(title=title, menu_name=menu_name,
+                             menu_list=menu, content=content_s)
+    with open(os.path.join(output_dir, "index.html"), "w+") as f:
+        f.write(s)
 
 
 def main():
@@ -199,6 +229,9 @@ def main():
 
     # copy assets
     copy_assets(root_dir, output_dir)
+
+    # copy images
+    copy_images(root_dir, output_dir)
 
     # output css
     output_css(output_dir, html_visitor.css)
