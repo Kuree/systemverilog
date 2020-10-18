@@ -15,7 +15,7 @@ html: book/title.txt $(shell find book/*.md)
 systemverilog.pdf: book/title.txt $(shell find book/*.md)
 	pandoc ${SV_SYNTAX}  -o $@ $^ --filter ${FILTERS} ${PANDOC_FLAGS} --template=${LATEX_TEMPLATE}
 
-html/index.html: book/title.txt $(shell find book/*.md) scripts/html_gen.py
+html/index.html: book/title.txt $(shell find book/*.md)
 	mkdir -p html
 	pandoc ${SV_SYNTAX} -s -o html/input.html $^ --highlight-style pygments --mathjax --filter ${FILTERS} ${PANDOC_FLAGS}
 	python3 scripts/html_gen.py html/input.html html

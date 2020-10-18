@@ -21,10 +21,10 @@ jobs:
         git -c "http.extraheader=$auth_header" -c protocol.version=2 submodule update --init --force --recursive --depth=1
     - name: Pull pandoc docker image
       shell: bash
-      run: docker pull keyiz/pandoc
+      run: docker pull ghcr.io/kuree/pandoc
     - name: Make PDF via pandoc docker image
       shell: bash
-      run: docker run --rm -v `(pwd)`:/systemverilog keyiz/pandoc /systemverilog/scripts/build.sh
+      run: docker run --rm -v `(pwd)`:/systemverilog ghcr.io/kuree/pandoc /systemverilog/scripts/build.sh
     - uses: actions/upload-artifact@v1
       with:
         name: PDF_book
