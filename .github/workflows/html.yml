@@ -1,0 +1,34 @@
+name: HTML Build
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+    if: "!contains(github.event.head_commit.message, 'skip ci')"
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Checkout submodules
+      shell: bash
+      run: |
+        auth_header="$(git config --local --get http.https://github.com/.extraheader)"
+        git submodule sync --recursive
+        git -c "http.extraheader=$auth_header" -c protocol.version=2 submodule update --init --force --recursive --depth=1
+    - name: Pull pandoc docker image
+      shell: bash
+      run: docker pull keyiz/pandoc
+    - name: Make HTML via pandoc docker image
+      shell: bash
+      run: docker run --rm -v `(pwd)`:/systemverilog keyiz/pandoc /systemverilog/scripts/build_html.sh
+    - name: Deploy 🚀
+      uses: JamesIves/github-pages-deploy-action@3.7.1
+      with:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        BRANCH: gh-pages # The branch the action should deploy to.
+        FOLDER: html # The folder the action should deploy.
+        CLEAN: true # Automatically remove deleted files from the deploy branch
