@@ -203,6 +203,11 @@ def output_html(output_dir, chapters, template_data, title):
         f.write(s)
 
 
+def write_cname(output_dir):
+    with open(os.path.join(output_dir, "CNAME"), "w+") as f:
+        f.write("systemverilog.dev")
+
+
 def main():
     args = sys.argv
     assert len(args) == 3, \
@@ -238,6 +243,9 @@ def main():
 
     # output html
     output_html(output_dir, content.chapters, template_data, html_visitor.title)
+
+    # cname
+    write_cname(output_dir)
 
 
 if __name__ == "__main__":
