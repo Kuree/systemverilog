@@ -2,7 +2,7 @@
 <html>
     <head>
         <meta charset="UTF-8">
-        <title>title - Modules, Controls, and Interfaces</title>
+        <title>SystemVerilog for RTL Modeling, Simulation, and Verification - Modules, Controls, and Interfaces</title>
         <link rel="stylesheet" href="https://unpkg.com/purecss@2.0.3/build/pure-min.css" integrity="sha384-cg6SkqEOCV1NbJoCu11+bm0NvBRc8IYLRGXkmNrqUBfTjmMYwNKPWBTIKyw9mHNJ" crossorigin="anonymous">
         <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.1.2/es5/tex-mml-chtml.min.js" integrity="sha512-7rZgZU/u5XjLaO7dBpkcvZ2+ilGXbdIak0FXUgMoO+adNy7RUceort055Wn7LkZY3VLwEsSDpi8Ui+32N1vrfw==" crossorigin="anonymous"></script>
         <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -39,149 +39,145 @@
             <div id="main">
                 <div class="content">
                     <h1>Modules, Controls, and Interfaces</h1>
-<h2 data-number="3.1" id="modules"><span class="header-section-number">3.1</span> Modules</h2>
+<h2 id="modules"><span class="header-section-number">3.1</span> Modules</h2>
 <p>Modules are the basic building blocks of SystemVerilog. It is intended to be a reusable component that can be connected to form a larger component. To declare a module, we can use the following syntax:</p>
-<div class="sourceCode" id="cb23"><pre class="sourceCode systemverilog"><code class="sourceCode systemverilog"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true"></a><span class="kw">module</span> module_name;</span>
-<span id="cb23-2"><a href="#cb23-2" aria-hidden="true"></a><span class="co">// content of the module</span></span>
-<span id="cb23-3"><a href="#cb23-3" aria-hidden="true"></a><span class="kw">endmodule</span></span></code></pre></div>
+<div class="sourceCode" id="cb23"><pre class="sourceCode systemverilog"><code class="sourceCode systemverilog"><a class="sourceLine" id="cb23-1" title="1"><span class="kw">module</span> module_name;</a>
+<a class="sourceLine" id="cb23-2" title="2"><span class="co">// content of the module</span></a>
+<a class="sourceLine" id="cb23-3" title="3"><span class="kw">endmodule</span></a></code></pre></div>
 <p>Notice that due to legacy reason, there is no namespace for modules. As a result, <code>module_name</code> has to be unique in your entire design. To declare the ports for the module, we can simply do</p>
-<div class="sourceCode" id="cb24"><pre class="sourceCode systemverilog"><code class="sourceCode systemverilog"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true"></a><span class="kw">module</span> module_name (<span class="kw">input</span>  <span class="kw">logic</span>      clk,</span>
-<span id="cb24-2"><a href="#cb24-2" aria-hidden="true"></a>                    <span class="kw">input</span>  <span class="kw">logic</span>      rst_n,</span>
-<span id="cb24-3"><a href="#cb24-3" aria-hidden="true"></a>                    <span class="kw">input</span>  <span class="kw">logic</span>[<span class="dv">7</span>:<span class="dv">0</span>] in,</span>
-<span id="cb24-4"><a href="#cb24-4" aria-hidden="true"></a>                    <span class="kw">output</span> <span class="kw">logic</span>[<span class="dv">7</span>:<span class="dv">0</span>] out);</span>
-<span id="cb24-5"><a href="#cb24-5" aria-hidden="true"></a></span>
-<span id="cb24-6"><a href="#cb24-6" aria-hidden="true"></a><span class="co">// content of the module</span></span>
-<span id="cb24-7"><a href="#cb24-7" aria-hidden="true"></a><span class="kw">endmodule</span></span></code></pre></div>
+<div class="sourceCode" id="cb24"><pre class="sourceCode systemverilog"><code class="sourceCode systemverilog"><a class="sourceLine" id="cb24-1" title="1"><span class="kw">module</span> module_name (<span class="kw">input</span>  <span class="kw">logic</span>      clk,</a>
+<a class="sourceLine" id="cb24-2" title="2">                    <span class="kw">input</span>  <span class="kw">logic</span>      rst_n,</a>
+<a class="sourceLine" id="cb24-3" title="3">                    <span class="kw">input</span>  <span class="kw">logic</span>[<span class="dv">7</span>:<span class="dv">0</span>] in,</a>
+<a class="sourceLine" id="cb24-4" title="4">                    <span class="kw">output</span> <span class="kw">logic</span>[<span class="dv">7</span>:<span class="dv">0</span>] out);</a>
+<a class="sourceLine" id="cb24-5" title="5"></a>
+<a class="sourceLine" id="cb24-6" title="6"><span class="co">// content of the module</span></a>
+<a class="sourceLine" id="cb24-7" title="7"><span class="kw">endmodule</span></a></code></pre></div>
 <p>Keywords <code>input</code> and <code>output</code> are used to specify the direction of ports. There is another keyword, <code>inout</code> which makes the port bidirectional. <code>inout</code> is typically used for tri-state designs and we will not cover it in the book. If you are declaring multiple ports sharing the same port direction and types, you can omit the subsequential ones, as shown below. Notice that the code is equivalent. It is up to the designers to choose which style they want to follow. In this book we will use the more verbose version.</p>
-<div class="sourceCode" id="cb25"><pre class="sourceCode systemverilog"><code class="sourceCode systemverilog"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true"></a><span class="kw">module</span> module_name (<span class="kw">input</span>  <span class="kw">logic</span>      clk, rst_n,</span>
-<span id="cb25-2"><a href="#cb25-2" aria-hidden="true"></a>                    <span class="kw">input</span>  <span class="kw">logic</span>[<span class="dv">7</span>:<span class="dv">0</span>] in,</span>
-<span id="cb25-3"><a href="#cb25-3" aria-hidden="true"></a>                    <span class="kw">output</span> <span class="kw">logic</span>[<span class="dv">7</span>:<span class="dv">0</span>] out);</span>
-<span id="cb25-4"><a href="#cb25-4" aria-hidden="true"></a><span class="kw">endmodule</span></span></code></pre></div>
+<div class="sourceCode" id="cb25"><pre class="sourceCode systemverilog"><code class="sourceCode systemverilog"><a class="sourceLine" id="cb25-1" title="1"><span class="kw">module</span> module_name (<span class="kw">input</span>  <span class="kw">logic</span>      clk, rst_n,</a>
+<a class="sourceLine" id="cb25-2" title="2">                    <span class="kw">input</span>  <span class="kw">logic</span>[<span class="dv">7</span>:<span class="dv">0</span>] in,</a>
+<a class="sourceLine" id="cb25-3" title="3">                    <span class="kw">output</span> <span class="kw">logic</span>[<span class="dv">7</span>:<span class="dv">0</span>] out);</a>
+<a class="sourceLine" id="cb25-4" title="4"><span class="kw">endmodule</span></a></code></pre></div>
 <p>The type for the ports can be any integral values, such as logic, arrays, or struct. It can also be interface, which will be covered later in the chapter.</p>
 <p>Notice that there is another style of declaring port, which is specifying port names first, then later on declare the port direction and types, typically called Non-ANSI style. This style is out-dated and we do not recommend use it in practice.</p>
 <p>To declare variables inside the module, we can simply put definition inside the <code>module endmodule</code>.</p>
-<div class="sourceCode" id="cb26"><pre class="sourceCode systemverilog"><code class="sourceCode systemverilog"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true"></a><span class="kw">module</span> ex1 (<span class="kw">input</span>  <span class="kw">logic</span>      clk,</span>
-<span id="cb26-2"><a href="#cb26-2" aria-hidden="true"></a>            <span class="kw">input</span>  <span class="kw">logic</span>      rst_n,</span>
-<span id="cb26-3"><a href="#cb26-3" aria-hidden="true"></a>            <span class="kw">input</span>  <span class="kw">logic</span>[<span class="dv">7</span>:<span class="dv">0</span>] in,</span>
-<span id="cb26-4"><a href="#cb26-4" aria-hidden="true"></a>            <span class="kw">output</span> <span class="kw">logic</span>[<span class="dv">7</span>:<span class="dv">0</span>] out);</span>
-<span id="cb26-5"><a href="#cb26-5" aria-hidden="true"></a></span>
-<span id="cb26-6"><a href="#cb26-6" aria-hidden="true"></a><span class="kw">logic</span> [<span class="dv">7</span>:<span class="dv">0</span>] value; </span>
-<span id="cb26-7"><a href="#cb26-7" aria-hidden="true"></a></span>
-<span id="cb26-8"><a href="#cb26-8" aria-hidden="true"></a><span class="kw">endmodule</span></span></code></pre></div>
+<div class="sourceCode" id="cb26"><pre class="sourceCode systemverilog"><code class="sourceCode systemverilog"><a class="sourceLine" id="cb26-1" title="1"><span class="kw">module</span> ex1 (<span class="kw">input</span>  <span class="kw">logic</span>      clk,</a>
+<a class="sourceLine" id="cb26-2" title="2">            <span class="kw">input</span>  <span class="kw">logic</span>      rst_n,</a>
+<a class="sourceLine" id="cb26-3" title="3">            <span class="kw">input</span>  <span class="kw">logic</span>[<span class="dv">7</span>:<span class="dv">0</span>] in,</a>
+<a class="sourceLine" id="cb26-4" title="4">            <span class="kw">output</span> <span class="kw">logic</span>[<span class="dv">7</span>:<span class="dv">0</span>] out);</a>
+<a class="sourceLine" id="cb26-5" title="5"></a>
+<a class="sourceLine" id="cb26-6" title="6"><span class="kw">logic</span> [<span class="dv">7</span>:<span class="dv">0</span>] value; </a>
+<a class="sourceLine" id="cb26-7" title="7"></a>
+<a class="sourceLine" id="cb26-8" title="8"><span class="kw">endmodule</span></a></code></pre></div>
 <p>In the example code we declare 8-bit value <code>value</code>. Notice that it is highly recommended to declare the variable type before using the variable. Although implicit logic declaration is supported in SystemVerilog, it is dangerous and usually triggers compiler warnings/errors.</p>
-<h3 data-number="3.1.1" id="module-parameters"><span class="header-section-number">3.1.1</span> Module Parameters</h3>
+<h3 id="module-parameters"><span class="header-section-number">3.1.1</span> Module Parameters</h3>
 <p>SystemVerilog allows the module definition parametrized by certain values, which makes the modules more reusable. For instance, suppose we have an ALU module parametrized by the data width, we can reuse the same definition for both 32-bit and 64-bit ALU instantiation.</p>
 <p>To declare a parametrized module, we can use the following syntax, which is also the ANSI style.</p>
-<div class="sourceCode" id="cb27"><pre class="sourceCode systemverilog"><code class="sourceCode systemverilog"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true"></a><span class="kw">module</span> mod_param</span>
-<span id="cb27-2"><a href="#cb27-2" aria-hidden="true"></a>    #(<span class="kw">parameter</span> <span class="kw">int</span>              WIDTH=<span class="dv">8</span>,</span>
-<span id="cb27-3"><a href="#cb27-3" aria-hidden="true"></a>      <span class="kw">parameter</span> <span class="kw">logic</span>[<span class="dv">7</span>:<span class="dv">0</span>]       VALUE=<span class="bn">&#39;h0</span>)</span>
-<span id="cb27-4"><a href="#cb27-4" aria-hidden="true"></a>     (<span class="kw">input</span>     <span class="kw">logic</span>            clk,</span>
-<span id="cb27-5"><a href="#cb27-5" aria-hidden="true"></a>      <span class="kw">input</span>     <span class="kw">logic</span>            rst_n,</span>
-<span id="cb27-6"><a href="#cb27-6" aria-hidden="true"></a>      <span class="kw">input</span>     <span class="kw">logic</span>[WIDTH<span class="dv">-1</span>:<span class="dv">0</span>] in,</span>
-<span id="cb27-7"><a href="#cb27-7" aria-hidden="true"></a>      <span class="kw">output</span>    <span class="kw">logic</span>[WIDTH<span class="dv">-1</span>:<span class="dv">0</span>] out);</span>
-<span id="cb27-8"><a href="#cb27-8" aria-hidden="true"></a></span>
-<span id="cb27-9"><a href="#cb27-9" aria-hidden="true"></a><span class="kw">endmodule</span></span></code></pre></div>
+<div class="sourceCode" id="cb27"><pre class="sourceCode systemverilog"><code class="sourceCode systemverilog"><a class="sourceLine" id="cb27-1" title="1"><span class="kw">module</span> mod_param</a>
+<a class="sourceLine" id="cb27-2" title="2">    #(<span class="kw">parameter</span> <span class="kw">int</span>              WIDTH=<span class="dv">8</span>,</a>
+<a class="sourceLine" id="cb27-3" title="3">      <span class="kw">parameter</span> <span class="kw">logic</span>[<span class="dv">7</span>:<span class="dv">0</span>]       VALUE=<span class="bn">&#39;h0</span>)</a>
+<a class="sourceLine" id="cb27-4" title="4">     (<span class="kw">input</span>     <span class="kw">logic</span>            clk,</a>
+<a class="sourceLine" id="cb27-5" title="5">      <span class="kw">input</span>     <span class="kw">logic</span>            rst_n,</a>
+<a class="sourceLine" id="cb27-6" title="6">      <span class="kw">input</span>     <span class="kw">logic</span>[WIDTH<span class="dv">-1</span>:<span class="dv">0</span>] in,</a>
+<a class="sourceLine" id="cb27-7" title="7">      <span class="kw">output</span>    <span class="kw">logic</span>[WIDTH<span class="dv">-1</span>:<span class="dv">0</span>] out);</a>
+<a class="sourceLine" id="cb27-8" title="8"></a>
+<a class="sourceLine" id="cb27-9" title="9"><span class="kw">endmodule</span></a></code></pre></div>
 <p>In the example above, module <code>mod_param</code> is parametrized by two parameters <code>WIDTH</code> and <code>VALUE</code>. We immediately use <code>WIDTH</code> to parametrize the bit-width of <code>in</code> and <code>out</code>. Notice that we also specify the data type for <code>VALUE</code>. In general we recommend to specify the data type of a parameter. If it used for data width parametrization, <code>int</code> should suffice. In the example we also give the parameters a default value, which is highly recommended to do so.</p>
 <p>There is another type of “parameter” called <code>localparam</code>. It is not parameterization per se, since its value cannot be changed through instantiation. However, for the sake of completeness we will cover it here. Local parameters are typically used for storing magic numbers. For state values, however, you should use <code>enum</code> instead.</p>
-<div class="sourceCode" id="cb28"><pre class="sourceCode systemverilog"><code class="sourceCode systemverilog"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true"></a><span class="kw">module</span> localparam_ex;</span>
-<span id="cb28-2"><a href="#cb28-2" aria-hidden="true"></a></span>
-<span id="cb28-3"><a href="#cb28-3" aria-hidden="true"></a><span class="kw">localparam</span> <span class="kw">logic</span>[<span class="dv">31</span>:<span class="dv">0</span>] VALUE = <span class="bn">32&#39;d42</span>;</span>
-<span id="cb28-4"><a href="#cb28-4" aria-hidden="true"></a></span>
-<span id="cb28-5"><a href="#cb28-5" aria-hidden="true"></a><span class="kw">endmodule</span></span></code></pre></div>
+<div class="sourceCode" id="cb28"><pre class="sourceCode systemverilog"><code class="sourceCode systemverilog"><a class="sourceLine" id="cb28-1" title="1"><span class="kw">module</span> localparam_ex;</a>
+<a class="sourceLine" id="cb28-2" title="2"></a>
+<a class="sourceLine" id="cb28-3" title="3"><span class="kw">localparam</span> <span class="kw">logic</span>[<span class="dv">31</span>:<span class="dv">0</span>] VALUE = <span class="bn">32&#39;d42</span>;</a>
+<a class="sourceLine" id="cb28-4" title="4"></a>
+<a class="sourceLine" id="cb28-5" title="5"><span class="kw">endmodule</span></a></code></pre></div>
 <p>In the example above we define a magic number <code>VALUE</code> to have the value of 42. We can later use <code>VALUE</code> whenever we need its value.</p>
-<h3 data-number="3.1.2" id="module-instantiation-and-hierarchy"><span class="header-section-number">3.1.2</span> Module Instantiation and Hierarchy</h3>
+<h3 id="module-instantiation-and-hierarchy"><span class="header-section-number">3.1.2</span> Module Instantiation and Hierarchy</h3>
 <p>Once we have a module definition, we can instantiate it in a parent module. Suppose we have a module definition as follows:</p>
-<div class="sourceCode" id="cb29"><pre class="sourceCode systemverilog"><code class="sourceCode systemverilog"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true"></a><span class="kw">module</span> child (<span class="kw">input</span>  <span class="kw">logic</span> clk,</span>
-<span id="cb29-2"><a href="#cb29-2" aria-hidden="true"></a>              <span class="kw">input</span>  <span class="kw">logic</span> in,</span>
-<span id="cb29-3"><a href="#cb29-3" aria-hidden="true"></a>              <span class="kw">output</span> <span class="kw">logic</span> out);</span>
-<span id="cb29-4"><a href="#cb29-4" aria-hidden="true"></a></span>
-<span id="cb29-5"><a href="#cb29-5" aria-hidden="true"></a><span class="kw">endmodule</span></span></code></pre></div>
+<div class="sourceCode" id="cb29"><pre class="sourceCode systemverilog"><code class="sourceCode systemverilog"><a class="sourceLine" id="cb29-1" title="1"><span class="kw">module</span> child (<span class="kw">input</span>  <span class="kw">logic</span> clk,</a>
+<a class="sourceLine" id="cb29-2" title="2">              <span class="kw">input</span>  <span class="kw">logic</span> in,</a>
+<a class="sourceLine" id="cb29-3" title="3">              <span class="kw">output</span> <span class="kw">logic</span> out);</a>
+<a class="sourceLine" id="cb29-4" title="4"></a>
+<a class="sourceLine" id="cb29-5" title="5"><span class="kw">endmodule</span></a></code></pre></div>
 <p>We can instantiate the child module as follows:</p>
-<div class="sourceCode" id="cb30"><pre class="sourceCode systemverilog"><code class="sourceCode systemverilog"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true"></a><span class="kw">module</span> parent;</span>
-<span id="cb30-2"><a href="#cb30-2" aria-hidden="true"></a></span>
-<span id="cb30-3"><a href="#cb30-3" aria-hidden="true"></a><span class="co">// declare variables to connect to the child</span></span>
-<span id="cb30-4"><a href="#cb30-4" aria-hidden="true"></a><span class="kw">logic</span> clk;</span>
-<span id="cb30-5"><a href="#cb30-5" aria-hidden="true"></a><span class="kw">logic</span> in;</span>
-<span id="cb30-6"><a href="#cb30-6" aria-hidden="true"></a><span class="kw">logic</span> out;</span>
-<span id="cb30-7"><a href="#cb30-7" aria-hidden="true"></a></span>
-<span id="cb30-8"><a href="#cb30-8" aria-hidden="true"></a><span class="co">// instantiate a child</span></span>
-<span id="cb30-9"><a href="#cb30-9" aria-hidden="true"></a>child child_inst (</span>
-<span id="cb30-10"><a href="#cb30-10" aria-hidden="true"></a>    .clk(clk),</span>
-<span id="cb30-11"><a href="#cb30-11" aria-hidden="true"></a>    .in(in),</span>
-<span id="cb30-12"><a href="#cb30-12" aria-hidden="true"></a>    .out(out)</span>
-<span id="cb30-13"><a href="#cb30-13" aria-hidden="true"></a>);</span>
-<span id="cb30-14"><a href="#cb30-14" aria-hidden="true"></a></span>
-<span id="cb30-15"><a href="#cb30-15" aria-hidden="true"></a><span class="kw">endmodule</span></span></code></pre></div>
+<div class="sourceCode" id="cb30"><pre class="sourceCode systemverilog"><code class="sourceCode systemverilog"><a class="sourceLine" id="cb30-1" title="1"><span class="kw">module</span> parent;</a>
+<a class="sourceLine" id="cb30-2" title="2"></a>
+<a class="sourceLine" id="cb30-3" title="3"><span class="co">// declare variables to connect to the child</span></a>
+<a class="sourceLine" id="cb30-4" title="4"><span class="kw">logic</span> clk;</a>
+<a class="sourceLine" id="cb30-5" title="5"><span class="kw">logic</span> in;</a>
+<a class="sourceLine" id="cb30-6" title="6"><span class="kw">logic</span> out;</a>
+<a class="sourceLine" id="cb30-7" title="7"></a>
+<a class="sourceLine" id="cb30-8" title="8"><span class="co">// instantiate a child</span></a>
+<a class="sourceLine" id="cb30-9" title="9">child child_inst (</a>
+<a class="sourceLine" id="cb30-10" title="10">    .clk(clk),</a>
+<a class="sourceLine" id="cb30-11" title="11">    .in(in),</a>
+<a class="sourceLine" id="cb30-12" title="12">    .out(out)</a>
+<a class="sourceLine" id="cb30-13" title="13">);</a>
+<a class="sourceLine" id="cb30-14" title="14"></a>
+<a class="sourceLine" id="cb30-15" title="15"><span class="kw">endmodule</span></a></code></pre></div>
 <p>In the example above, we first declares three variables, <code>clk</code>, <code>in</code>, <code>out</code>, which will be wired to our child instance. To instantiate the child module, we create an instance called <code>child_inst</code>. To specify the port wiring, we use <code>.child_port_name(parent_var_name)</code> syntax. It means to wire <code>parent_var_name</code> from the parent module to <code>child_port_name</code> port from the child instance.</p>
 <p>There is another short-hand to instantiate the child module in our case. Since the <code>child_port_name</code> is identical to <code>parent_var_name</code>, we can do the following</p>
-<div class="sourceCode" id="cb31"><pre class="sourceCode systemverilog"><code class="sourceCode systemverilog"><span id="cb31-1"><a href="#cb31-1" aria-hidden="true"></a>child child_inst (.*);</span></code></pre></div>
+<div class="sourceCode" id="cb31"><pre class="sourceCode systemverilog"><code class="sourceCode systemverilog"><a class="sourceLine" id="cb31-1" title="1">child child_inst (.*);</a></code></pre></div>
 <p><code>(.*)</code> tells the compiler to automatically find and wire matching variable from the parent module. You can even override the default matching with extra connections, as shown below, which wires <code>clk_in</code> to <code>child_inst</code>’s <code>clk</code> and leaves the rest to the default matching.</p>
-<div class="sourceCode" id="cb32"><pre class="sourceCode systemverilog"><code class="sourceCode systemverilog"><span id="cb32-1"><a href="#cb32-1" aria-hidden="true"></a><span class="kw">logic</span> clk_in;</span>
-<span id="cb32-2"><a href="#cb32-2" aria-hidden="true"></a></span>
-<span id="cb32-3"><a href="#cb32-3" aria-hidden="true"></a>child child_inst <span class="dt">(.clk</span>(clk_in), .*);</span></code></pre></div>
+<div class="sourceCode" id="cb32"><pre class="sourceCode systemverilog"><code class="sourceCode systemverilog"><a class="sourceLine" id="cb32-1" title="1"><span class="kw">logic</span> clk_in;</a>
+<a class="sourceLine" id="cb32-2" title="2"></a>
+<a class="sourceLine" id="cb32-3" title="3">child child_inst <span class="dt">(.clk</span>(clk_in), .*);</a></code></pre></div>
 <p>Although it may simplify the code and make it more readable, because the matching only relies on the name, it may be matched to an unexpected wire. We recommend to only use this style when the design is simple.</p>
 <p>To instantiate a module with different parameter values other than the default ones, we can do the following, using the module <code>mod_param</code> defined earlier.</p>
-<div class="sourceCode" id="cb33"><pre class="sourceCode systemverilog"><code class="sourceCode systemverilog"><span id="cb33-1"><a href="#cb33-1" aria-hidden="true"></a><span class="kw">module</span> parent;</span>
-<span id="cb33-2"><a href="#cb33-2" aria-hidden="true"></a></span>
-<span id="cb33-3"><a href="#cb33-3" aria-hidden="true"></a><span class="kw">logic</span> clk;</span>
-<span id="cb33-4"><a href="#cb33-4" aria-hidden="true"></a><span class="kw">logic</span> rst_n;</span>
-<span id="cb33-5"><a href="#cb33-5" aria-hidden="true"></a><span class="kw">logic</span> [<span class="dv">15</span>:<span class="dv">0</span>] in;</span>
-<span id="cb33-6"><a href="#cb33-6" aria-hidden="true"></a><span class="kw">logic</span> [<span class="dv">15</span>:<span class="dv">0</span>] out;</span>
-<span id="cb33-7"><a href="#cb33-7" aria-hidden="true"></a></span>
-<span id="cb33-8"><a href="#cb33-8" aria-hidden="true"></a>mod_param #<span class="dt">(.WIDTH</span>(<span class="dv">16</span>)) child_inst (</span>
-<span id="cb33-9"><a href="#cb33-9" aria-hidden="true"></a>    .clk(clk),</span>
-<span id="cb33-10"><a href="#cb33-10" aria-hidden="true"></a>    .rst_n(rst_n),</span>
-<span id="cb33-11"><a href="#cb33-11" aria-hidden="true"></a>    .in(in),</span>
-<span id="cb33-12"><a href="#cb33-12" aria-hidden="true"></a>    .out(out)</span>
-<span id="cb33-13"><a href="#cb33-13" aria-hidden="true"></a>);</span>
-<span id="cb33-14"><a href="#cb33-14" aria-hidden="true"></a></span>
-<span id="cb33-15"><a href="#cb33-15" aria-hidden="true"></a><span class="kw">endmodule</span></span></code></pre></div>
+<div class="sourceCode" id="cb33"><pre class="sourceCode systemverilog"><code class="sourceCode systemverilog"><a class="sourceLine" id="cb33-1" title="1"><span class="kw">module</span> parent;</a>
+<a class="sourceLine" id="cb33-2" title="2"></a>
+<a class="sourceLine" id="cb33-3" title="3"><span class="kw">logic</span> clk;</a>
+<a class="sourceLine" id="cb33-4" title="4"><span class="kw">logic</span> rst_n;</a>
+<a class="sourceLine" id="cb33-5" title="5"><span class="kw">logic</span> [<span class="dv">15</span>:<span class="dv">0</span>] in;</a>
+<a class="sourceLine" id="cb33-6" title="6"><span class="kw">logic</span> [<span class="dv">15</span>:<span class="dv">0</span>] out;</a>
+<a class="sourceLine" id="cb33-7" title="7"></a>
+<a class="sourceLine" id="cb33-8" title="8">mod_param #<span class="dt">(.WIDTH</span>(<span class="dv">16</span>)) child_inst (</a>
+<a class="sourceLine" id="cb33-9" title="9">    .clk(clk),</a>
+<a class="sourceLine" id="cb33-10" title="10">    .rst_n(rst_n),</a>
+<a class="sourceLine" id="cb33-11" title="11">    .in(in),</a>
+<a class="sourceLine" id="cb33-12" title="12">    .out(out)</a>
+<a class="sourceLine" id="cb33-13" title="13">);</a>
+<a class="sourceLine" id="cb33-14" title="14"></a>
+<a class="sourceLine" id="cb33-15" title="15"><span class="kw">endmodule</span></a></code></pre></div>
 <p>In the example above we override the parameter value <code>WIDTH</code> with 16. Notice that we have to manually change the bit-width of <code>in</code> and <code>out</code>. A better way to do is the following, where the bit-width is only specified by a single parameter in the parent scope.:</p>
-<div class="sourceCode" id="cb34"><pre class="sourceCode systemverilog"><code class="sourceCode systemverilog"><span id="cb34-1"><a href="#cb34-1" aria-hidden="true"></a><span class="kw">module</span> parent;</span>
-<span id="cb34-2"><a href="#cb34-2" aria-hidden="true"></a></span>
-<span id="cb34-3"><a href="#cb34-3" aria-hidden="true"></a><span class="kw">localparam</span> <span class="kw">int</span> WIDTH = <span class="dv">16</span>;</span>
-<span id="cb34-4"><a href="#cb34-4" aria-hidden="true"></a></span>
-<span id="cb34-5"><a href="#cb34-5" aria-hidden="true"></a><span class="kw">logic</span> clk;</span>
-<span id="cb34-6"><a href="#cb34-6" aria-hidden="true"></a><span class="kw">logic</span> rst_n;</span>
-<span id="cb34-7"><a href="#cb34-7" aria-hidden="true"></a><span class="kw">logic</span> [WIDTH<span class="dv">-1</span>:<span class="dv">0</span>] in;</span>
-<span id="cb34-8"><a href="#cb34-8" aria-hidden="true"></a><span class="kw">logic</span> [WIDTH<span class="dv">-1</span>:<span class="dv">0</span>] out;</span>
-<span id="cb34-9"><a href="#cb34-9" aria-hidden="true"></a></span>
-<span id="cb34-10"><a href="#cb34-10" aria-hidden="true"></a>mod_param #<span class="dt">(.WIDTH</span>(WIDTH)) child_inst (</span>
-<span id="cb34-11"><a href="#cb34-11" aria-hidden="true"></a>    .clk(clk),</span>
-<span id="cb34-12"><a href="#cb34-12" aria-hidden="true"></a>    .rst_n(rst_n),</span>
-<span id="cb34-13"><a href="#cb34-13" aria-hidden="true"></a>    .in(in),</span>
-<span id="cb34-14"><a href="#cb34-14" aria-hidden="true"></a>    .out(out)</span>
-<span id="cb34-15"><a href="#cb34-15" aria-hidden="true"></a>);</span>
-<span id="cb34-16"><a href="#cb34-16" aria-hidden="true"></a></span>
-<span id="cb34-17"><a href="#cb34-17" aria-hidden="true"></a><span class="kw">endmodule</span></span></code></pre></div>
+<div class="sourceCode" id="cb34"><pre class="sourceCode systemverilog"><code class="sourceCode systemverilog"><a class="sourceLine" id="cb34-1" title="1"><span class="kw">module</span> parent;</a>
+<a class="sourceLine" id="cb34-2" title="2"></a>
+<a class="sourceLine" id="cb34-3" title="3"><span class="kw">localparam</span> <span class="kw">int</span> WIDTH = <span class="dv">16</span>;</a>
+<a class="sourceLine" id="cb34-4" title="4"></a>
+<a class="sourceLine" id="cb34-5" title="5"><span class="kw">logic</span> clk;</a>
+<a class="sourceLine" id="cb34-6" title="6"><span class="kw">logic</span> rst_n;</a>
+<a class="sourceLine" id="cb34-7" title="7"><span class="kw">logic</span> [WIDTH<span class="dv">-1</span>:<span class="dv">0</span>] in;</a>
+<a class="sourceLine" id="cb34-8" title="8"><span class="kw">logic</span> [WIDTH<span class="dv">-1</span>:<span class="dv">0</span>] out;</a>
+<a class="sourceLine" id="cb34-9" title="9"></a>
+<a class="sourceLine" id="cb34-10" title="10">mod_param #<span class="dt">(.WIDTH</span>(WIDTH)) child_inst (</a>
+<a class="sourceLine" id="cb34-11" title="11">    .clk(clk),</a>
+<a class="sourceLine" id="cb34-12" title="12">    .rst_n(rst_n),</a>
+<a class="sourceLine" id="cb34-13" title="13">    .in(in),</a>
+<a class="sourceLine" id="cb34-14" title="14">    .out(out)</a>
+<a class="sourceLine" id="cb34-15" title="15">);</a>
+<a class="sourceLine" id="cb34-16" title="16"></a>
+<a class="sourceLine" id="cb34-17" title="17"><span class="kw">endmodule</span></a></code></pre></div>
 <p>To access variables through hierarchy, we can do <code>child_inst.out</code> from the parent module. We only recommend to do so in test bench, in instead of RTL code for synthesis.</p>
 <p>A design style where all the logic are specified through module instantiation rather than the procedural blocks is called <em>structural</em> Verilog. Unless you are very experienced in RTL design or have a particular need in physical design, we highly recommend not to use such style in RTL design. It will reduce the synthesis quality and make verification more difficult. We will discuss the benefit of another style, <em>behavioral</em> Verilog, where design logics are specified through procedural blocks.</p>
-<h2 data-number="3.2" id="continuous-assignment"><span class="header-section-number">3.2</span> Continuous Assignment</h2>
+<h2 id="continuous-assignment"><span class="header-section-number">3.2</span> Continuous Assignment</h2>
 <p>Continuous assignment wires the values on the right hand side to the left side. <em>Continuous</em> in its name implies that whenever an operand in the right-hand expression changes, the whole right-hand side expression shall be evaluated and its result will be assigned to the left hand side. This is used to model combinational circuit where the output of the circuit updates its value whenever the input values change.</p>
 <p>To use continuous assignment, we can do</p>
-<div class="sourceCode" id="cb35"><pre class="sourceCode systemverilog"><code class="sourceCode systemverilog"><span id="cb35-1"><a href="#cb35-1" aria-hidden="true"></a><span class="kw">module</span> continuous_assign;</span>
-<span id="cb35-2"><a href="#cb35-2" aria-hidden="true"></a><span class="kw">logic</span> [<span class="dv">3</span>:<span class="dv">0</span>] a;</span>
-<span id="cb35-3"><a href="#cb35-3" aria-hidden="true"></a><span class="kw">logic</span> [<span class="dv">3</span>:<span class="dv">0</span>] b;</span>
-<span id="cb35-4"><a href="#cb35-4" aria-hidden="true"></a></span>
-<span id="cb35-5"><a href="#cb35-5" aria-hidden="true"></a><span class="kw">assign</span> a = b;</span>
-<span id="cb35-6"><a href="#cb35-6" aria-hidden="true"></a><span class="kw">endmodule</span></span></code></pre></div>
+<div class="sourceCode" id="cb35"><pre class="sourceCode systemverilog"><code class="sourceCode systemverilog"><a class="sourceLine" id="cb35-1" title="1"><span class="kw">module</span> continuous_assign;</a>
+<a class="sourceLine" id="cb35-2" title="2"><span class="kw">logic</span> [<span class="dv">3</span>:<span class="dv">0</span>] a;</a>
+<a class="sourceLine" id="cb35-3" title="3"><span class="kw">logic</span> [<span class="dv">3</span>:<span class="dv">0</span>] b;</a>
+<a class="sourceLine" id="cb35-4" title="4"></a>
+<a class="sourceLine" id="cb35-5" title="5"><span class="kw">assign</span> a = b;</a>
+<a class="sourceLine" id="cb35-6" title="6"><span class="kw">endmodule</span></a></code></pre></div>
 <p>You can of course use more complex expression such as</p>
-<div class="sourceCode" id="cb36"><pre class="sourceCode systemverilog"><code class="sourceCode systemverilog"><span id="cb36-1"><a href="#cb36-1" aria-hidden="true"></a><span class="kw">logic</span> c;</span>
-<span id="cb36-2"><a href="#cb36-2" aria-hidden="true"></a><span class="kw">assign</span> a = c? b : b + <span class="dv">1</span>;</span></code></pre></div>
+<div class="sourceCode" id="cb36"><pre class="sourceCode systemverilog"><code class="sourceCode systemverilog"><a class="sourceLine" id="cb36-1" title="1"><span class="kw">logic</span> c;</a>
+<a class="sourceLine" id="cb36-2" title="2"><span class="kw">assign</span> a = c? b : b + <span class="dv">1</span>;</a></code></pre></div>
 <p>There are couple rules apply to continuous assignments:</p>
 <ol type="1">
-<li><p>Continuous assignment can only appear in the scope of a module, that is, its lexical parent should be <code>module</code>. You cannot declare a continuous assignment in other scopes such as procedural blocks or functions, which we will cover shortly.</p></li>
+<li>Continuous assignment can only appear in the scope of a module, that is, its lexical parent should be <code>module</code>. You cannot declare a continuous assignment in other scopes such as procedural blocks or functions, which we will cover shortly.</li>
 <li><p>Each bit of left hand side can only be assigned to once as continuous assignments. For instance, it is illegal to do something below, where bit <code>a[1]</code> is assigned twice.</p>
-<div class="sourceCode" id="cb37"><pre class="sourceCode systemverilog"><code class="sourceCode systemverilog"><span id="cb37-1"><a href="#cb37-1" aria-hidden="true"></a><span class="kw">assign</span> a[<span class="dv">1</span>:<span class="dv">0</span>] = b[<span class="dv">1</span>:<span class="dv">0</span>];</span>
-<span id="cb37-2"><a href="#cb37-2" aria-hidden="true"></a><span class="kw">assign</span> a[<span class="dv">1</span>] = c;</span></code></pre></div></li>
+<div class="sourceCode" id="cb37"><pre class="sourceCode systemverilog"><code class="sourceCode systemverilog"><a class="sourceLine" id="cb37-1" title="1"><span class="kw">assign</span> a[<span class="dv">1</span>:<span class="dv">0</span>] = b[<span class="dv">1</span>:<span class="dv">0</span>];</a>
+<a class="sourceLine" id="cb37-2" title="2"><span class="kw">assign</span> a[<span class="dv">1</span>] = c;</a></code></pre></div></li>
 <li><p>The left hand can only be a net/variable, or a select of a vector/net, or a concatenation. For the case of concatenation, the operator can be seen as “unpacked” in the concatenation order, as shown below, where the sum of <code>a</code>, <code>b</code>, and <code>cin</code> is split into <code>cout</code> and <code>sum</code>. Since <code>cout</code> is only 1-bit, it gets the value of carry out. ```SystemVerilog // a 4-bit adder with carry logic [3:0] a; logic [3:0] b; logic [3:0] sum; logic cin; logic cout;</p>
-<p>assign {cout, sum} = a + b + cin; <code>Notice you can also perform a continuous assignment when declaring a variable as initialization, as below:</code>SystemVerilog logic [3:0] d = 4’h1;</p>
-<pre><code>Although it works well for ASIC with constant initialization, it will only work with a subset of FPGA boards and you shall check the targeted compiler when using this syntax. We recommend not to use this syntax if the code is intended to be portable. However, the following syntax:
-```SystemVerilog
-logic a = b &amp; c;</code></pre>
-<p>may not be synthesizable for some synthesis tools. We highly recommend to use continuous assignment for this use case.</p></li>
+<p>assign {cout, sum} = a + b + cin; <code>Notice you can also perform a continuous assignment when declaring a variable as initialization, as below:</code>SystemVerilog logic [3:0] d = 4’h1; <code>Although it works well for ASIC with constant initialization, it will only work with a subset of FPGA boards and you shall check the targeted compiler when using this syntax. We recommend not to use this syntax if the code is intended to be portable. However, the following syntax:</code>SystemVerilog logic a = b &amp; c; ``` may not be synthesizable for some synthesis tools. We highly recommend to use continuous assignment for this use case.</p></li>
 </ol>
-<h2 data-number="3.3" id="procedural-blocks"><span class="header-section-number">3.3</span> Procedural Blocks</h2>
+<h2 id="procedural-blocks"><span class="header-section-number">3.3</span> Procedural Blocks</h2>
 <p>Procedural blocks, also known as <em>processes</em>, are the building blocks for a module’s logic. There are five different procedural blocks:</p>
 <ul>
 <li><em>initial</em> procedure</li>
@@ -197,40 +193,40 @@ logic a = b &amp; c;</code></pre>
 <li>Function</li>
 </ul>
 <p>We will cover each procedural blocks in details in a slightly different order. We will not cover the Verilog-95 procedural block <code>always</code> here since it is out-dated and error-prone compared to the new syntax.</p>
-<h3 data-number="3.3.1" id="always_comb-modeling-combination-logic"><span class="header-section-number">3.3.1</span> <code>always_comb</code>: Modeling Combination Logic</h3>
+<h3 id="always_comb-modeling-combination-logic"><span class="header-section-number">3.3.1</span> <code>always_comb</code>: Modeling Combination Logic</h3>
 <p>The keyword <code>always_comb</code> denotes the combinational nature of the procedure block: every logic contained inside the block will be synthesized into combinational circuits. The general syntax for <code>always_comb</code> is shown below:</p>
-<div class="sourceCode" id="cb39"><pre class="sourceCode systemverilog"><code class="sourceCode systemverilog"><span id="cb39-1"><a href="#cb39-1" aria-hidden="true"></a><span class="kw">logic</span> a, b, c, d;</span>
-<span id="cb39-2"><a href="#cb39-2" aria-hidden="true"></a></span>
-<span id="cb39-3"><a href="#cb39-3" aria-hidden="true"></a><span class="kw">always_comb</span> <span class="kw">begin</span></span>
-<span id="cb39-4"><a href="#cb39-4" aria-hidden="true"></a>    a = b &amp; c;</span>
-<span id="cb39-5"><a href="#cb39-5" aria-hidden="true"></a>    d = a | b;</span>
-<span id="cb39-6"><a href="#cb39-6" aria-hidden="true"></a><span class="kw">end</span></span></code></pre></div>
+<div class="sourceCode" id="cb38"><pre class="sourceCode systemverilog"><code class="sourceCode systemverilog"><a class="sourceLine" id="cb38-1" title="1"><span class="kw">logic</span> a, b, c, d;</a>
+<a class="sourceLine" id="cb38-2" title="2"></a>
+<a class="sourceLine" id="cb38-3" title="3"><span class="kw">always_comb</span> <span class="kw">begin</span></a>
+<a class="sourceLine" id="cb38-4" title="4">    a = b &amp; c;</a>
+<a class="sourceLine" id="cb38-5" title="5">    d = a | b;</a>
+<a class="sourceLine" id="cb38-6" title="6"><span class="kw">end</span></a></code></pre></div>
 <p><code>begin</code> and <code>end</code> are needed if there are more than one statements in the block. If there is only one statement, we can drop the <code>begin</code> and <code>end</code>, e.g.</p>
-<div class="sourceCode" id="cb40"><pre class="sourceCode systemverilog"><code class="sourceCode systemverilog"><span id="cb40-1"><a href="#cb40-1" aria-hidden="true"></a><span class="kw">always_comb</span></span>
-<span id="cb40-2"><a href="#cb40-2" aria-hidden="true"></a>   a = b &amp; c;</span></code></pre></div>
+<div class="sourceCode" id="cb39"><pre class="sourceCode systemverilog"><code class="sourceCode systemverilog"><a class="sourceLine" id="cb39-1" title="1"><span class="kw">always_comb</span></a>
+<a class="sourceLine" id="cb39-2" title="2">   a = b &amp; c;</a></code></pre></div>
 <p>It is up to the design style in your project whether such syntax is allowed. In this bool we will use <code>begin</code> and <code>end</code> regardless of the number of statements inside the block.</p>
 <p>There are several rules applies to <code>always_comb</code>:</p>
 <ol type="1">
-<li><p>Similar to <code>assign</code>, the bits on the left hand side can only assigned in a <em>single</em> <code>always_comb</code>. Some simulator may not error out when there is multiple <code>always_comb</code> blocking assigning to the same bit, but that is undefined behavior. You cannot mix the bit assignment with other procedural blocks either.</p></li>
-<li><p>The evaluation of each statement is in-order. The simulator will go through each statement from top to bottom and evaluate them.</p></li>
+<li>Similar to <code>assign</code>, the bits on the left hand side can only assigned in a <em>single</em> <code>always_comb</code>. Some simulator may not error out when there is multiple <code>always_comb</code> blocking assigning to the same bit, but that is undefined behavior. You cannot mix the bit assignment with other procedural blocks either.</li>
+<li>The evaluation of each statement is in-order. The simulator will go through each statement from top to bottom and evaluate them.</li>
 <li><p>The simulator will re-evaluate the block whenever a variable on the right-hand side changes. However, there are several exceptions. One major exception is that there is no “self-triggering”. When the variable both exists on the left hand and right hand side, updating that variable will not trigger re-evaluation, as shown below:</p>
-<div class="sourceCode" id="cb41"><pre class="sourceCode systemverilog"><code class="sourceCode systemverilog"><span id="cb41-1"><a href="#cb41-1" aria-hidden="true"></a> <span class="kw">logic</span> a, b, c;</span>
-<span id="cb41-2"><a href="#cb41-2" aria-hidden="true"></a> <span class="kw">always_comb</span> <span class="kw">begin</span></span>
-<span id="cb41-3"><a href="#cb41-3" aria-hidden="true"></a>     c = a ^ b;</span>
-<span id="cb41-4"><a href="#cb41-4" aria-hidden="true"></a>     a = b &amp; c;</span>
-<span id="cb41-5"><a href="#cb41-5" aria-hidden="true"></a> <span class="kw">end</span></span></code></pre></div>
-<p>When the value of <code>b</code> changes, the always procedure will only be evaluated once.</p></li>
-<li><p>One benefit of using <code>always_comb</code> is that it forces synthesis tool to check your code based on the design intention. If any variable inside <code>always_comb</code> is inferred as a latch, the tool shall issue a warning or error. We will discuss under which condition latch inference happens when we introduce conditional control constructs.</p></li>
-<li><p><code>always_comb</code> is also <em>sensitive</em> to the contents of a function, which we will cover shortly.</p></li>
+<div class="sourceCode" id="cb40"><pre class="sourceCode systemverilog"><code class="sourceCode systemverilog"><a class="sourceLine" id="cb40-1" title="1"> <span class="kw">logic</span> a, b, c;</a>
+<a class="sourceLine" id="cb40-2" title="2"> <span class="kw">always_comb</span> <span class="kw">begin</span></a>
+<a class="sourceLine" id="cb40-3" title="3">     c = a ^ b;</a>
+<a class="sourceLine" id="cb40-4" title="4">     a = b &amp; c;</a>
+<a class="sourceLine" id="cb40-5" title="5"> <span class="kw">end</span></a></code></pre></div>
+When the value of <code>b</code> changes, the always procedure will only be evaluated once.</li>
+<li>One benefit of using <code>always_comb</code> is that it forces synthesis tool to check your code based on the design intention. If any variable inside <code>always_comb</code> is inferred as a latch, the tool shall issue a warning or error. We will discuss under which condition latch inference happens when we introduce conditional control constructs.</li>
+<li><code>always_comb</code> is also <em>sensitive</em> to the contents of a function, which we will cover shortly.</li>
 <li><p>In simulator, the simulator will evaluate the <code>always_comb</code> once after the <code>initial</code> and <code>always</code> procedures have been started.</p></li>
 </ol>
-<h3 data-number="3.3.2" id="always_latch-modeling-latched-combinational-logic"><span class="header-section-number">3.3.2</span> <code>always_latch</code>: Modeling Latched Combinational Logic</h3>
+<h3 id="always_latch-modeling-latched-combinational-logic"><span class="header-section-number">3.3.2</span> <code>always_latch</code>: Modeling Latched Combinational Logic</h3>
 <p>The <code>always_latch</code> construct functionally is identical to <code>always_comb</code> except for the fact that it tells the synthesis tools to check whether enclosed logic presents latched logic. All the other rules applied to <code>always_comb</code> are applicable to <code>always_latch</code>.</p>
-<h3 data-number="3.3.3" id="always_ff-modeling-sequential-logic"><span class="header-section-number">3.3.3</span> <code>always_ff</code>: Modeling Sequential Logic</h3>
+<h3 id="always_ff-modeling-sequential-logic"><span class="header-section-number">3.3.3</span> <code>always_ff</code>: Modeling Sequential Logic</h3>
 <p>The syntax for <code>always_ff</code> is shown below:</p>
-<div class="sourceCode" id="cb42"><pre class="sourceCode systemverilog"><code class="sourceCode systemverilog"><span id="cb42-1"><a href="#cb42-1" aria-hidden="true"></a><span class="kw">always_ff</span> @(<span class="kw">posedge</span> clk, <span class="kw">negedge</span> rst_n) <span class="kw">begin</span></span>
-<span id="cb42-2"><a href="#cb42-2" aria-hidden="true"></a>    <span class="co">// statements</span></span>
-<span id="cb42-3"><a href="#cb42-3" aria-hidden="true"></a><span class="kw">end</span></span></code></pre></div>
+<div class="sourceCode" id="cb41"><pre class="sourceCode systemverilog"><code class="sourceCode systemverilog"><a class="sourceLine" id="cb41-1" title="1"><span class="kw">always_ff</span> @(<span class="kw">posedge</span> clk, <span class="kw">negedge</span> rst_n) <span class="kw">begin</span></a>
+<a class="sourceLine" id="cb41-2" title="2">    <span class="co">// statements</span></a>
+<a class="sourceLine" id="cb41-3" title="3"><span class="kw">end</span></a></code></pre></div>
 <p>The signal list inside <code>@()</code> is called sensitivity list, which tells the synthesis tools that the signal updates are triggered by the sensitivity list. Keyword <code>posedge</code> implies that the procedure shall be evaluated at the positive (rising) edge of the signal, and <code>negedge</code> implies the negative (falling) edge of the signal. All the signals in the sensitivity list should be 1-bit.</p>
 <p>For RTL design, there are generally two different ways to implement a reset, i.e. synchronous reset and asynchronous reset. The are mainly distinguished by whether to include reset signal in the <code>always_ff</code> sensitivity list. If reset signal is included, then it is asynchronous reset, meaning the reset can happen independently of the clock. In ASIC design, there are advantage and disadvantages of using asynchronous reset:</p>
 <ol type="1">
@@ -243,95 +239,95 @@ logic a = b &amp; c;</code></pre>
 <p>Notice that due to naming convention, if the reset is reset low, we usually suffix <code>_n</code> at the end of the signal name to signify that it is negedge reset, e.g., <code>rst_n</code>, <code>reset_n</code>. In this book we will follow this convention.</p>
 <p>In additional to the sensitivity list, <code>always_ff</code> also uses a special assignment called <em>nonblocking assignment</em>. Contract to normal assignment, called <em>blocking assignment</em> where <code>=</code> is used, nonblocking assignment uses <code>&lt;=</code>. All the assignments in <code>always_ff</code> should be nonblocking assignment, and nonblocking assignment can only be used inside <code>always_ff</code>, for synthesis purpose. Although mixing blocking and nonblocking assignments is allowed in test bench code, it is strongly discouraged.</p>
 <p>The simulation semantics for nonblocking assignment is also different from blocking assignment. As the name suggests, the value update is not “blocking”, that is, the left hand side is not updated immediately, as shown in the example below.</p>
-<div class="sourceCode" id="cb43"><pre class="sourceCode systemverilog"><code class="sourceCode systemverilog"><span id="cb43-1"><a href="#cb43-1" aria-hidden="true"></a><span class="kw">logic</span> a, b;</span>
-<span id="cb43-2"><a href="#cb43-2" aria-hidden="true"></a></span>
-<span id="cb43-3"><a href="#cb43-3" aria-hidden="true"></a><span class="co">// assume a = 0, b = 1 before the evaluation</span></span>
-<span id="cb43-4"><a href="#cb43-4" aria-hidden="true"></a><span class="kw">always_ff</span> @(<span class="kw">posedge</span> clk) <span class="kw">begin</span></span>
-<span id="cb43-5"><a href="#cb43-5" aria-hidden="true"></a>    a &lt;= b;</span>
-<span id="cb43-6"><a href="#cb43-6" aria-hidden="true"></a>    b &lt;= a;</span>
-<span id="cb43-7"><a href="#cb43-7" aria-hidden="true"></a><span class="kw">end</span></span>
-<span id="cb43-8"><a href="#cb43-8" aria-hidden="true"></a><span class="co">// after the evaluation, a = 1, b = 0.</span></span></code></pre></div>
-<div class="sourceCode" id="cb44"><pre class="sourceCode systemverilog"><code class="sourceCode systemverilog"><span id="cb44-1"><a href="#cb44-1" aria-hidden="true"></a><span class="kw">logic</span> a, b;</span>
-<span id="cb44-2"><a href="#cb44-2" aria-hidden="true"></a></span>
-<span id="cb44-3"><a href="#cb44-3" aria-hidden="true"></a><span class="co">// assume a = 0, b = 1 before the evaluation</span></span>
-<span id="cb44-4"><a href="#cb44-4" aria-hidden="true"></a><span class="kw">always_comb</span> <span class="kw">begin</span></span>
-<span id="cb44-5"><a href="#cb44-5" aria-hidden="true"></a>    a = b;</span>
-<span id="cb44-6"><a href="#cb44-6" aria-hidden="true"></a>    b = a;</span>
-<span id="cb44-7"><a href="#cb44-7" aria-hidden="true"></a><span class="kw">end</span></span>
-<span id="cb44-8"><a href="#cb44-8" aria-hidden="true"></a><span class="co">// after the evaluation, a = 1, b = 1</span></span></code></pre></div>
+<div class="sourceCode" id="cb42"><pre class="sourceCode systemverilog"><code class="sourceCode systemverilog"><a class="sourceLine" id="cb42-1" title="1"><span class="kw">logic</span> a, b;</a>
+<a class="sourceLine" id="cb42-2" title="2"></a>
+<a class="sourceLine" id="cb42-3" title="3"><span class="co">// assume a = 0, b = 1 before the evaluation</span></a>
+<a class="sourceLine" id="cb42-4" title="4"><span class="kw">always_ff</span> @(<span class="kw">posedge</span> clk) <span class="kw">begin</span></a>
+<a class="sourceLine" id="cb42-5" title="5">    a &lt;= b;</a>
+<a class="sourceLine" id="cb42-6" title="6">    b &lt;= a;</a>
+<a class="sourceLine" id="cb42-7" title="7"><span class="kw">end</span></a>
+<a class="sourceLine" id="cb42-8" title="8"><span class="co">// after the evaluation, a = 1, b = 0.</span></a></code></pre></div>
+<div class="sourceCode" id="cb43"><pre class="sourceCode systemverilog"><code class="sourceCode systemverilog"><a class="sourceLine" id="cb43-1" title="1"><span class="kw">logic</span> a, b;</a>
+<a class="sourceLine" id="cb43-2" title="2"></a>
+<a class="sourceLine" id="cb43-3" title="3"><span class="co">// assume a = 0, b = 1 before the evaluation</span></a>
+<a class="sourceLine" id="cb43-4" title="4"><span class="kw">always_comb</span> <span class="kw">begin</span></a>
+<a class="sourceLine" id="cb43-5" title="5">    a = b;</a>
+<a class="sourceLine" id="cb43-6" title="6">    b = a;</a>
+<a class="sourceLine" id="cb43-7" title="7"><span class="kw">end</span></a>
+<a class="sourceLine" id="cb43-8" title="8"><span class="co">// after the evaluation, a = 1, b = 1</span></a></code></pre></div>
 <p>In the <code>always_ff</code> block, when the simulator evaluate the first assignment <code>a &lt;= b</code>, it will evaluate the right hand side first, store the result value internally, and then proceed to the next statement. After every statement is evaluated, the simulator will update the left hand side <em>at the same time</em>. Hence <code>a</code> will get <code>b</code>’s value before the clock edge and <code>b</code> gets <code>a</code>’s.</p>
 <p>In the <code>always_comb</code> block, however, the simulator will update the left hand side immediately after evaluating the right hand side, before going to the next statement, hence <em>blocking</em>. In this case, after the first assignment, both <code>a</code> and <code>b</code> will be 1.</p>
 <p>This nonblocking assignment simulation semantic is designed to mimic the actual physical behavior. In the physical circuit, as long as there is no timing violation, at the clock edge, the flip-flop will take whatever values on its input wires and do an update. It does not care about whats the immediate value between the clock edges. If you wire two flip-flops in a loop, as shown in the example, at the clock edge, the flip-flop can only grab each other’s old value, since the update has not happened yet.</p>
 <p>This semantics also allows priority coding in <code>always_comb</code>, as shown below:</p>
-<div class="sourceCode" id="cb45"><pre class="sourceCode systemverilog"><code class="sourceCode systemverilog"><span id="cb45-1"><a href="#cb45-1" aria-hidden="true"></a></span>
-<span id="cb45-2"><a href="#cb45-2" aria-hidden="true"></a><span class="kw">logic</span> a, b;</span>
-<span id="cb45-3"><a href="#cb45-3" aria-hidden="true"></a></span>
-<span id="cb45-4"><a href="#cb45-4" aria-hidden="true"></a><span class="kw">always_comb</span> <span class="kw">begin</span></span>
-<span id="cb45-5"><a href="#cb45-5" aria-hidden="true"></a>    a = <span class="dv">0</span>;</span>
-<span id="cb45-6"><a href="#cb45-6" aria-hidden="true"></a>    a = b;</span>
-<span id="cb45-7"><a href="#cb45-7" aria-hidden="true"></a><span class="kw">end</span></span>
-<span id="cb45-8"><a href="#cb45-8" aria-hidden="true"></a><span class="co">// at the end of evaluation, a = b</span></span></code></pre></div>
+<div class="sourceCode" id="cb44"><pre class="sourceCode systemverilog"><code class="sourceCode systemverilog"><a class="sourceLine" id="cb44-1" title="1"></a>
+<a class="sourceLine" id="cb44-2" title="2"><span class="kw">logic</span> a, b;</a>
+<a class="sourceLine" id="cb44-3" title="3"></a>
+<a class="sourceLine" id="cb44-4" title="4"><span class="kw">always_comb</span> <span class="kw">begin</span></a>
+<a class="sourceLine" id="cb44-5" title="5">    a = <span class="dv">0</span>;</a>
+<a class="sourceLine" id="cb44-6" title="6">    a = b;</a>
+<a class="sourceLine" id="cb44-7" title="7"><span class="kw">end</span></a>
+<a class="sourceLine" id="cb44-8" title="8"><span class="co">// at the end of evaluation, a = b</span></a></code></pre></div>
 <p>Since it is blocking assignment, although after the first statement, <code>a</code> becomes 0, after the second assignment, <code>a</code> is re-assigned to <code>b</code>. This kind of coding style is perfectly legal and sometimes preferred, as we will discuss in the book.</p>
 <p>However, if you do that in <code>always_ff</code> with non-blocking assignment, the result is undetermined. Different simulators and synthesis tools may have different interpretation and you may see inconsistent simulation and synthesis result. This kind of usage should be prohibited.</p>
 <p>Similar to other always blocks, variable can only be assigned inside the same <code>always_ff</code> block.</p>
-<h3 data-number="3.3.4" id="initial-procedure"><span class="header-section-number">3.3.4</span> <code>initial</code> Procedure</h3>
+<h3 id="initial-procedure"><span class="header-section-number">3.3.4</span> <code>initial</code> Procedure</h3>
 <p>An <code>initial</code> procedure will execute when the simulator starts and will only execute once. In ASIC design, <code>initial</code> procedure is not synthesizable and will be ignored during synthesis - most synthesis tools will report a warning.</p>
 <p>The most common way to use <code>initial</code> procedure is for test bench, where stimulus are provided in <code>initial</code> procedure to drive the simulation. We will discuss more in details when we discuss test bench design.</p>
 <p>An example of <code>initial</code> is provided below:</p>
-<div class="sourceCode" id="cb46"><pre class="sourceCode systemverilog"><code class="sourceCode systemverilog"><span id="cb46-1"><a href="#cb46-1" aria-hidden="true"></a><span class="kw">logic</span> a</span>
-<span id="cb46-2"><a href="#cb46-2" aria-hidden="true"></a></span>
-<span id="cb46-3"><a href="#cb46-3" aria-hidden="true"></a><span class="kw">initial</span> <span class="kw">begin</span></span>
-<span id="cb46-4"><a href="#cb46-4" aria-hidden="true"></a>    a = <span class="dv">0</span>;</span>
-<span id="cb46-5"><a href="#cb46-5" aria-hidden="true"></a><span class="kw">end</span></span></code></pre></div>
-<h3 data-number="3.3.5" id="final-procedure"><span class="header-section-number">3.3.5</span> <code>final</code> Procedure</h3>
+<div class="sourceCode" id="cb45"><pre class="sourceCode systemverilog"><code class="sourceCode systemverilog"><a class="sourceLine" id="cb45-1" title="1"><span class="kw">logic</span> a</a>
+<a class="sourceLine" id="cb45-2" title="2"></a>
+<a class="sourceLine" id="cb45-3" title="3"><span class="kw">initial</span> <span class="kw">begin</span></a>
+<a class="sourceLine" id="cb45-4" title="4">    a = <span class="dv">0</span>;</a>
+<a class="sourceLine" id="cb45-5" title="5"><span class="kw">end</span></a></code></pre></div>
+<h3 id="final-procedure"><span class="header-section-number">3.3.5</span> <code>final</code> Procedure</h3>
 <p>Similar to <code>initial</code> procedure, <code>final</code> will be executed at the end of simulation and will only be executed once. If there are multiple <code>final</code> procedures, they will be executed in arbitrary order. <code>final</code> procedures are usually used for display simulation statistics or cleaning up the simulation environment.</p>
-<h3 data-number="3.3.6" id="functions"><span class="header-section-number">3.3.6</span> Functions</h3>
+<h3 id="functions"><span class="header-section-number">3.3.6</span> Functions</h3>
 <p>Similar to C/C++, functions in SystemVerilog allows designers to reuse useful logic. The syntax for function is shown below:</p>
-<div class="sourceCode" id="cb47"><pre class="sourceCode systemverilog"><code class="sourceCode systemverilog"><span id="cb47-1"><a href="#cb47-1" aria-hidden="true"></a><span class="kw">function</span> <span class="kw">void</span> void_function(<span class="kw">logic</span> a, <span class="kw">logic</span> b);</span>
-<span id="cb47-2"><a href="#cb47-2" aria-hidden="true"></a>    <span class="co">// statements</span></span>
-<span id="cb47-3"><a href="#cb47-3" aria-hidden="true"></a><span class="kw">endfunction</span>    </span>
-<span id="cb47-4"><a href="#cb47-4" aria-hidden="true"></a></span>
-<span id="cb47-5"><a href="#cb47-5" aria-hidden="true"></a></span>
-<span id="cb47-6"><a href="#cb47-6" aria-hidden="true"></a><span class="kw">function</span> <span class="kw">logic</span> function_with_return_type(<span class="kw">logic</span> a, <span class="kw">logic</span> b);</span>
-<span id="cb47-7"><a href="#cb47-7" aria-hidden="true"></a>    <span class="co">// statements</span></span>
-<span id="cb47-8"><a href="#cb47-8" aria-hidden="true"></a>    <span class="co">// e.g. return a + b;</span></span>
-<span id="cb47-9"><a href="#cb47-9" aria-hidden="true"></a><span class="kw">endfunction</span></span></code></pre></div>
+<div class="sourceCode" id="cb46"><pre class="sourceCode systemverilog"><code class="sourceCode systemverilog"><a class="sourceLine" id="cb46-1" title="1"><span class="kw">function</span> <span class="kw">void</span> void_function(<span class="kw">logic</span> a, <span class="kw">logic</span> b);</a>
+<a class="sourceLine" id="cb46-2" title="2">    <span class="co">// statements</span></a>
+<a class="sourceLine" id="cb46-3" title="3"><span class="kw">endfunction</span>    </a>
+<a class="sourceLine" id="cb46-4" title="4"></a>
+<a class="sourceLine" id="cb46-5" title="5"></a>
+<a class="sourceLine" id="cb46-6" title="6"><span class="kw">function</span> <span class="kw">logic</span> function_with_return_type(<span class="kw">logic</span> a, <span class="kw">logic</span> b);</a>
+<a class="sourceLine" id="cb46-7" title="7">    <span class="co">// statements</span></a>
+<a class="sourceLine" id="cb46-8" title="8">    <span class="co">// e.g. return a + b;</span></a>
+<a class="sourceLine" id="cb46-9" title="9"><span class="kw">endfunction</span></a></code></pre></div>
 <p>For functions that has return type, keyword <code>return</code> must to be used to indicate return value. In old Verilog-95, return value can be assigned via <code>function_name = return_value;</code>. This style is outdated and we will use keyword <code>return</code> instead.</p>
 <p>There is another style of writing functions that allows multiple outputs:</p>
-<div class="sourceCode" id="cb48"><pre class="sourceCode systemverilog"><code class="sourceCode systemverilog"><span id="cb48-1"><a href="#cb48-1" aria-hidden="true"></a><span class="kw">function</span> <span class="kw">void</span> multiple_outputs(<span class="kw">input</span> <span class="kw">logic</span> a, <span class="kw">output</span> <span class="kw">logic</span> b, <span class="kw">output</span> <span class="kw">logic</span> c);</span>
-<span id="cb48-2"><a href="#cb48-2" aria-hidden="true"></a>    b = a;</span>
-<span id="cb48-3"><a href="#cb48-3" aria-hidden="true"></a>    c = ~a;</span>
-<span id="cb48-4"><a href="#cb48-4" aria-hidden="true"></a><span class="kw">endfunction</span></span></code></pre></div>
+<div class="sourceCode" id="cb47"><pre class="sourceCode systemverilog"><code class="sourceCode systemverilog"><a class="sourceLine" id="cb47-1" title="1"><span class="kw">function</span> <span class="kw">void</span> multiple_outputs(<span class="kw">input</span> <span class="kw">logic</span> a, <span class="kw">output</span> <span class="kw">logic</span> b, <span class="kw">output</span> <span class="kw">logic</span> c);</a>
+<a class="sourceLine" id="cb47-2" title="2">    b = a;</a>
+<a class="sourceLine" id="cb47-3" title="3">    c = ~a;</a>
+<a class="sourceLine" id="cb47-4" title="4"><span class="kw">endfunction</span></a></code></pre></div>
 <p>In the example above, <code>logic</code> <code>b</code> and <code>c</code> will be assigned after the function call. This is similar to reference arguments in C++.</p>
 <p>If your function is recursive, keyword <code>automatic</code> is needed so that the tools will allocate separate stack space when simulate. We will discuss the reasoning when we introduce the variable scoping rules.</p>
-<div class="sourceCode" id="cb49"><pre class="sourceCode systemverilog"><code class="sourceCode systemverilog"><span id="cb49-1"><a href="#cb49-1" aria-hidden="true"></a><span class="kw">function</span> <span class="kw">automatic</span> <span class="kw">void</span> auto_func(<span class="kw">logic</span>[<span class="dv">1</span>:<span class="dv">0</span>] a);</span>
-<span id="cb49-2"><a href="#cb49-2" aria-hidden="true"></a>    <span class="co">// statements</span></span>
-<span id="cb49-3"><a href="#cb49-3" aria-hidden="true"></a>    <span class="co">// e.g. auto_func(a -1); as recursive calls</span></span>
-<span id="cb49-4"><a href="#cb49-4" aria-hidden="true"></a><span class="kw">endfunction</span></span></code></pre></div>
+<div class="sourceCode" id="cb48"><pre class="sourceCode systemverilog"><code class="sourceCode systemverilog"><a class="sourceLine" id="cb48-1" title="1"><span class="kw">function</span> <span class="kw">automatic</span> <span class="kw">void</span> auto_func(<span class="kw">logic</span>[<span class="dv">1</span>:<span class="dv">0</span>] a);</a>
+<a class="sourceLine" id="cb48-2" title="2">    <span class="co">// statements</span></a>
+<a class="sourceLine" id="cb48-3" title="3">    <span class="co">// e.g. auto_func(a -1); as recursive calls</span></a>
+<a class="sourceLine" id="cb48-4" title="4"><span class="kw">endfunction</span></a></code></pre></div>
 <p>Functions in SystemVerilog is synthesizable with certain restrictions:</p>
 <ol type="1">
 <li>Functions cannot have any timing controls statements, such as details and semaphore, or any calls to constructs that have timing controls statements, such as tasks.</li>
 <li>Recursive functions must be able to fully elaborate during synthesis. Synthesis tools typically inline function and unroll the recursion. Undetermined recursion does not guarantee a finite and fixed number of recursion, thus cannot be realized into hardware. This is similar to recursive template in C++, where the template expansion happens during compilation.</li>
 </ol>
 <p>To call the function, there are general two ways:</p>
-<div class="sourceCode" id="cb50"><pre class="sourceCode systemverilog"><code class="sourceCode systemverilog"><span id="cb50-1"><a href="#cb50-1" aria-hidden="true"></a><span class="kw">function</span> <span class="kw">logic</span> and_func(<span class="kw">logic</span> in1, <span class="kw">logic</span> in2);</span>
-<span id="cb50-2"><a href="#cb50-2" aria-hidden="true"></a>    <span class="kw">return</span> in1 &amp; in2;</span>
-<span id="cb50-3"><a href="#cb50-3" aria-hidden="true"></a><span class="kw">endfunction</span></span>
-<span id="cb50-4"><a href="#cb50-4" aria-hidden="true"></a></span>
-<span id="cb50-5"><a href="#cb50-5" aria-hidden="true"></a><span class="kw">logic</span> a, b, c;</span>
-<span id="cb50-6"><a href="#cb50-6" aria-hidden="true"></a></span>
-<span id="cb50-7"><a href="#cb50-7" aria-hidden="true"></a><span class="kw">always_comb</span> <span class="kw">begin</span></span>
-<span id="cb50-8"><a href="#cb50-8" aria-hidden="true"></a>    <span class="co">// style 1</span></span>
-<span id="cb50-9"><a href="#cb50-9" aria-hidden="true"></a>    c = and_func(a, b);</span>
-<span id="cb50-10"><a href="#cb50-10" aria-hidden="true"></a>    <span class="co">// style 2</span></span>
-<span id="cb50-11"><a href="#cb50-11" aria-hidden="true"></a>    c = and_func(</span>
-<span id="cb50-12"><a href="#cb50-12" aria-hidden="true"></a>        .in1(a),</span>
-<span id="cb50-13"><a href="#cb50-13" aria-hidden="true"></a>        .in2(b));</span>
-<span id="cb50-14"><a href="#cb50-14" aria-hidden="true"></a><span class="kw">end</span></span></code></pre></div>
+<div class="sourceCode" id="cb49"><pre class="sourceCode systemverilog"><code class="sourceCode systemverilog"><a class="sourceLine" id="cb49-1" title="1"><span class="kw">function</span> <span class="kw">logic</span> and_func(<span class="kw">logic</span> in1, <span class="kw">logic</span> in2);</a>
+<a class="sourceLine" id="cb49-2" title="2">    <span class="kw">return</span> in1 &amp; in2;</a>
+<a class="sourceLine" id="cb49-3" title="3"><span class="kw">endfunction</span></a>
+<a class="sourceLine" id="cb49-4" title="4"></a>
+<a class="sourceLine" id="cb49-5" title="5"><span class="kw">logic</span> a, b, c;</a>
+<a class="sourceLine" id="cb49-6" title="6"></a>
+<a class="sourceLine" id="cb49-7" title="7"><span class="kw">always_comb</span> <span class="kw">begin</span></a>
+<a class="sourceLine" id="cb49-8" title="8">    <span class="co">// style 1</span></a>
+<a class="sourceLine" id="cb49-9" title="9">    c = and_func(a, b);</a>
+<a class="sourceLine" id="cb49-10" title="10">    <span class="co">// style 2</span></a>
+<a class="sourceLine" id="cb49-11" title="11">    c = and_func(</a>
+<a class="sourceLine" id="cb49-12" title="12">        .in1(a),</a>
+<a class="sourceLine" id="cb49-13" title="13">        .in2(b));</a>
+<a class="sourceLine" id="cb49-14" title="14"><span class="kw">end</span></a></code></pre></div>
 <p>Style 1 is similar to function calls in other software programming languages and style 2 is similar to module instantiation in SystemVerilog. In general, if the function only has a few arguments and does not use <code>input</code>/<code>output</code> in their function signature, we will use style 1, and style 2 otherwise.</p>
 <p>If the return value of a function call is not needed, most compilers will issue a warning or error. We need to cast the return value to <code>void</code> to avoid this issue:</p>
-<div class="sourceCode" id="cb51"><pre class="sourceCode systemverilog"><code class="sourceCode systemverilog"><span id="cb51-1"><a href="#cb51-1" aria-hidden="true"></a>    void&#39;(and_func(a, b));</span></code></pre></div>
-<h3 data-number="3.3.7" id="tasks"><span class="header-section-number">3.3.7</span> Tasks</h3>
+<div class="sourceCode" id="cb50"><pre class="sourceCode systemverilog"><code class="sourceCode systemverilog"><a class="sourceLine" id="cb50-1" title="1">    void&#39;(and_func(a, b));</a></code></pre></div>
+<h3 id="tasks"><span class="header-section-number">3.3.7</span> Tasks</h3>
 <p>Tasks are very similar to <code>function</code> except the following things:</p>
 <ol type="1">
 <li>Tasks allow timing controls in their enclosed logic. The timing control can be delay, fork, and other statements.</li>
@@ -339,10 +335,10 @@ logic a = b &amp; c;</code></pre>
 </ol>
 <p>Although some synthesis tools might be able to synthesize tasks that do not have timing control statements, we highly recommend you to use functions for RTL design, and tasks for simulation and verification.</p>
 <p>The general syntax for task is shown below:</p>
-<div class="sourceCode" id="cb52"><pre class="sourceCode systemverilog"><code class="sourceCode systemverilog"><span id="cb52-1"><a href="#cb52-1" aria-hidden="true"></a><span class="kw">task</span> task_name(<span class="kw">input</span> <span class="kw">logic</span> a, <span class="kw">output</span> <span class="kw">logic</span> b);</span>
-<span id="cb52-2"><a href="#cb52-2" aria-hidden="true"></a>    <span class="co">// statements</span></span>
-<span id="cb52-3"><a href="#cb52-3" aria-hidden="true"></a><span class="kw">endtask</span></span></code></pre></div>
-<h2 data-number="3.4" id="procedural-statements"><span class="header-section-number">3.4</span> Procedural Statements</h2>
+<div class="sourceCode" id="cb51"><pre class="sourceCode systemverilog"><code class="sourceCode systemverilog"><a class="sourceLine" id="cb51-1" title="1"><span class="kw">task</span> task_name(<span class="kw">input</span> <span class="kw">logic</span> a, <span class="kw">output</span> <span class="kw">logic</span> b);</a>
+<a class="sourceLine" id="cb51-2" title="2">    <span class="co">// statements</span></a>
+<a class="sourceLine" id="cb51-3" title="3"><span class="kw">endtask</span></a></code></pre></div>
+<h2 id="procedural-statements"><span class="header-section-number">3.4</span> Procedural Statements</h2>
 <p>Procedural statements, as the name suggests, can only exist inside the procedural blocks such as <code>always_comb</code> and <code>function</code>. There are many types of procedural statements and we will cover the following types:</p>
 <ol type="1">
 <li>Selection statement: <code>if</code> and <code>case</code> statement</li>
@@ -350,255 +346,255 @@ logic a = b &amp; c;</code></pre>
 <li>Jump statements: <code>continue</code>, and <code>break</code></li>
 </ol>
 <p>We will cover loop and jump statement together since they are often used together.</p>
-<h3 data-number="3.4.1" id="if-statement"><span class="header-section-number">3.4.1</span> <code>if</code> Statement</h3>
+<h3 id="if-statement"><span class="header-section-number">3.4.1</span> <code>if</code> Statement</h3>
 <p>The syntax for <code>if</code> statement is shown below</p>
-<div class="sourceCode" id="cb53"><pre class="sourceCode systemverilog"><code class="sourceCode systemverilog"><span id="cb53-1"><a href="#cb53-1" aria-hidden="true"></a><span class="co">// one statement body</span></span>
-<span id="cb53-2"><a href="#cb53-2" aria-hidden="true"></a><span class="kw">if</span> (expr)</span>
-<span id="cb53-3"><a href="#cb53-3" aria-hidden="true"></a>    [statement <span class="dv">1</span>];</span>
-<span id="cb53-4"><a href="#cb53-4" aria-hidden="true"></a></span>
-<span id="cb53-5"><a href="#cb53-5" aria-hidden="true"></a><span class="co">// multiple statement body</span></span>
-<span id="cb53-6"><a href="#cb53-6" aria-hidden="true"></a><span class="kw">if</span> (expr) <span class="kw">begin</span></span>
-<span id="cb53-7"><a href="#cb53-7" aria-hidden="true"></a>    [statement <span class="dv">1</span>];</span>
-<span id="cb53-8"><a href="#cb53-8" aria-hidden="true"></a>    [statement <span class="dv">2</span>];</span>
-<span id="cb53-9"><a href="#cb53-9" aria-hidden="true"></a><span class="kw">end</span></span>
-<span id="cb53-10"><a href="#cb53-10" aria-hidden="true"></a></span>
-<span id="cb53-11"><a href="#cb53-11" aria-hidden="true"></a><span class="co">// with else</span></span>
-<span id="cb53-12"><a href="#cb53-12" aria-hidden="true"></a><span class="kw">if</span> (expr) <span class="kw">begin</span></span>
-<span id="cb53-13"><a href="#cb53-13" aria-hidden="true"></a>    [statement <span class="dv">1</span>];</span>
-<span id="cb53-14"><a href="#cb53-14" aria-hidden="true"></a><span class="kw">end</span></span>
-<span id="cb53-15"><a href="#cb53-15" aria-hidden="true"></a><span class="kw">else</span> <span class="kw">begin</span></span>
-<span id="cb53-16"><a href="#cb53-16" aria-hidden="true"></a>    [statement <span class="dv">2</span>];</span>
-<span id="cb53-17"><a href="#cb53-17" aria-hidden="true"></a><span class="kw">end</span></span>
-<span id="cb53-18"><a href="#cb53-18" aria-hidden="true"></a></span>
-<span id="cb53-19"><a href="#cb53-19" aria-hidden="true"></a><span class="co">// else if conditions</span></span>
-<span id="cb53-20"><a href="#cb53-20" aria-hidden="true"></a><span class="kw">if</span> (expr1) <span class="kw">begin</span></span>
-<span id="cb53-21"><a href="#cb53-21" aria-hidden="true"></a>    [statement <span class="dv">1</span>];</span>
-<span id="cb53-22"><a href="#cb53-22" aria-hidden="true"></a><span class="kw">end</span></span>
-<span id="cb53-23"><a href="#cb53-23" aria-hidden="true"></a><span class="kw">else</span> <span class="kw">if</span> (expr2) <span class="kw">begin</span></span>
-<span id="cb53-24"><a href="#cb53-24" aria-hidden="true"></a>    [statement <span class="dv">2</span>];</span>
-<span id="cb53-25"><a href="#cb53-25" aria-hidden="true"></a><span class="kw">end</span></span>
-<span id="cb53-26"><a href="#cb53-26" aria-hidden="true"></a><span class="kw">else</span> <span class="kw">begin</span></span>
-<span id="cb53-27"><a href="#cb53-27" aria-hidden="true"></a>    [statement <span class="dv">3</span>];</span>
-<span id="cb53-28"><a href="#cb53-28" aria-hidden="true"></a><span class="kw">end</span></span></code></pre></div>
+<div class="sourceCode" id="cb52"><pre class="sourceCode systemverilog"><code class="sourceCode systemverilog"><a class="sourceLine" id="cb52-1" title="1"><span class="co">// one statement body</span></a>
+<a class="sourceLine" id="cb52-2" title="2"><span class="kw">if</span> (expr)</a>
+<a class="sourceLine" id="cb52-3" title="3">    [statement <span class="dv">1</span>];</a>
+<a class="sourceLine" id="cb52-4" title="4"></a>
+<a class="sourceLine" id="cb52-5" title="5"><span class="co">// multiple statement body</span></a>
+<a class="sourceLine" id="cb52-6" title="6"><span class="kw">if</span> (expr) <span class="kw">begin</span></a>
+<a class="sourceLine" id="cb52-7" title="7">    [statement <span class="dv">1</span>];</a>
+<a class="sourceLine" id="cb52-8" title="8">    [statement <span class="dv">2</span>];</a>
+<a class="sourceLine" id="cb52-9" title="9"><span class="kw">end</span></a>
+<a class="sourceLine" id="cb52-10" title="10"></a>
+<a class="sourceLine" id="cb52-11" title="11"><span class="co">// with else</span></a>
+<a class="sourceLine" id="cb52-12" title="12"><span class="kw">if</span> (expr) <span class="kw">begin</span></a>
+<a class="sourceLine" id="cb52-13" title="13">    [statement <span class="dv">1</span>];</a>
+<a class="sourceLine" id="cb52-14" title="14"><span class="kw">end</span></a>
+<a class="sourceLine" id="cb52-15" title="15"><span class="kw">else</span> <span class="kw">begin</span></a>
+<a class="sourceLine" id="cb52-16" title="16">    [statement <span class="dv">2</span>];</a>
+<a class="sourceLine" id="cb52-17" title="17"><span class="kw">end</span></a>
+<a class="sourceLine" id="cb52-18" title="18"></a>
+<a class="sourceLine" id="cb52-19" title="19"><span class="co">// else if conditions</span></a>
+<a class="sourceLine" id="cb52-20" title="20"><span class="kw">if</span> (expr1) <span class="kw">begin</span></a>
+<a class="sourceLine" id="cb52-21" title="21">    [statement <span class="dv">1</span>];</a>
+<a class="sourceLine" id="cb52-22" title="22"><span class="kw">end</span></a>
+<a class="sourceLine" id="cb52-23" title="23"><span class="kw">else</span> <span class="kw">if</span> (expr2) <span class="kw">begin</span></a>
+<a class="sourceLine" id="cb52-24" title="24">    [statement <span class="dv">2</span>];</a>
+<a class="sourceLine" id="cb52-25" title="25"><span class="kw">end</span></a>
+<a class="sourceLine" id="cb52-26" title="26"><span class="kw">else</span> <span class="kw">begin</span></a>
+<a class="sourceLine" id="cb52-27" title="27">    [statement <span class="dv">3</span>];</a>
+<a class="sourceLine" id="cb52-28" title="28"><span class="kw">end</span></a></code></pre></div>
 <p>Whether to omit <code>begin ... end</code> when there is only one statement depends on the style guide. In this book we will omit <code>begin ... end</code> whenever it makes code easier to read.</p>
 <p>Although <code>expr</code> can actually be a multi-bit expression, since the condition is evaluated against zero, it is generally suggested to make it 1-bit. For instance,</p>
-<div class="sourceCode" id="cb54"><pre class="sourceCode systemverilog"><code class="sourceCode systemverilog"><span id="cb54-1"><a href="#cb54-1" aria-hidden="true"></a><span class="kw">logic</span> [<span class="dv">3</span>:<span class="dv">0</span>] expr;</span>
-<span id="cb54-2"><a href="#cb54-2" aria-hidden="true"></a><span class="kw">if</span> (expr) <span class="kw">begin</span></span>
-<span id="cb54-3"><a href="#cb54-3" aria-hidden="true"></a><span class="kw">end</span></span></code></pre></div>
+<div class="sourceCode" id="cb53"><pre class="sourceCode systemverilog"><code class="sourceCode systemverilog"><a class="sourceLine" id="cb53-1" title="1"><span class="kw">logic</span> [<span class="dv">3</span>:<span class="dv">0</span>] expr;</a>
+<a class="sourceLine" id="cb53-2" title="2"><span class="kw">if</span> (expr) <span class="kw">begin</span></a>
+<a class="sourceLine" id="cb53-3" title="3"><span class="kw">end</span></a></code></pre></div>
 <p>should be written as</p>
-<div class="sourceCode" id="cb55"><pre class="sourceCode systemverilog"><code class="sourceCode systemverilog"><span id="cb55-1"><a href="#cb55-1" aria-hidden="true"></a><span class="kw">if</span> (expr == <span class="bn">4&#39;d0</span>) <span class="kw">begin</span></span>
-<span id="cb55-2"><a href="#cb55-2" aria-hidden="true"></a><span class="kw">end</span></span></code></pre></div>
+<div class="sourceCode" id="cb54"><pre class="sourceCode systemverilog"><code class="sourceCode systemverilog"><a class="sourceLine" id="cb54-1" title="1"><span class="kw">if</span> (expr == <span class="bn">4&#39;d0</span>) <span class="kw">begin</span></a>
+<a class="sourceLine" id="cb54-2" title="2"><span class="kw">end</span></a></code></pre></div>
 <p>for clarity. Like C/C++, dangling <code>else</code> can also be a problem when <code>begin ... end</code> is omitted for nested if statement. In this case we suggest you always use <code>begin ... end</code> block.</p>
-<h4 data-number="3.4.1.1" id="additional-keywords-for-if-statement"><span class="header-section-number">3.4.1.1</span> Additional Keywords for <code>if</code> Statement</h4>
+<h4 id="additional-keywords-for-if-statement"><span class="header-section-number">3.4.1.1</span> Additional Keywords for <code>if</code> Statement</h4>
 <p>SystemVerilog offers several keywords to <code>if</code> statement can be useful to check the correctness of implementation:</p>
 <ol type="1">
 <li><p><code>unique</code>. An error will be issued during simulation if no condition matches unless there is an <code>else</code> statement. For instance</p>
-<div class="sourceCode" id="cb56"><pre class="sourceCode systemverilog"><code class="sourceCode systemverilog"><span id="cb56-1"><a href="#cb56-1" aria-hidden="true"></a><span class="co">// logic [1:0] a;</span></span>
-<span id="cb56-2"><a href="#cb56-2" aria-hidden="true"></a><span class="kw">unique</span> <span class="kw">if</span> (a == <span class="dv">0</span>) <span class="kw">$display</span>(<span class="st">&quot;a is 0);</span></span>
-<span id="cb56-3"><a href="#cb56-3" aria-hidden="true"></a><span class="kw">else</span> <span class="kw">if</span> (a == <span class="dv">1</span>) <span class="kw">$display</span>(<span class="st">&quot;a is 1);</span></span>
-<span id="cb56-4"><a href="#cb56-4" aria-hidden="true"></a><span class="co">// this results in an error since a == 2 and a == 3 is not covered in conditions.</span></span></code></pre></div>
+<div class="sourceCode" id="cb55"><pre class="sourceCode systemverilog"><code class="sourceCode systemverilog"><a class="sourceLine" id="cb55-1" title="1"><span class="co">// logic [1:0] a;</span></a>
+<a class="sourceLine" id="cb55-2" title="2"><span class="kw">unique</span> <span class="kw">if</span> (a == <span class="dv">0</span>) <span class="kw">$display</span>(<span class="st">&quot;a is 0);</span></a>
+<a class="sourceLine" id="cb55-3" title="3"><span class="kw">else</span> <span class="kw">if</span> (a == <span class="dv">1</span>) <span class="kw">$display</span>(<span class="st">&quot;a is 1);</span></a>
+<a class="sourceLine" id="cb55-4" title="4"><span class="co">// this results in an error since a == 2 and a == 3 is not covered in conditions.</span></a></code></pre></div>
 <p>However, if <code>unique0</code> is used, there will be any violation report. In general, use <code>unique0</code> whenever there are some cases not covered by the conditions, but serve no logic.</p>
-<p><code>unique</code> and <code>unique0</code> are used to guarantee that there is no overlap between <code>if</code> conditions. This allows the synthesis tools to optimize the multiplexing logic. Notice that there is a inherent priority logic in <code>if</code> statement. If condition 1 is lexically before condition 2, condition 1 will be checked first, then condition 2. Adding <code>unique</code>/<code>unique0</code> allows the condition checking to be parallel, thus producing more performant circuit.</p></li>
+<code>unique</code> and <code>unique0</code> are used to guarantee that there is no overlap between <code>if</code> conditions. This allows the synthesis tools to optimize the multiplexing logic. Notice that there is a inherent priority logic in <code>if</code> statement. If condition 1 is lexically before condition 2, condition 1 will be checked first, then condition 2. Adding <code>unique</code>/<code>unique0</code> allows the condition checking to be parallel, thus producing more performant circuit.</li>
 <li><p><code>priority</code> explicitly tells tools that if there is overlaps in the conditions, use the lexically precedent condition first. This is useful to prevent inconsistent behavior between simulators and synthesis tool, where the simulator by default checks conditions in order whereas the synthesis may compile a parallel circuit due to synthesis macros or commands. This ensures the designer’s intent get passes to various tools in a consistent manner.</p></li>
 </ol>
 <p>These keywords are introduced to remove inconsistency between simulator and synthesis tools. Unless explicitly specified in the design style guide, we recommend use these keywords as much as possible. However, in some cases, this keywords may increase the workload for formal verification tools, thus prohibited in some design companies. Again, these keywords usage depends on your project specific design style guide.</p>
-<h4 data-number="3.4.1.2" id="latch-created-from-if-statement"><span class="header-section-number">3.4.1.2</span> Latch Created from <code>if</code> Statement</h4>
+<h4 id="latch-created-from-if-statement"><span class="header-section-number">3.4.1.2</span> Latch Created from <code>if</code> Statement</h4>
 <p>A latch is created if the logic’s value depends on its previous value. If not specified properly, variables used inside <code>if</code> statement will be inferred as a latch during synthesis, resulting in undesired behavior. In the example below, we create a latch unintentionally:</p>
-<div class="sourceCode" id="cb57"><pre class="sourceCode systemverilog"><code class="sourceCode systemverilog"><span id="cb57-1"><a href="#cb57-1" aria-hidden="true"></a><span class="kw">logic</span> a, b;</span>
-<span id="cb57-2"><a href="#cb57-2" aria-hidden="true"></a></span>
-<span id="cb57-3"><a href="#cb57-3" aria-hidden="true"></a><span class="kw">always_comb</span> <span class="kw">begin</span></span>
-<span id="cb57-4"><a href="#cb57-4" aria-hidden="true"></a>    <span class="kw">if</span> (a)</span>
-<span id="cb57-5"><a href="#cb57-5" aria-hidden="true"></a>        b = <span class="dv">1</span>;</span>
-<span id="cb57-6"><a href="#cb57-6" aria-hidden="true"></a><span class="kw">end</span></span></code></pre></div>
+<div class="sourceCode" id="cb56"><pre class="sourceCode systemverilog"><code class="sourceCode systemverilog"><a class="sourceLine" id="cb56-1" title="1"><span class="kw">logic</span> a, b;</a>
+<a class="sourceLine" id="cb56-2" title="2"></a>
+<a class="sourceLine" id="cb56-3" title="3"><span class="kw">always_comb</span> <span class="kw">begin</span></a>
+<a class="sourceLine" id="cb56-4" title="4">    <span class="kw">if</span> (a)</a>
+<a class="sourceLine" id="cb56-5" title="5">        b = <span class="dv">1</span>;</a>
+<a class="sourceLine" id="cb56-6" title="6"><span class="kw">end</span></a></code></pre></div>
 <p>If <code>a = 1</code>, we will have <code>b = 1</code>. However, if <code>a = 0</code>, <code>b</code> will not be set, thus retaining its old value. As a result, we have created latch <code>a</code>. Notice that since we are using <code>always_comb</code> keyword, synthesis will report either a warning or error once a latch is inferred. There are usually two ways to solve latch issue:</p>
 <ol type="1">
 <li>Specify a default value at the beginning of the <code>always_comb</code> block: ```SystemVerilog always_comb begin b = 0; if (a) b = 1; end</li>
-<li>Fully specify the <code>if</code> conditions: <code>SystemVerilog     always_comb begin         if (a)             b = 1;         else             b = 0;     end</code></li>
+<li>Fully specify the <code>if</code> conditions: <code>SystemVerilog  always_comb begin      if (a)          b = 1;      else          b = 0;  end</code></li>
 </ol>
 <p>Choosing which one to use depends on the logic. Sometimes setting default value makes code simpler and sometimes fully specified <code>if</code> statement makes the code more readable. It is up to designer to choose how to avoid latch.</p>
 <p>In additional to <code>always_comb</code>, you can also explicitly create a latch inside <code>always_ff</code>, especially asynchronous reset is used:</p>
-<div class="sourceCode" id="cb58"><pre class="sourceCode systemverilog"><code class="sourceCode systemverilog"><span id="cb58-1"><a href="#cb58-1" aria-hidden="true"></a><span class="kw">logic</span> clk, rst_n, a, b</span>
-<span id="cb58-2"><a href="#cb58-2" aria-hidden="true"></a></span>
-<span id="cb58-3"><a href="#cb58-3" aria-hidden="true"></a><span class="kw">always_ff</span> @(<span class="kw">posedge</span> clk, <span class="kw">negedge</span> rst_n) <span class="kw">begin</span></span>
-<span id="cb58-4"><a href="#cb58-4" aria-hidden="true"></a>    <span class="kw">if</span> (!rst_n) <span class="kw">begin</span></span>
-<span id="cb58-5"><a href="#cb58-5" aria-hidden="true"></a>        a = <span class="dv">0</span>;</span>
-<span id="cb58-6"><a href="#cb58-6" aria-hidden="true"></a>    <span class="kw">end</span></span>
-<span id="cb58-7"><a href="#cb58-7" aria-hidden="true"></a><span class="kw">end</span></span></code></pre></div>
+<div class="sourceCode" id="cb57"><pre class="sourceCode systemverilog"><code class="sourceCode systemverilog"><a class="sourceLine" id="cb57-1" title="1"><span class="kw">logic</span> clk, rst_n, a, b</a>
+<a class="sourceLine" id="cb57-2" title="2"></a>
+<a class="sourceLine" id="cb57-3" title="3"><span class="kw">always_ff</span> @(<span class="kw">posedge</span> clk, <span class="kw">negedge</span> rst_n) <span class="kw">begin</span></a>
+<a class="sourceLine" id="cb57-4" title="4">    <span class="kw">if</span> (!rst_n) <span class="kw">begin</span></a>
+<a class="sourceLine" id="cb57-5" title="5">        a = <span class="dv">0</span>;</a>
+<a class="sourceLine" id="cb57-6" title="6">    <span class="kw">end</span></a>
+<a class="sourceLine" id="cb57-7" title="7"><span class="kw">end</span></a></code></pre></div>
 <p>In the example above we are missing the condition where <code>rst_n</code> is high. Since <code>a</code>’s value change only depends on <code>rst_n</code> (asynchronous reset), <code>a</code> actually does not depends on the clock edge. Hence the synthesis tool will infer a latch, instead of a flip-flop. Then again, since we use <code>always_ff</code>, an error/warning will be issued from synthesis tools.</p>
 <p>To avoid creating latch, besides being careful when writing the logic, we can also resort to commercial SystemVerilog linters or even an elaboration analysis from synthesis tools. We will not cover linter in this book.</p>
-<h4 data-number="3.4.1.3" id="if-statement-with-reset-logic"><span class="header-section-number">3.4.1.3</span> <code>if</code> Statement with Reset Logic</h4>
+<h4 id="if-statement-with-reset-logic"><span class="header-section-number">3.4.1.3</span> <code>if</code> Statement with Reset Logic</h4>
 <p>Although allowed by the language specification, stacking two <code>if</code> statements in the <code>always_ff</code> is not allowed in some synthesis tools, such as Design Compiler<sup>®</sup>:</p>
-<div class="sourceCode" id="cb59"><pre class="sourceCode systemverilog"><code class="sourceCode systemverilog"><span id="cb59-1"><a href="#cb59-1" aria-hidden="true"></a><span class="kw">logic</span> clk, rst_n, a, b, in;</span>
-<span id="cb59-2"><a href="#cb59-2" aria-hidden="true"></a></span>
-<span id="cb59-3"><a href="#cb59-3" aria-hidden="true"></a><span class="kw">always_ff</span> @(<span class="kw">posedge</span> clk, <span class="kw">negedge</span> rst_n) <span class="kw">begin</span></span>
-<span id="cb59-4"><a href="#cb59-4" aria-hidden="true"></a>    <span class="kw">if</span> (!rst_n) <span class="kw">begin</span></span>
-<span id="cb59-5"><a href="#cb59-5" aria-hidden="true"></a>        a &lt;= <span class="dv">0</span>;</span>
-<span id="cb59-6"><a href="#cb59-6" aria-hidden="true"></a>    <span class="kw">end</span></span>
-<span id="cb59-7"><a href="#cb59-7" aria-hidden="true"></a>    <span class="kw">else</span> <span class="kw">begin</span></span>
-<span id="cb59-8"><a href="#cb59-8" aria-hidden="true"></a>        a &lt;= <span class="dv">0</span>;</span>
-<span id="cb59-9"><a href="#cb59-9" aria-hidden="true"></a>    <span class="kw">end</span></span>
-<span id="cb59-10"><a href="#cb59-10" aria-hidden="true"></a></span>
-<span id="cb59-11"><a href="#cb59-11" aria-hidden="true"></a>    <span class="kw">if</span> (!rst_n) <span class="kw">begin</span></span>
-<span id="cb59-12"><a href="#cb59-12" aria-hidden="true"></a>        b &lt;= <span class="dv">0</span>;</span>
-<span id="cb59-13"><a href="#cb59-13" aria-hidden="true"></a>    <span class="kw">end</span></span>
-<span id="cb59-14"><a href="#cb59-14" aria-hidden="true"></a>    <span class="kw">else</span> <span class="kw">begin</span></span>
-<span id="cb59-15"><a href="#cb59-15" aria-hidden="true"></a>        b &lt;= <span class="dv">0</span>;</span>
-<span id="cb59-16"><a href="#cb59-16" aria-hidden="true"></a>    <span class="kw">end</span></span>
-<span id="cb59-17"><a href="#cb59-17" aria-hidden="true"></a><span class="kw">end</span></span></code></pre></div>
+<div class="sourceCode" id="cb58"><pre class="sourceCode systemverilog"><code class="sourceCode systemverilog"><a class="sourceLine" id="cb58-1" title="1"><span class="kw">logic</span> clk, rst_n, a, b, in;</a>
+<a class="sourceLine" id="cb58-2" title="2"></a>
+<a class="sourceLine" id="cb58-3" title="3"><span class="kw">always_ff</span> @(<span class="kw">posedge</span> clk, <span class="kw">negedge</span> rst_n) <span class="kw">begin</span></a>
+<a class="sourceLine" id="cb58-4" title="4">    <span class="kw">if</span> (!rst_n) <span class="kw">begin</span></a>
+<a class="sourceLine" id="cb58-5" title="5">        a &lt;= <span class="dv">0</span>;</a>
+<a class="sourceLine" id="cb58-6" title="6">    <span class="kw">end</span></a>
+<a class="sourceLine" id="cb58-7" title="7">    <span class="kw">else</span> <span class="kw">begin</span></a>
+<a class="sourceLine" id="cb58-8" title="8">        a &lt;= <span class="dv">0</span>;</a>
+<a class="sourceLine" id="cb58-9" title="9">    <span class="kw">end</span></a>
+<a class="sourceLine" id="cb58-10" title="10"></a>
+<a class="sourceLine" id="cb58-11" title="11">    <span class="kw">if</span> (!rst_n) <span class="kw">begin</span></a>
+<a class="sourceLine" id="cb58-12" title="12">        b &lt;= <span class="dv">0</span>;</a>
+<a class="sourceLine" id="cb58-13" title="13">    <span class="kw">end</span></a>
+<a class="sourceLine" id="cb58-14" title="14">    <span class="kw">else</span> <span class="kw">begin</span></a>
+<a class="sourceLine" id="cb58-15" title="15">        b &lt;= <span class="dv">0</span>;</a>
+<a class="sourceLine" id="cb58-16" title="16">    <span class="kw">end</span></a>
+<a class="sourceLine" id="cb58-17" title="17"><span class="kw">end</span></a></code></pre></div>
 <p>The code above will trigger <code>ELAB-302</code> error since it contains two <code>if</code> statements in the <code>always_ff</code> block. There are two solutions for that:</p>
 <ol type="1">
 <li>If <code>a</code> and <code>b</code> are totally separate, use two <code>always_ff</code> instead.</li>
 <li>If <code>a</code> and <code>b</code> are related, e.g. sharing the same input conditions, merge these two <code>if</code> statements into one <code>if</code> statement.</li>
 </ol>
-<h3 data-number="3.4.2" id="case-statement"><span class="header-section-number">3.4.2</span> <code>case</code> Statement</h3>
+<h3 id="case-statement"><span class="header-section-number">3.4.2</span> <code>case</code> Statement</h3>
 <p><code>case</code> statement is similar to <code>switch</code> statement in C/C++ with some semantic difference due to the nature of hardware design. The general syntax for <code>case</code> is shown below:</p>
-<div class="sourceCode" id="cb60"><pre class="sourceCode systemverilog"><code class="sourceCode systemverilog"><span id="cb60-1"><a href="#cb60-1" aria-hidden="true"></a><span class="co">// logic [1:0] a;</span></span>
-<span id="cb60-2"><a href="#cb60-2" aria-hidden="true"></a><span class="kw">case</span> (a)</span>
-<span id="cb60-3"><a href="#cb60-3" aria-hidden="true"></a>    <span class="bn">2&#39;b00</span>: <span class="kw">begin</span></span>
-<span id="cb60-4"><a href="#cb60-4" aria-hidden="true"></a>        <span class="co">// statements</span></span>
-<span id="cb60-5"><a href="#cb60-5" aria-hidden="true"></a>    <span class="kw">end</span></span>
-<span id="cb60-6"><a href="#cb60-6" aria-hidden="true"></a>    <span class="bn">2&#39;b01</span>:</span>
-<span id="cb60-7"><a href="#cb60-7" aria-hidden="true"></a>        <span class="co">// one single statement</span></span>
-<span id="cb60-8"><a href="#cb60-8" aria-hidden="true"></a>    <span class="kw">default</span>: <span class="kw">begin</span></span>
-<span id="cb60-9"><a href="#cb60-9" aria-hidden="true"></a>        <span class="co">// statements</span></span>
-<span id="cb60-10"><a href="#cb60-10" aria-hidden="true"></a>    <span class="kw">end</span></span>
-<span id="cb60-11"><a href="#cb60-11" aria-hidden="true"></a><span class="kw">endcase</span></span></code></pre></div>
+<div class="sourceCode" id="cb59"><pre class="sourceCode systemverilog"><code class="sourceCode systemverilog"><a class="sourceLine" id="cb59-1" title="1"><span class="co">// logic [1:0] a;</span></a>
+<a class="sourceLine" id="cb59-2" title="2"><span class="kw">case</span> (a)</a>
+<a class="sourceLine" id="cb59-3" title="3">    <span class="bn">2&#39;b00</span>: <span class="kw">begin</span></a>
+<a class="sourceLine" id="cb59-4" title="4">        <span class="co">// statements</span></a>
+<a class="sourceLine" id="cb59-5" title="5">    <span class="kw">end</span></a>
+<a class="sourceLine" id="cb59-6" title="6">    <span class="bn">2&#39;b01</span>:</a>
+<a class="sourceLine" id="cb59-7" title="7">        <span class="co">// one single statement</span></a>
+<a class="sourceLine" id="cb59-8" title="8">    <span class="kw">default</span>: <span class="kw">begin</span></a>
+<a class="sourceLine" id="cb59-9" title="9">        <span class="co">// statements</span></a>
+<a class="sourceLine" id="cb59-10" title="10">    <span class="kw">end</span></a>
+<a class="sourceLine" id="cb59-11" title="11"><span class="kw">endcase</span></a></code></pre></div>
 <p>Notice that we do not have <code>break</code> statement inside each <code>case</code> condition clause, which is the major difference compared to that of C/C++. As a result, there is no switch fall through in SystemVerilog. To take into the intentional fall through use case (shown in C++ below), we can put multiple conditions in the same case statement.</p>
-<div class="sourceCode" id="cb61"><pre class="sourceCode c++"><code class="sourceCode cpp"><span id="cb61-1"><a href="#cb61-1" aria-hidden="true"></a><span class="dt">int</span> a;</span>
-<span id="cb61-2"><a href="#cb61-2" aria-hidden="true"></a></span>
-<span id="cb61-3"><a href="#cb61-3" aria-hidden="true"></a><span class="cf">switch</span> (a) {</span>
-<span id="cb61-4"><a href="#cb61-4" aria-hidden="true"></a>    <span class="cf">case</span> <span class="dv">0</span>:</span>
-<span id="cb61-5"><a href="#cb61-5" aria-hidden="true"></a>    <span class="cf">case</span> <span class="dv">1</span>:</span>
-<span id="cb61-6"><a href="#cb61-6" aria-hidden="true"></a>        <span class="co">// statements</span></span>
-<span id="cb61-7"><a href="#cb61-7" aria-hidden="true"></a>        <span class="cf">break</span>;</span>
-<span id="cb61-8"><a href="#cb61-8" aria-hidden="true"></a>    <span class="cf">default</span>:</span>
-<span id="cb61-9"><a href="#cb61-9" aria-hidden="true"></a>        <span class="co">// statements</span></span>
-<span id="cb61-10"><a href="#cb61-10" aria-hidden="true"></a>}</span></code></pre></div>
-<div class="sourceCode" id="cb62"><pre class="sourceCode systemverilog"><code class="sourceCode systemverilog"><span id="cb62-1"><a href="#cb62-1" aria-hidden="true"></a><span class="co">// logic [1:0] a;</span></span>
-<span id="cb62-2"><a href="#cb62-2" aria-hidden="true"></a></span>
-<span id="cb62-3"><a href="#cb62-3" aria-hidden="true"></a><span class="kw">case</span> (a)</span>
-<span id="cb62-4"><a href="#cb62-4" aria-hidden="true"></a>    <span class="bn">2&#39;b00</span>, <span class="bn">2&#39;b01</span>: <span class="kw">begin</span></span>
-<span id="cb62-5"><a href="#cb62-5" aria-hidden="true"></a>        <span class="co">// statements</span></span>
-<span id="cb62-6"><a href="#cb62-6" aria-hidden="true"></a>    <span class="kw">end</span></span>
-<span id="cb62-7"><a href="#cb62-7" aria-hidden="true"></a>    <span class="kw">default</span>: <span class="kw">begin</span></span>
-<span id="cb62-8"><a href="#cb62-8" aria-hidden="true"></a>    <span class="kw">end</span></span>
-<span id="cb62-9"><a href="#cb62-9" aria-hidden="true"></a><span class="kw">endcase</span></span></code></pre></div>
+<div class="sourceCode" id="cb60"><pre class="sourceCode c++"><code class="sourceCode cpp"><a class="sourceLine" id="cb60-1" title="1"><span class="dt">int</span> a;</a>
+<a class="sourceLine" id="cb60-2" title="2"></a>
+<a class="sourceLine" id="cb60-3" title="3"><span class="cf">switch</span> (a) {</a>
+<a class="sourceLine" id="cb60-4" title="4">    <span class="cf">case</span> <span class="dv">0</span>:</a>
+<a class="sourceLine" id="cb60-5" title="5">    <span class="cf">case</span> <span class="dv">1</span>:</a>
+<a class="sourceLine" id="cb60-6" title="6">        <span class="co">// statements</span></a>
+<a class="sourceLine" id="cb60-7" title="7">        <span class="cf">break</span>;</a>
+<a class="sourceLine" id="cb60-8" title="8">    <span class="cf">default</span>:</a>
+<a class="sourceLine" id="cb60-9" title="9">        <span class="co">// statements</span></a>
+<a class="sourceLine" id="cb60-10" title="10">}</a></code></pre></div>
+<div class="sourceCode" id="cb61"><pre class="sourceCode systemverilog"><code class="sourceCode systemverilog"><a class="sourceLine" id="cb61-1" title="1"><span class="co">// logic [1:0] a;</span></a>
+<a class="sourceLine" id="cb61-2" title="2"></a>
+<a class="sourceLine" id="cb61-3" title="3"><span class="kw">case</span> (a)</a>
+<a class="sourceLine" id="cb61-4" title="4">    <span class="bn">2&#39;b00</span>, <span class="bn">2&#39;b01</span>: <span class="kw">begin</span></a>
+<a class="sourceLine" id="cb61-5" title="5">        <span class="co">// statements</span></a>
+<a class="sourceLine" id="cb61-6" title="6">    <span class="kw">end</span></a>
+<a class="sourceLine" id="cb61-7" title="7">    <span class="kw">default</span>: <span class="kw">begin</span></a>
+<a class="sourceLine" id="cb61-8" title="8">    <span class="kw">end</span></a>
+<a class="sourceLine" id="cb61-9" title="9"><span class="kw">endcase</span></a></code></pre></div>
 <p>If there is only one statement for a particular case condition, we can omit <code>begin...end</code>. However, if any conditions has more than one statement, we recommend to use <code>begin...end</code> to enclose all conditions for readability.</p>
 <p>SystemVerilog also allows to use range and wildcards as conditions using <code>inside</code> keyword, which is shown below:</p>
-<div class="sourceCode" id="cb63"><pre class="sourceCode systemverilog"><code class="sourceCode systemverilog"><span id="cb63-1"><a href="#cb63-1" aria-hidden="true"></a><span class="co">// logic [3:0] a;</span></span>
-<span id="cb63-2"><a href="#cb63-2" aria-hidden="true"></a></span>
-<span id="cb63-3"><a href="#cb63-3" aria-hidden="true"></a><span class="kw">case</span> (a) <span class="kw">inside</span></span>
-<span id="cb63-4"><a href="#cb63-4" aria-hidden="true"></a>    <span class="bn">4&#39;b0</span>???: <span class="kw">begin</span></span>
-<span id="cb63-5"><a href="#cb63-5" aria-hidden="true"></a>        <span class="co">// statements</span></span>
-<span id="cb63-6"><a href="#cb63-6" aria-hidden="true"></a>    <span class="kw">end</span></span>
-<span id="cb63-7"><a href="#cb63-7" aria-hidden="true"></a>    [<span class="dv">8</span>:<span class="dv">12</span>]: <span class="kw">begin</span></span>
-<span id="cb63-8"><a href="#cb63-8" aria-hidden="true"></a>        <span class="co">// statements</span></span>
-<span id="cb63-9"><a href="#cb63-9" aria-hidden="true"></a>    <span class="kw">end</span></span>
-<span id="cb63-10"><a href="#cb63-10" aria-hidden="true"></a>    <span class="kw">default</span>: <span class="kw">begin</span></span>
-<span id="cb63-11"><a href="#cb63-11" aria-hidden="true"></a>        <span class="co">// statements</span></span>
-<span id="cb63-12"><a href="#cb63-12" aria-hidden="true"></a>    <span class="kw">end</span></span>
-<span id="cb63-13"><a href="#cb63-13" aria-hidden="true"></a><span class="kw">endcase</span></span></code></pre></div>
+<div class="sourceCode" id="cb62"><pre class="sourceCode systemverilog"><code class="sourceCode systemverilog"><a class="sourceLine" id="cb62-1" title="1"><span class="co">// logic [3:0] a;</span></a>
+<a class="sourceLine" id="cb62-2" title="2"></a>
+<a class="sourceLine" id="cb62-3" title="3"><span class="kw">case</span> (a) <span class="kw">inside</span></a>
+<a class="sourceLine" id="cb62-4" title="4">    <span class="bn">4&#39;b0</span>???: <span class="kw">begin</span></a>
+<a class="sourceLine" id="cb62-5" title="5">        <span class="co">// statements</span></a>
+<a class="sourceLine" id="cb62-6" title="6">    <span class="kw">end</span></a>
+<a class="sourceLine" id="cb62-7" title="7">    [<span class="dv">8</span>:<span class="dv">12</span>]: <span class="kw">begin</span></a>
+<a class="sourceLine" id="cb62-8" title="8">        <span class="co">// statements</span></a>
+<a class="sourceLine" id="cb62-9" title="9">    <span class="kw">end</span></a>
+<a class="sourceLine" id="cb62-10" title="10">    <span class="kw">default</span>: <span class="kw">begin</span></a>
+<a class="sourceLine" id="cb62-11" title="11">        <span class="co">// statements</span></a>
+<a class="sourceLine" id="cb62-12" title="12">    <span class="kw">end</span></a>
+<a class="sourceLine" id="cb62-13" title="13"><span class="kw">endcase</span></a></code></pre></div>
 <p>In the example, <code>?</code> is regarded as <em>don’t care</em>, which means it will match with any 4-state bit. For instance, if <code>a = 4'b0xxxx</code>, it will match with the first case. <code>[8:12]</code> is a range construct that is lower and upper bound inclusive. For instance, if <code>a = 4'b1001</code>, it will match with the second case. If nothing matches, it will go to the <code>default</code> condition.</p>
 <p>Like <code>if</code> statement, we can add modifiers to <code>case</code> statement. The most commonly used is <code>unique</code>. Keep in mind that the default <code>case</code> statement has priority. That is, if two conditions overlap, the execution will follow the first condition lexically. The synthesis tools are required to obey this convention as well. To produce optimal circuit, physical design engineers often use synthesis directives to remove such priority. However, removing priority creates an inconsistency between the simulator and synthesis tools, resulting in potential bug that can only be caught during gate-level simulation. Using <code>unique</code> forces the simulator to check if there is any conditions overlapping, which guarantee the consistency among tools. However, although using <code>unique</code> is highly recommended whenever possible, in some large designs, we may see exponential growth in runtime with some tools, e.g. Formality® from Synopsys®.</p>
-<h3 data-number="3.4.3" id="loop-statements"><span class="header-section-number">3.4.3</span> Loop Statements</h3>
+<h3 id="loop-statements"><span class="header-section-number">3.4.3</span> Loop Statements</h3>
 <p>Like C/C++, SystemVerilog also offers <code>for</code> and <code>while</code> loop for control logic. However, since the synthesis tools need to compile the logic into logical gates that compute in finite and deterministic cycles, the loop-bound has to be known during compile time; otherwise the tool either reports an error, or generated unwanted logic.</p>
 <p>The general syntax for <code>for</code> loop is shown below:</p>
-<div class="sourceCode" id="cb64"><pre class="sourceCode systemverilog"><code class="sourceCode systemverilog"><span id="cb64-1"><a href="#cb64-1" aria-hidden="true"></a><span class="kw">for</span> (<span class="kw">int</span> i = <span class="dv">0</span>; i &lt; <span class="dv">42</span>; i++) <span class="kw">begin</span></span>
-<span id="cb64-2"><a href="#cb64-2" aria-hidden="true"></a>    <span class="co">// statements</span></span>
-<span id="cb64-3"><a href="#cb64-3" aria-hidden="true"></a>    <span class="co">// e.g.</span></span>
-<span id="cb64-4"><a href="#cb64-4" aria-hidden="true"></a>    <span class="co">// $display(&quot;index i is : %0d, i);</span></span>
-<span id="cb64-5"><a href="#cb64-5" aria-hidden="true"></a><span class="kw">end</span></span></code></pre></div>
+<div class="sourceCode" id="cb63"><pre class="sourceCode systemverilog"><code class="sourceCode systemverilog"><a class="sourceLine" id="cb63-1" title="1"><span class="kw">for</span> (<span class="kw">int</span> i = <span class="dv">0</span>; i &lt; <span class="dv">42</span>; i++) <span class="kw">begin</span></a>
+<a class="sourceLine" id="cb63-2" title="2">    <span class="co">// statements</span></a>
+<a class="sourceLine" id="cb63-3" title="3">    <span class="co">// e.g.</span></a>
+<a class="sourceLine" id="cb63-4" title="4">    <span class="co">// $display(&quot;index i is : %0d, i);</span></a>
+<a class="sourceLine" id="cb63-5" title="5"><span class="kw">end</span></a></code></pre></div>
 <p>Here we use <code>i</code> as <code>int</code> since it doesn’t matter whether <code>i</code> is 2-state for 4-state values. In situation where index <code>i</code> is used in arithmetics with 4-logic values, we need to declare <code>i</code> as 4-state variable. Notice that the loop upper bound <code>42</code> is a static value known during compilation time. If we use a variable as upper bound, a latch will be used since the synthesis tool assumes the upper bound could be 0, in such case the value update follows the latch inferring rules. However, we can disregard such rules when using for loops in test bench code, since the simulator is less picky.</p>
 <p>The general syntax for <code>while</code> loop is shown below:</p>
-<div class="sourceCode" id="cb65"><pre class="sourceCode systemverilog"><code class="sourceCode systemverilog"><span id="cb65-1"><a href="#cb65-1" aria-hidden="true"></a></span>
-<span id="cb65-2"><a href="#cb65-2" aria-hidden="true"></a><span class="kw">int</span> i = <span class="dv">0</span>;</span>
-<span id="cb65-3"><a href="#cb65-3" aria-hidden="true"></a><span class="kw">while</span> (i &lt; <span class="dv">42</span>) <span class="kw">begin</span></span>
-<span id="cb65-4"><a href="#cb65-4" aria-hidden="true"></a>    <span class="co">// statements</span></span>
-<span id="cb65-5"><a href="#cb65-5" aria-hidden="true"></a>    i++;</span>
-<span id="cb65-6"><a href="#cb65-6" aria-hidden="true"></a><span class="kw">end</span></span></code></pre></div>
+<div class="sourceCode" id="cb64"><pre class="sourceCode systemverilog"><code class="sourceCode systemverilog"><a class="sourceLine" id="cb64-1" title="1"></a>
+<a class="sourceLine" id="cb64-2" title="2"><span class="kw">int</span> i = <span class="dv">0</span>;</a>
+<a class="sourceLine" id="cb64-3" title="3"><span class="kw">while</span> (i &lt; <span class="dv">42</span>) <span class="kw">begin</span></a>
+<a class="sourceLine" id="cb64-4" title="4">    <span class="co">// statements</span></a>
+<a class="sourceLine" id="cb64-5" title="5">    i++;</a>
+<a class="sourceLine" id="cb64-6" title="6"><span class="kw">end</span></a></code></pre></div>
 <p>Unlike <code>for</code> loop, most synthesis tools cannot take <code>while</code> loop construct, since that requires compile-time full elaboration of the loop body, which can be tricky to do. We can convert the loop body into a <code>for</code> loop if needed. Again, there is no such restriction in the test bench code.</p>
 <p>There is a variant of <code>while</code> loop in SystemVerilog, i.e. <code>do...while</code>, which has similar semantics as C/C++. The syntax for <code>do...while</code> loop is</p>
-<div class="sourceCode" id="cb66"><pre class="sourceCode systemverilog"><code class="sourceCode systemverilog"><span id="cb66-1"><a href="#cb66-1" aria-hidden="true"></a><span class="kw">int</span> i = <span class="dv">0</span>;</span>
-<span id="cb66-2"><a href="#cb66-2" aria-hidden="true"></a><span class="kw">do</span> <span class="kw">begin</span></span>
-<span id="cb66-3"><a href="#cb66-3" aria-hidden="true"></a>    <span class="co">// statements</span></span>
-<span id="cb66-4"><a href="#cb66-4" aria-hidden="true"></a>    i += <span class="dv">1</span>;</span>
-<span id="cb66-5"><a href="#cb66-5" aria-hidden="true"></a><span class="kw">end</span> <span class="kw">while</span> (i &lt; <span class="dv">42</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb65"><pre class="sourceCode systemverilog"><code class="sourceCode systemverilog"><a class="sourceLine" id="cb65-1" title="1"><span class="kw">int</span> i = <span class="dv">0</span>;</a>
+<a class="sourceLine" id="cb65-2" title="2"><span class="kw">do</span> <span class="kw">begin</span></a>
+<a class="sourceLine" id="cb65-3" title="3">    <span class="co">// statements</span></a>
+<a class="sourceLine" id="cb65-4" title="4">    i += <span class="dv">1</span>;</a>
+<a class="sourceLine" id="cb65-5" title="5"><span class="kw">end</span> <span class="kw">while</span> (i &lt; <span class="dv">42</span>)</a></code></pre></div>
 <p>To exit the loop body early, we can use the <code>break</code> statement, similar to C/C++. Some synthesis tools will optimize the circuit when it notices the <code>break</code> statement.</p>
-<h2 data-number="3.5" id="generate-statements"><span class="header-section-number">3.5</span> Generate statements</h2>
+<h2 id="generate-statements"><span class="header-section-number">3.5</span> Generate statements</h2>
 <p>SystemVerilog allows users to “dynamically” create circuit logic using generate construct. Users can use for-loops or conditional generation to meta-program the circuit. However, such meta-programming has limitations:</p>
 <ol type="1">
 <li>Generate is evaluated during elaboration time. Hence we cannot add or remove circuit during runtime.</li>
 <li>We cannot create ports using generate; net, such as <code>logic</code>, is allowed.</li>
 </ol>
-<h3 data-number="3.5.1" id="loop-generate"><span class="header-section-number">3.5.1</span> Loop generate</h3>
+<h3 id="loop-generate"><span class="header-section-number">3.5.1</span> Loop generate</h3>
 <p>The syntax for loop generate is shown below:</p>
-<div class="sourceCode" id="cb67"><pre class="sourceCode systemverilog"><code class="sourceCode systemverilog"><span id="cb67-1"><a href="#cb67-1" aria-hidden="true"></a><span class="kw">generate</span></span>
-<span id="cb67-2"><a href="#cb67-2" aria-hidden="true"></a>    <span class="kw">for</span> (<span class="kw">genvar</span> i = <span class="dv">0</span>; i &lt; <span class="dv">4</span>; i++) <span class="kw">begin</span></span>
-<span id="cb67-3"><a href="#cb67-3" aria-hidden="true"></a>        <span class="co">// statements</span></span>
-<span id="cb67-4"><a href="#cb67-4" aria-hidden="true"></a>        <span class="co">// e.g.</span></span>
-<span id="cb67-5"><a href="#cb67-5" aria-hidden="true"></a>        <span class="kw">assign</span> a[i] = b[i];</span>
-<span id="cb67-6"><a href="#cb67-6" aria-hidden="true"></a>        <span class="co">// or even instantiations</span></span>
-<span id="cb67-7"><a href="#cb67-7" aria-hidden="true"></a>        module_name inst (</span>
-<span id="cb67-8"><a href="#cb67-8" aria-hidden="true"></a>            .a(a[i]),</span>
-<span id="cb67-9"><a href="#cb67-9" aria-hidden="true"></a>            .b(b[i])</span>
-<span id="cb67-10"><a href="#cb67-10" aria-hidden="true"></a>        );</span>
-<span id="cb67-11"><a href="#cb67-11" aria-hidden="true"></a>    <span class="kw">end</span></span>
-<span id="cb67-12"><a href="#cb67-12" aria-hidden="true"></a><span class="kw">endgenerate</span></span></code></pre></div>
+<div class="sourceCode" id="cb66"><pre class="sourceCode systemverilog"><code class="sourceCode systemverilog"><a class="sourceLine" id="cb66-1" title="1"><span class="kw">generate</span></a>
+<a class="sourceLine" id="cb66-2" title="2">    <span class="kw">for</span> (<span class="kw">genvar</span> i = <span class="dv">0</span>; i &lt; <span class="dv">4</span>; i++) <span class="kw">begin</span></a>
+<a class="sourceLine" id="cb66-3" title="3">        <span class="co">// statements</span></a>
+<a class="sourceLine" id="cb66-4" title="4">        <span class="co">// e.g.</span></a>
+<a class="sourceLine" id="cb66-5" title="5">        <span class="kw">assign</span> a[i] = b[i];</a>
+<a class="sourceLine" id="cb66-6" title="6">        <span class="co">// or even instantiations</span></a>
+<a class="sourceLine" id="cb66-7" title="7">        module_name inst (</a>
+<a class="sourceLine" id="cb66-8" title="8">            .a(a[i]),</a>
+<a class="sourceLine" id="cb66-9" title="9">            .b(b[i])</a>
+<a class="sourceLine" id="cb66-10" title="10">        );</a>
+<a class="sourceLine" id="cb66-11" title="11">    <span class="kw">end</span></a>
+<a class="sourceLine" id="cb66-12" title="12"><span class="kw">endgenerate</span></a></code></pre></div>
 <p>Notice that unlike normal <code>for</code> loop, we need to declare the loop variable <code>i</code> using keyword <code>genvar</code>. However, <code>genvar</code> is used as an integer during elaboration to evaluate generated constructs. The loop bounds has to be known during compilation elaboration time, otherwise an error will be thrown. Loop generate can also be nested together to create more complex circuit logics.</p>
 <p>When creating instance using generate statement, the hierarchy name is slightly different. We will cover the naming convention in next section.</p>
-<h3 data-number="3.5.2" id="conditional-generate"><span class="header-section-number">3.5.2</span> Conditional generate</h3>
+<h3 id="conditional-generate"><span class="header-section-number">3.5.2</span> Conditional generate</h3>
 <p>In many cases we need to conditionally generate logic based on the parametrization. SystemVerilog supports conditional generate constructs, as long as they can be elaborated statically during compilation time. The “conditional” part is typically done via <code>if</code> or <code>case</code> statements where the condition expression value is known. For instance, we can do the following conditional generate:</p>
-<div class="sourceCode" id="cb68"><pre class="sourceCode systemverilog"><code class="sourceCode systemverilog"><span id="cb68-1"><a href="#cb68-1" aria-hidden="true"></a><span class="kw">module</span> A;</span>
-<span id="cb68-2"><a href="#cb68-2" aria-hidden="true"></a><span class="kw">endmodule</span></span>
-<span id="cb68-3"><a href="#cb68-3" aria-hidden="true"></a></span>
-<span id="cb68-4"><a href="#cb68-4" aria-hidden="true"></a><span class="kw">module</span> B;</span>
-<span id="cb68-5"><a href="#cb68-5" aria-hidden="true"></a><span class="kw">endmodule</span></span>
-<span id="cb68-6"><a href="#cb68-6" aria-hidden="true"></a></span>
-<span id="cb68-7"><a href="#cb68-7" aria-hidden="true"></a><span class="kw">module</span> C;</span>
-<span id="cb68-8"><a href="#cb68-8" aria-hidden="true"></a><span class="kw">endmodule</span></span>
-<span id="cb68-9"><a href="#cb68-9" aria-hidden="true"></a></span>
-<span id="cb68-10"><a href="#cb68-10" aria-hidden="true"></a><span class="kw">module</span> GenMod #(<span class="kw">parameter</span> <span class="kw">int</span> value = <span class="dv">0</span>);</span>
-<span id="cb68-11"><a href="#cb68-11" aria-hidden="true"></a><span class="co">// use if statement to conditional generate instances</span></span>
-<span id="cb68-12"><a href="#cb68-12" aria-hidden="true"></a><span class="kw">generate</span></span>
-<span id="cb68-13"><a href="#cb68-13" aria-hidden="true"></a><span class="kw">if</span> (value == <span class="dv">0</span>) <span class="kw">begin</span></span>
-<span id="cb68-14"><a href="#cb68-14" aria-hidden="true"></a>    A a();</span>
-<span id="cb68-15"><a href="#cb68-15" aria-hidden="true"></a><span class="kw">end</span></span>
-<span id="cb68-16"><a href="#cb68-16" aria-hidden="true"></a><span class="kw">else</span> <span class="kw">begin</span></span>
-<span id="cb68-17"><a href="#cb68-17" aria-hidden="true"></a>    B b();</span>
-<span id="cb68-18"><a href="#cb68-18" aria-hidden="true"></a><span class="kw">end</span></span>
-<span id="cb68-19"><a href="#cb68-19" aria-hidden="true"></a><span class="kw">endgenerate</span></span>
-<span id="cb68-20"><a href="#cb68-20" aria-hidden="true"></a></span>
-<span id="cb68-21"><a href="#cb68-21" aria-hidden="true"></a><span class="co">// use case statement to conditional generate</span></span>
-<span id="cb68-22"><a href="#cb68-22" aria-hidden="true"></a><span class="kw">generate</span></span>
-<span id="cb68-23"><a href="#cb68-23" aria-hidden="true"></a><span class="kw">case</span> (value)</span>
-<span id="cb68-24"><a href="#cb68-24" aria-hidden="true"></a>    <span class="dv">0</span>: <span class="kw">begin</span></span>
-<span id="cb68-25"><a href="#cb68-25" aria-hidden="true"></a>        A a();</span>
-<span id="cb68-26"><a href="#cb68-26" aria-hidden="true"></a>    <span class="kw">end</span></span>
-<span id="cb68-27"><a href="#cb68-27" aria-hidden="true"></a>    <span class="dv">1</span>: <span class="kw">begin</span></span>
-<span id="cb68-28"><a href="#cb68-28" aria-hidden="true"></a>        B b();</span>
-<span id="cb68-29"><a href="#cb68-29" aria-hidden="true"></a>    <span class="kw">end</span></span>
-<span id="cb68-30"><a href="#cb68-30" aria-hidden="true"></a>    <span class="kw">default</span>: <span class="kw">begin</span></span>
-<span id="cb68-31"><a href="#cb68-31" aria-hidden="true"></a>        C c();</span>
-<span id="cb68-32"><a href="#cb68-32" aria-hidden="true"></a>    <span class="kw">end</span></span>
-<span id="cb68-33"><a href="#cb68-33" aria-hidden="true"></a><span class="kw">endcase</span></span>
-<span id="cb68-34"><a href="#cb68-34" aria-hidden="true"></a><span class="kw">endgenerate</span></span>
-<span id="cb68-35"><a href="#cb68-35" aria-hidden="true"></a></span>
-<span id="cb68-36"><a href="#cb68-36" aria-hidden="true"></a><span class="kw">endmodule</span></span></code></pre></div>
+<div class="sourceCode" id="cb67"><pre class="sourceCode systemverilog"><code class="sourceCode systemverilog"><a class="sourceLine" id="cb67-1" title="1"><span class="kw">module</span> A;</a>
+<a class="sourceLine" id="cb67-2" title="2"><span class="kw">endmodule</span></a>
+<a class="sourceLine" id="cb67-3" title="3"></a>
+<a class="sourceLine" id="cb67-4" title="4"><span class="kw">module</span> B;</a>
+<a class="sourceLine" id="cb67-5" title="5"><span class="kw">endmodule</span></a>
+<a class="sourceLine" id="cb67-6" title="6"></a>
+<a class="sourceLine" id="cb67-7" title="7"><span class="kw">module</span> C;</a>
+<a class="sourceLine" id="cb67-8" title="8"><span class="kw">endmodule</span></a>
+<a class="sourceLine" id="cb67-9" title="9"></a>
+<a class="sourceLine" id="cb67-10" title="10"><span class="kw">module</span> GenMod #(<span class="kw">parameter</span> <span class="kw">int</span> value = <span class="dv">0</span>);</a>
+<a class="sourceLine" id="cb67-11" title="11"><span class="co">// use if statement to conditional generate instances</span></a>
+<a class="sourceLine" id="cb67-12" title="12"><span class="kw">generate</span></a>
+<a class="sourceLine" id="cb67-13" title="13"><span class="kw">if</span> (value == <span class="dv">0</span>) <span class="kw">begin</span></a>
+<a class="sourceLine" id="cb67-14" title="14">    A a();</a>
+<a class="sourceLine" id="cb67-15" title="15"><span class="kw">end</span></a>
+<a class="sourceLine" id="cb67-16" title="16"><span class="kw">else</span> <span class="kw">begin</span></a>
+<a class="sourceLine" id="cb67-17" title="17">    B b();</a>
+<a class="sourceLine" id="cb67-18" title="18"><span class="kw">end</span></a>
+<a class="sourceLine" id="cb67-19" title="19"><span class="kw">endgenerate</span></a>
+<a class="sourceLine" id="cb67-20" title="20"></a>
+<a class="sourceLine" id="cb67-21" title="21"><span class="co">// use case statement to conditional generate</span></a>
+<a class="sourceLine" id="cb67-22" title="22"><span class="kw">generate</span></a>
+<a class="sourceLine" id="cb67-23" title="23"><span class="kw">case</span> (value)</a>
+<a class="sourceLine" id="cb67-24" title="24">    <span class="dv">0</span>: <span class="kw">begin</span></a>
+<a class="sourceLine" id="cb67-25" title="25">        A a();</a>
+<a class="sourceLine" id="cb67-26" title="26">    <span class="kw">end</span></a>
+<a class="sourceLine" id="cb67-27" title="27">    <span class="dv">1</span>: <span class="kw">begin</span></a>
+<a class="sourceLine" id="cb67-28" title="28">        B b();</a>
+<a class="sourceLine" id="cb67-29" title="29">    <span class="kw">end</span></a>
+<a class="sourceLine" id="cb67-30" title="30">    <span class="kw">default</span>: <span class="kw">begin</span></a>
+<a class="sourceLine" id="cb67-31" title="31">        C c();</a>
+<a class="sourceLine" id="cb67-32" title="32">    <span class="kw">end</span></a>
+<a class="sourceLine" id="cb67-33" title="33"><span class="kw">endcase</span></a>
+<a class="sourceLine" id="cb67-34" title="34"><span class="kw">endgenerate</span></a>
+<a class="sourceLine" id="cb67-35" title="35"></a>
+<a class="sourceLine" id="cb67-36" title="36"><span class="kw">endmodule</span></a></code></pre></div>
 <p>In the example we create instances based on the value of the parameter <code>value</code>. When module <code>GenMod</code> is instantiated with different parameter values, we will create instances accordingly. We can also create variables and connecting them inside the generate statement. For instance</p>
-<div class="sourceCode" id="cb69"><pre class="sourceCode systemverilog"><code class="sourceCode systemverilog"><span id="cb69-1"><a href="#cb69-1" aria-hidden="true"></a><span class="kw">generate</span></span>
-<span id="cb69-2"><a href="#cb69-2" aria-hidden="true"></a>    <span class="kw">if</span> (value == <span class="dv">0</span>) <span class="kw">begin</span></span>
-<span id="cb69-3"><a href="#cb69-3" aria-hidden="true"></a>        <span class="kw">logic</span> v1, v2;</span>
-<span id="cb69-4"><a href="#cb69-4" aria-hidden="true"></a>        <span class="kw">assign</span> v1 = v2;</span>
-<span id="cb69-5"><a href="#cb69-5" aria-hidden="true"></a>    <span class="kw">end</span></span>
-<span id="cb69-6"><a href="#cb69-6" aria-hidden="true"></a><span class="kw">endgenerate</span></span></code></pre></div>
-<h2 data-number="3.6" id="named-blocks-scope-rules-and-hierarchical-names"><span class="header-section-number">3.6</span> Named Blocks, Scope Rules, and Hierarchical Names</h2>
+<div class="sourceCode" id="cb68"><pre class="sourceCode systemverilog"><code class="sourceCode systemverilog"><a class="sourceLine" id="cb68-1" title="1"><span class="kw">generate</span></a>
+<a class="sourceLine" id="cb68-2" title="2">    <span class="kw">if</span> (value == <span class="dv">0</span>) <span class="kw">begin</span></a>
+<a class="sourceLine" id="cb68-3" title="3">        <span class="kw">logic</span> v1, v2;</a>
+<a class="sourceLine" id="cb68-4" title="4">        <span class="kw">assign</span> v1 = v2;</a>
+<a class="sourceLine" id="cb68-5" title="5">    <span class="kw">end</span></a>
+<a class="sourceLine" id="cb68-6" title="6"><span class="kw">endgenerate</span></a></code></pre></div>
+<h2 id="named-blocks-scope-rules-and-hierarchical-names"><span class="header-section-number">3.6</span> Named Blocks, Scope Rules, and Hierarchical Names</h2>
 <p>SystemVerilog offers couple language features that allow programmers debug their hardware design easier than before. One demand for reliable debugging is the ability to address every signal by name hierarchically. With that ability, we can add assertions or verification tasks to the signals of interest without changing the design. This feature is achieved by allowing named blocks and defining scope rules.</p>
-<h3 data-number="3.6.1" id="named-blocks"><span class="header-section-number">3.6.1</span> Named Blocks</h3>
+<h3 id="named-blocks"><span class="header-section-number">3.6.1</span> Named Blocks</h3>
 <p>In SystemVerilog, you can name any code blocks defined by <code>begin ... end</code>, which can be used later on for hierarchical data access. The general syntax for naming code blocks is shown below:</p>
-<div class="sourceCode" id="cb70"><pre class="sourceCode systemverilog"><code class="sourceCode systemverilog"><span id="cb70-1"><a href="#cb70-1" aria-hidden="true"></a><span class="kw">always_comb</span> <span class="kw">begin:</span><span class="dt"> </span><span class="kw">name_1</span></span>
-<span id="cb70-2"><a href="#cb70-2" aria-hidden="true"></a>   <span class="kw">if</span> (a) <span class="kw">begin:</span><span class="dt"> </span><span class="kw">name_2</span></span>
-<span id="cb70-3"><a href="#cb70-3" aria-hidden="true"></a>   <span class="kw">end</span></span>
-<span id="cb70-4"><a href="#cb70-4" aria-hidden="true"></a><span class="kw">end</span></span></code></pre></div>
+<div class="sourceCode" id="cb69"><pre class="sourceCode systemverilog"><code class="sourceCode systemverilog"><a class="sourceLine" id="cb69-1" title="1"><span class="kw">always_comb</span> <span class="kw">begin:</span><span class="dt"> </span><span class="kw">name_1</span></a>
+<a class="sourceLine" id="cb69-2" title="2">   <span class="kw">if</span> (a) <span class="kw">begin:</span><span class="dt"> </span><span class="kw">name_2</span></a>
+<a class="sourceLine" id="cb69-3" title="3">   <span class="kw">end</span></a>
+<a class="sourceLine" id="cb69-4" title="4"><span class="kw">end</span></a></code></pre></div>
 <p>In the example above, we created two named blocks with the name <code>name_1</code> and <code>name_2</code> respectively. Notice that people also add the names next to the <code>end</code> keyword so that it would be symmetric to the name used next to <code>begin</code>, which is, again, a form of coding style.</p>
 <p>Notice that there are several cases where named blocks are highly recommend since it helps you to debug the code:</p>
 <ol type="1">
@@ -607,7 +603,7 @@ logic a = b &amp; c;</code></pre>
 <li>Using labels will also help to reader to identify the scope. This particular helpful when the number of lines in the code block is more than 20 lines. This is particular true for functions and modules.</li>
 </ol>
 <p>From now on we will use named block whenever appropriate.</p>
-<h3 data-number="3.6.2" id="scope-rules"><span class="header-section-number">3.6.2</span> Scope Rules</h3>
+<h3 id="scope-rules"><span class="header-section-number">3.6.2</span> Scope Rules</h3>
 <p>Similar to software programming languages, SystemVerilog has a set of scoping rules. The following constructs define a new scope:</p>
 <ul>
 <li>Modules</li>
@@ -624,67 +620,67 @@ logic a = b &amp; c;</code></pre>
 </ul>
 <p>We have covered most of the constructs so far and will cover the reset of it later in the book.</p>
 <p>In general, variables created in outer scope can be accessed in an inner scope, and illegal access the other way around. Two scopes at the same levels are isolated as well. Although it is somewhat unrelated to the scope rules, variable declaration inside a begin-end blocks need to follow ANSI-C style, that is, variable declaration has to be at the beginning at the scope. Declaration with assignment counts as normal statement, hence is illegal in the middle of statements, as shown below:</p>
-<div class="sourceCode" id="cb71"><pre class="sourceCode systemverilog"><code class="sourceCode systemverilog"><span id="cb71-1"><a href="#cb71-1" aria-hidden="true"></a></span>
-<span id="cb71-2"><a href="#cb71-2" aria-hidden="true"></a><span class="kw">logic</span> c, d;</span>
-<span id="cb71-3"><a href="#cb71-3" aria-hidden="true"></a></span>
-<span id="cb71-4"><a href="#cb71-4" aria-hidden="true"></a><span class="kw">always_comb</span> <span class="kw">begin</span></span>
-<span id="cb71-5"><a href="#cb71-5" aria-hidden="true"></a>    <span class="co">// this is legal</span></span>
-<span id="cb71-6"><a href="#cb71-6" aria-hidden="true"></a>    <span class="kw">logic</span> a, b;</span>
-<span id="cb71-7"><a href="#cb71-7" aria-hidden="true"></a>    a = !c;</span>
-<span id="cb71-8"><a href="#cb71-8" aria-hidden="true"></a>    b = c;</span>
-<span id="cb71-9"><a href="#cb71-9" aria-hidden="true"></a>    d = a ^ b;</span>
-<span id="cb71-10"><a href="#cb71-10" aria-hidden="true"></a><span class="kw">end</span></span>
-<span id="cb71-11"><a href="#cb71-11" aria-hidden="true"></a></span>
-<span id="cb71-12"><a href="#cb71-12" aria-hidden="true"></a><span class="kw">always_comb</span> <span class="kw">begin</span></span>
-<span id="cb71-13"><a href="#cb71-13" aria-hidden="true"></a>    <span class="kw">logic</span> a;</span>
-<span id="cb71-14"><a href="#cb71-14" aria-hidden="true"></a>    a = !c;</span>
-<span id="cb71-15"><a href="#cb71-15" aria-hidden="true"></a>    <span class="co">// this is illegal</span></span>
-<span id="cb71-16"><a href="#cb71-16" aria-hidden="true"></a>    <span class="kw">logic</span> b = c;</span>
-<span id="cb71-17"><a href="#cb71-17" aria-hidden="true"></a>    d = a ^ b;</span>
-<span id="cb71-18"><a href="#cb71-18" aria-hidden="true"></a><span class="kw">end</span></span></code></pre></div>
-<h3 data-number="3.6.3" id="hierarchical-names"><span class="header-section-number">3.6.3</span> Hierarchical Names</h3>
+<div class="sourceCode" id="cb70"><pre class="sourceCode systemverilog"><code class="sourceCode systemverilog"><a class="sourceLine" id="cb70-1" title="1"></a>
+<a class="sourceLine" id="cb70-2" title="2"><span class="kw">logic</span> c, d;</a>
+<a class="sourceLine" id="cb70-3" title="3"></a>
+<a class="sourceLine" id="cb70-4" title="4"><span class="kw">always_comb</span> <span class="kw">begin</span></a>
+<a class="sourceLine" id="cb70-5" title="5">    <span class="co">// this is legal</span></a>
+<a class="sourceLine" id="cb70-6" title="6">    <span class="kw">logic</span> a, b;</a>
+<a class="sourceLine" id="cb70-7" title="7">    a = !c;</a>
+<a class="sourceLine" id="cb70-8" title="8">    b = c;</a>
+<a class="sourceLine" id="cb70-9" title="9">    d = a ^ b;</a>
+<a class="sourceLine" id="cb70-10" title="10"><span class="kw">end</span></a>
+<a class="sourceLine" id="cb70-11" title="11"></a>
+<a class="sourceLine" id="cb70-12" title="12"><span class="kw">always_comb</span> <span class="kw">begin</span></a>
+<a class="sourceLine" id="cb70-13" title="13">    <span class="kw">logic</span> a;</a>
+<a class="sourceLine" id="cb70-14" title="14">    a = !c;</a>
+<a class="sourceLine" id="cb70-15" title="15">    <span class="co">// this is illegal</span></a>
+<a class="sourceLine" id="cb70-16" title="16">    <span class="kw">logic</span> b = c;</a>
+<a class="sourceLine" id="cb70-17" title="17">    d = a ^ b;</a>
+<a class="sourceLine" id="cb70-18" title="18"><span class="kw">end</span></a></code></pre></div>
+<h3 id="hierarchical-names"><span class="header-section-number">3.6.3</span> Hierarchical Names</h3>
 <p>In SystemVerilog, every identifier has a unique <em>hierarchical path name</em>. To do so, we can use “dot-notation” where <code>.</code> is used to access the child scope. There are some rules when resolving hierarchical names:</p>
 <ol type="1">
 <li>You can always access child scope variables.</li>
 <li>If the parent scope is visible to the child scope, the child scope can use parent scope’s identify to access other scopes/variables.</li>
 </ol>
 <p>Here is an example of accessing hierarchical names:</p>
-<div class="sourceCode" id="cb72"><pre class="sourceCode systemverilog"><code class="sourceCode systemverilog"><span id="cb72-1"><a href="#cb72-1" aria-hidden="true"></a><span class="kw">module</span> m;</span>
-<span id="cb72-2"><a href="#cb72-2" aria-hidden="true"></a></span>
-<span id="cb72-3"><a href="#cb72-3" aria-hidden="true"></a><span class="kw">logic</span> a;        <span class="co">// var1</span></span>
-<span id="cb72-4"><a href="#cb72-4" aria-hidden="true"></a><span class="kw">logic</span> b;        <span class="co">// var2</span></span>
-<span id="cb72-5"><a href="#cb72-5" aria-hidden="true"></a></span>
-<span id="cb72-6"><a href="#cb72-6" aria-hidden="true"></a><span class="kw">always_comb</span> <span class="kw">begin:</span><span class="dt"> </span><span class="kw">A</span></span>
-<span id="cb72-7"><a href="#cb72-7" aria-hidden="true"></a>    <span class="kw">logic</span> c;    <span class="co">// var3</span></span>
-<span id="cb72-8"><a href="#cb72-8" aria-hidden="true"></a>    <span class="co">// this is illegal since top is not visible in this scope</span></span>
-<span id="cb72-9"><a href="#cb72-9" aria-hidden="true"></a>    <span class="co">// top.d = 0;</span></span>
-<span id="cb72-10"><a href="#cb72-10" aria-hidden="true"></a><span class="kw">end</span></span>
-<span id="cb72-11"><a href="#cb72-11" aria-hidden="true"></a></span>
-<span id="cb72-12"><a href="#cb72-12" aria-hidden="true"></a><span class="kw">endmodule</span>: m</span>
-<span id="cb72-13"><a href="#cb72-13" aria-hidden="true"></a></span>
-<span id="cb72-14"><a href="#cb72-14" aria-hidden="true"></a><span class="kw">module</span> top;</span>
-<span id="cb72-15"><a href="#cb72-15" aria-hidden="true"></a></span>
-<span id="cb72-16"><a href="#cb72-16" aria-hidden="true"></a><span class="co">// module instantiation</span></span>
-<span id="cb72-17"><a href="#cb72-17" aria-hidden="true"></a>m m1();</span>
-<span id="cb72-18"><a href="#cb72-18" aria-hidden="true"></a>m m2();</span>
-<span id="cb72-19"><a href="#cb72-19" aria-hidden="true"></a></span>
-<span id="cb72-20"><a href="#cb72-20" aria-hidden="true"></a><span class="kw">logic</span> d;        <span class="co">// var4</span></span>
-<span id="cb72-21"><a href="#cb72-21" aria-hidden="true"></a></span>
-<span id="cb72-22"><a href="#cb72-22" aria-hidden="true"></a><span class="kw">initial</span> <span class="kw">begin:</span><span class="dt"> </span><span class="kw">B</span></span>
-<span id="cb72-23"><a href="#cb72-23" aria-hidden="true"></a>    <span class="kw">logic</span> a;    <span class="co">// var5</span></span>
-<span id="cb72-24"><a href="#cb72-24" aria-hidden="true"></a></span>
-<span id="cb72-25"><a href="#cb72-25" aria-hidden="true"></a>    B.a = <span class="dv">0</span>;    <span class="co">// accessing var5</span></span>
-<span id="cb72-26"><a href="#cb72-26" aria-hidden="true"></a>    m1.a = <span class="dv">0</span>;   <span class="co">// accessing m1&#39;s var1</span></span>
-<span id="cb72-27"><a href="#cb72-27" aria-hidden="true"></a>    m1.b = <span class="dv">0</span>;   <span class="co">// accessing m1&#39;s var2</span></span>
-<span id="cb72-28"><a href="#cb72-28" aria-hidden="true"></a>    m2.A.c = <span class="dv">0</span>; <span class="co">// accessing m2&#39;s var3</span></span>
-<span id="cb72-29"><a href="#cb72-29" aria-hidden="true"></a></span>
-<span id="cb72-30"><a href="#cb72-30" aria-hidden="true"></a>    <span class="co">// this is also legal since top scope is visible here</span></span>
-<span id="cb72-31"><a href="#cb72-31" aria-hidden="true"></a>    top.m2.b = <span class="dv">0</span>;</span>
-<span id="cb72-32"><a href="#cb72-32" aria-hidden="true"></a><span class="kw">end</span></span>
-<span id="cb72-33"><a href="#cb72-33" aria-hidden="true"></a></span>
-<span id="cb72-34"><a href="#cb72-34" aria-hidden="true"></a><span class="kw">endmodule</span>: top</span></code></pre></div>
+<div class="sourceCode" id="cb71"><pre class="sourceCode systemverilog"><code class="sourceCode systemverilog"><a class="sourceLine" id="cb71-1" title="1"><span class="kw">module</span> m;</a>
+<a class="sourceLine" id="cb71-2" title="2"></a>
+<a class="sourceLine" id="cb71-3" title="3"><span class="kw">logic</span> a;        <span class="co">// var1</span></a>
+<a class="sourceLine" id="cb71-4" title="4"><span class="kw">logic</span> b;        <span class="co">// var2</span></a>
+<a class="sourceLine" id="cb71-5" title="5"></a>
+<a class="sourceLine" id="cb71-6" title="6"><span class="kw">always_comb</span> <span class="kw">begin:</span><span class="dt"> </span><span class="kw">A</span></a>
+<a class="sourceLine" id="cb71-7" title="7">    <span class="kw">logic</span> c;    <span class="co">// var3</span></a>
+<a class="sourceLine" id="cb71-8" title="8">    <span class="co">// this is illegal since top is not visible in this scope</span></a>
+<a class="sourceLine" id="cb71-9" title="9">    <span class="co">// top.d = 0;</span></a>
+<a class="sourceLine" id="cb71-10" title="10"><span class="kw">end</span></a>
+<a class="sourceLine" id="cb71-11" title="11"></a>
+<a class="sourceLine" id="cb71-12" title="12"><span class="kw">endmodule</span>: m</a>
+<a class="sourceLine" id="cb71-13" title="13"></a>
+<a class="sourceLine" id="cb71-14" title="14"><span class="kw">module</span> top;</a>
+<a class="sourceLine" id="cb71-15" title="15"></a>
+<a class="sourceLine" id="cb71-16" title="16"><span class="co">// module instantiation</span></a>
+<a class="sourceLine" id="cb71-17" title="17">m m1();</a>
+<a class="sourceLine" id="cb71-18" title="18">m m2();</a>
+<a class="sourceLine" id="cb71-19" title="19"></a>
+<a class="sourceLine" id="cb71-20" title="20"><span class="kw">logic</span> d;        <span class="co">// var4</span></a>
+<a class="sourceLine" id="cb71-21" title="21"></a>
+<a class="sourceLine" id="cb71-22" title="22"><span class="kw">initial</span> <span class="kw">begin:</span><span class="dt"> </span><span class="kw">B</span></a>
+<a class="sourceLine" id="cb71-23" title="23">    <span class="kw">logic</span> a;    <span class="co">// var5</span></a>
+<a class="sourceLine" id="cb71-24" title="24"></a>
+<a class="sourceLine" id="cb71-25" title="25">    B.a = <span class="dv">0</span>;    <span class="co">// accessing var5</span></a>
+<a class="sourceLine" id="cb71-26" title="26">    m1.a = <span class="dv">0</span>;   <span class="co">// accessing m1&#39;s var1</span></a>
+<a class="sourceLine" id="cb71-27" title="27">    m1.b = <span class="dv">0</span>;   <span class="co">// accessing m1&#39;s var2</span></a>
+<a class="sourceLine" id="cb71-28" title="28">    m2.A.c = <span class="dv">0</span>; <span class="co">// accessing m2&#39;s var3</span></a>
+<a class="sourceLine" id="cb71-29" title="29"></a>
+<a class="sourceLine" id="cb71-30" title="30">    <span class="co">// this is also legal since top scope is visible here</span></a>
+<a class="sourceLine" id="cb71-31" title="31">    top.m2.b = <span class="dv">0</span>;</a>
+<a class="sourceLine" id="cb71-32" title="32"><span class="kw">end</span></a>
+<a class="sourceLine" id="cb71-33" title="33"></a>
+<a class="sourceLine" id="cb71-34" title="34"><span class="kw">endmodule</span>: top</a></code></pre></div>
 <p>In general all the identifiers are public in a scope, meaning you are always be able to access it hierarchically. One exception is class variables declared as <code>local</code>, which will be covered later in the book.</p>
-<h2 data-number="3.7" id="interface"><span class="header-section-number">3.7</span> Interface</h2>
+<h2 id="interface"><span class="header-section-number">3.7</span> Interface</h2>
                 </div>
             </div>
         </div>

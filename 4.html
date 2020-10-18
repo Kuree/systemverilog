@@ -2,7 +2,7 @@
 <html>
     <head>
         <meta charset="UTF-8">
-        <title>title - Common Design Practices</title>
+        <title>SystemVerilog for RTL Modeling, Simulation, and Verification - Common Design Practices</title>
         <link rel="stylesheet" href="https://unpkg.com/purecss@2.0.3/build/pure-min.css" integrity="sha384-cg6SkqEOCV1NbJoCu11+bm0NvBRc8IYLRGXkmNrqUBfTjmMYwNKPWBTIKyw9mHNJ" crossorigin="anonymous">
         <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.1.2/es5/tex-mml-chtml.min.js" integrity="sha512-7rZgZU/u5XjLaO7dBpkcvZ2+ilGXbdIak0FXUgMoO+adNy7RUceort055Wn7LkZY3VLwEsSDpi8Ui+32N1vrfw==" crossorigin="anonymous"></script>
         <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -41,9 +41,9 @@
                     <h1>Common Design Practices</h1>
 <p>The end goal of RTL design, especially for ASIC, is to produce smallest and fastest circuit possible. To do so, we need to understand how synthesis tools analyze and optimize the design. In addition, we are also concerned about the simulation speed, since waiting tests to run is effectively wasting engineering efforts. Although synthesis and simulation tools have numerous optimization passes and transformations, one important factor for the end result is the design pattern, i.e., do the code follow the tool’s design guide. Lots of optimization are tuned for a particular design pattern, making the code easier to to be understood and thus simplified by the tools. In addition, some design patterns may simplify the code structures and make the code more readable and reusable.</p>
 <p>In this chapter we will go through some common design practices and how we should program the logic and structure the source code.</p>
-<h2 data-number="4.1" id="compiler-directives-and-packages"><span class="header-section-number">4.1</span> Compiler Directives and Packages</h2>
+<h2 id="compiler-directives-and-packages"><span class="header-section-number">4.1</span> Compiler Directives and Packages</h2>
 <p>Similar to C/C++, SystemVerilog defines a preprocessing stage where macros are expanded in the original source code. The compiler directives are not turing-complete and less versatile than that of C/C++,meaning even fix-bounded recursive computation is difficult to be specified in SystemVerilog. Nevertheless, it allows some level of preprocessing in SystemVerilog.</p>
-<h3 data-number="4.1.1" id="compiler-directives"><span class="header-section-number">4.1.1</span> Compiler Directives</h3>
+<h3 id="compiler-directives"><span class="header-section-number">4.1.1</span> Compiler Directives</h3>
 <p>There are several compiler directives defined by the language. We will cover some of the most used macros here:</p>
 <ol type="1">
 <li><code>`__FILE__</code></li>
@@ -60,16 +60,16 @@
 </ol>
 <p><code>`__FILE__</code> and <code>`__LINE__</code> are used the same way as <code>__FILE__</code> and <code>__LINE__</code> in C/C++. Users can use that for test bench debugging. During preprocessing, these two compiler directives will be replaced with the actually file name and line number.</p>
 <p><code>`define</code> allows you to define macros, which can be used later in the code. We will show two examples where the first one defines values, and the second one define function-like code snippets, which takes arguments. Notice that unlike C/C++, macros have to be prefixed with <code>`</code> when used in code.</p>
-<div class="sourceCode" id="cb73"><pre class="sourceCode systemverilog"><code class="sourceCode systemverilog"><span id="cb73-1"><a href="#cb73-1" aria-hidden="true"></a><span class="ot">`define</span> VALUE <span class="dv">10</span></span>
-<span id="cb73-2"><a href="#cb73-2" aria-hidden="true"></a></span>
-<span id="cb73-3"><a href="#cb73-3" aria-hidden="true"></a><span class="kw">module</span> top (<span class="kw">input</span> <span class="kw">logic</span> clk);</span>
-<span id="cb73-4"><a href="#cb73-4" aria-hidden="true"></a></span>
-<span id="cb73-5"><a href="#cb73-5" aria-hidden="true"></a><span class="kw">logic</span> [<span class="dv">31</span>:<span class="dv">0</span>] a;</span>
-<span id="cb73-6"><a href="#cb73-6" aria-hidden="true"></a></span>
-<span id="cb73-7"><a href="#cb73-7" aria-hidden="true"></a><span class="kw">always_ff</span> @(<span class="kw">posedge</span> clk)</span>
-<span id="cb73-8"><a href="#cb73-8" aria-hidden="true"></a>    a &lt;= <span class="ot">`VALUE</span>;</span>
-<span id="cb73-9"><a href="#cb73-9" aria-hidden="true"></a></span>
-<span id="cb73-10"><a href="#cb73-10" aria-hidden="true"></a><span class="kw">endmodule</span></span></code></pre></div>
+<div class="sourceCode" id="cb72"><pre class="sourceCode systemverilog"><code class="sourceCode systemverilog"><a class="sourceLine" id="cb72-1" title="1"><span class="ot">`define</span> VALUE <span class="dv">10</span></a>
+<a class="sourceLine" id="cb72-2" title="2"></a>
+<a class="sourceLine" id="cb72-3" title="3"><span class="kw">module</span> top (<span class="kw">input</span> <span class="kw">logic</span> clk);</a>
+<a class="sourceLine" id="cb72-4" title="4"></a>
+<a class="sourceLine" id="cb72-5" title="5"><span class="kw">logic</span> [<span class="dv">31</span>:<span class="dv">0</span>] a;</a>
+<a class="sourceLine" id="cb72-6" title="6"></a>
+<a class="sourceLine" id="cb72-7" title="7"><span class="kw">always_ff</span> @(<span class="kw">posedge</span> clk)</a>
+<a class="sourceLine" id="cb72-8" title="8">    a &lt;= <span class="ot">`VALUE</span>;</a>
+<a class="sourceLine" id="cb72-9" title="9"></a>
+<a class="sourceLine" id="cb72-10" title="10"><span class="kw">endmodule</span></a></code></pre></div>
 <p>In the example above, we define <code>`VALUE</code> to be 10, and used it as register value. Even though we cover the usage here, please avoid defining constant values as macros in such way. It is because:</p>
 <ol type="1">
 <li>It is difficult to find where the macro is defined, e.g. either from a file or command line options</li>
@@ -77,38 +77,38 @@
 </ol>
 <p>We highly recommend to use define constants in a package, which will be covered later in this chapter.</p>
 <p>Another way to use <code>`define</code> is to define some code snippets which can be re-used later, as shown in the example below (also in <code>code/04/macros_arguments.sv</code>):</p>
-<div class="sourceCode" id="cb74"><pre class="sourceCode systemverilog"><code class="sourceCode systemverilog"><span id="cb74-1"><a href="#cb74-1" aria-hidden="true"></a><span class="ot">`define</span> REGISTER(NAME, WIDTH, VALUE, CLK) \</span>
-<span id="cb74-2"><a href="#cb74-2" aria-hidden="true"></a>    <span class="kw">logic</span> [WIDTH<span class="dv">-1</span>:<span class="dv">0</span>] NAME;               \</span>
-<span id="cb74-3"><a href="#cb74-3" aria-hidden="true"></a>    <span class="kw">always_ff</span> @(<span class="kw">posedge</span> CLK) <span class="kw">begin</span>        \</span>
-<span id="cb74-4"><a href="#cb74-4" aria-hidden="true"></a>        NAME &lt;= VALUE;                    \</span>
-<span id="cb74-5"><a href="#cb74-5" aria-hidden="true"></a>    <span class="kw">end</span></span>
-<span id="cb74-6"><a href="#cb74-6" aria-hidden="true"></a></span>
-<span id="cb74-7"><a href="#cb74-7" aria-hidden="true"></a><span class="kw">module</span> top;</span>
-<span id="cb74-8"><a href="#cb74-8" aria-hidden="true"></a></span>
-<span id="cb74-9"><a href="#cb74-9" aria-hidden="true"></a><span class="kw">logic</span>        clk;</span>
-<span id="cb74-10"><a href="#cb74-10" aria-hidden="true"></a><span class="kw">logic</span> [<span class="dv">15</span>:<span class="dv">0</span>] in;</span>
-<span id="cb74-11"><a href="#cb74-11" aria-hidden="true"></a></span>
-<span id="cb74-12"><a href="#cb74-12" aria-hidden="true"></a><span class="co">// declare 3 registers that are pipelined to signal in, in sequence</span></span>
-<span id="cb74-13"><a href="#cb74-13" aria-hidden="true"></a><span class="ot">`REGISTER(reg1, 16, in,   clk)</span></span>
-<span id="cb74-14"><a href="#cb74-14" aria-hidden="true"></a><span class="ot">`REGISTER(reg2, 16, reg1, clk)</span></span>
-<span id="cb74-15"><a href="#cb74-15" aria-hidden="true"></a><span class="ot">`REGISTER(reg3, 16, reg2, clk)</span></span>
-<span id="cb74-16"><a href="#cb74-16" aria-hidden="true"></a></span>
-<span id="cb74-17"><a href="#cb74-17" aria-hidden="true"></a><span class="co">// set the clock to 0 at time = 0, then tick the clock every 2 unit of time</span></span>
-<span id="cb74-18"><a href="#cb74-18" aria-hidden="true"></a><span class="kw">initial</span> clk = <span class="dv">0</span>;</span>
-<span id="cb74-19"><a href="#cb74-19" aria-hidden="true"></a><span class="kw">always</span> clk = <span class="bn">#2</span> ~clk;</span>
-<span id="cb74-20"><a href="#cb74-20" aria-hidden="true"></a></span>
-<span id="cb74-21"><a href="#cb74-21" aria-hidden="true"></a><span class="kw">initial</span> <span class="kw">begin</span></span>
-<span id="cb74-22"><a href="#cb74-22" aria-hidden="true"></a>    <span class="kw">for</span> (<span class="kw">int</span> i = <span class="dv">0</span>; i &lt; <span class="dv">3</span>; i++) <span class="kw">begin</span></span>
-<span id="cb74-23"><a href="#cb74-23" aria-hidden="true"></a>        in = i;</span>
-<span id="cb74-24"><a href="#cb74-24" aria-hidden="true"></a>        <span class="co">// wait for a cycle</span></span>
-<span id="cb74-25"><a href="#cb74-25" aria-hidden="true"></a>        <span class="bn">#4</span>;</span>
-<span id="cb74-26"><a href="#cb74-26" aria-hidden="true"></a>        <span class="co">// print out the register value</span></span>
-<span id="cb74-27"><a href="#cb74-27" aria-hidden="true"></a>        <span class="kw">$display</span>(<span class="st">&quot;reg1: %d reg2: %d reg3: %d&quot;</span>, reg1, reg2, reg3);</span>
-<span id="cb74-28"><a href="#cb74-28" aria-hidden="true"></a>    <span class="kw">end</span></span>
-<span id="cb74-29"><a href="#cb74-29" aria-hidden="true"></a>    <span class="kw">$finish</span>;</span>
-<span id="cb74-30"><a href="#cb74-30" aria-hidden="true"></a><span class="kw">end</span></span>
-<span id="cb74-31"><a href="#cb74-31" aria-hidden="true"></a></span>
-<span id="cb74-32"><a href="#cb74-32" aria-hidden="true"></a><span class="kw">endmodule</span></span></code></pre></div>
+<div class="sourceCode" id="cb73"><pre class="sourceCode systemverilog"><code class="sourceCode systemverilog"><a class="sourceLine" id="cb73-1" title="1"><span class="ot">`define</span> REGISTER(NAME, WIDTH, VALUE, CLK) \</a>
+<a class="sourceLine" id="cb73-2" title="2">    <span class="kw">logic</span> [WIDTH<span class="dv">-1</span>:<span class="dv">0</span>] NAME;               \</a>
+<a class="sourceLine" id="cb73-3" title="3">    <span class="kw">always_ff</span> @(<span class="kw">posedge</span> CLK) <span class="kw">begin</span>        \</a>
+<a class="sourceLine" id="cb73-4" title="4">        NAME &lt;= VALUE;                    \</a>
+<a class="sourceLine" id="cb73-5" title="5">    <span class="kw">end</span></a>
+<a class="sourceLine" id="cb73-6" title="6"></a>
+<a class="sourceLine" id="cb73-7" title="7"><span class="kw">module</span> top;</a>
+<a class="sourceLine" id="cb73-8" title="8"></a>
+<a class="sourceLine" id="cb73-9" title="9"><span class="kw">logic</span>        clk;</a>
+<a class="sourceLine" id="cb73-10" title="10"><span class="kw">logic</span> [<span class="dv">15</span>:<span class="dv">0</span>] in;</a>
+<a class="sourceLine" id="cb73-11" title="11"></a>
+<a class="sourceLine" id="cb73-12" title="12"><span class="co">// declare 3 registers that are pipelined to signal in, in sequence</span></a>
+<a class="sourceLine" id="cb73-13" title="13"><span class="ot">`REGISTER(reg1, 16, in,   clk)</span></a>
+<a class="sourceLine" id="cb73-14" title="14"><span class="ot">`REGISTER(reg2, 16, reg1, clk)</span></a>
+<a class="sourceLine" id="cb73-15" title="15"><span class="ot">`REGISTER(reg3, 16, reg2, clk)</span></a>
+<a class="sourceLine" id="cb73-16" title="16"></a>
+<a class="sourceLine" id="cb73-17" title="17"><span class="co">// set the clock to 0 at time = 0, then tick the clock every 2 unit of time</span></a>
+<a class="sourceLine" id="cb73-18" title="18"><span class="kw">initial</span> clk = <span class="dv">0</span>;</a>
+<a class="sourceLine" id="cb73-19" title="19"><span class="kw">always</span> clk = <span class="bn">#2</span> ~clk;</a>
+<a class="sourceLine" id="cb73-20" title="20"></a>
+<a class="sourceLine" id="cb73-21" title="21"><span class="kw">initial</span> <span class="kw">begin</span></a>
+<a class="sourceLine" id="cb73-22" title="22">    <span class="kw">for</span> (<span class="kw">int</span> i = <span class="dv">0</span>; i &lt; <span class="dv">3</span>; i++) <span class="kw">begin</span></a>
+<a class="sourceLine" id="cb73-23" title="23">        in = i;</a>
+<a class="sourceLine" id="cb73-24" title="24">        <span class="co">// wait for a cycle</span></a>
+<a class="sourceLine" id="cb73-25" title="25">        <span class="bn">#4</span>;</a>
+<a class="sourceLine" id="cb73-26" title="26">        <span class="co">// print out the register value</span></a>
+<a class="sourceLine" id="cb73-27" title="27">        <span class="kw">$display</span>(<span class="st">&quot;reg1: %d reg2: %d reg3: %d&quot;</span>, reg1, reg2, reg3);</a>
+<a class="sourceLine" id="cb73-28" title="28">    <span class="kw">end</span></a>
+<a class="sourceLine" id="cb73-29" title="29">    <span class="kw">$finish</span>;</a>
+<a class="sourceLine" id="cb73-30" title="30"><span class="kw">end</span></a>
+<a class="sourceLine" id="cb73-31" title="31"></a>
+<a class="sourceLine" id="cb73-32" title="32"><span class="kw">endmodule</span></a></code></pre></div>
 <p>We will see the expected output, where <code>x</code> denotes uninitialized register value:</p>
 <pre><code>reg1:     0 reg2:     x reg3:     x
 reg1:     1 reg2:     0 reg3:     x
@@ -118,36 +118,36 @@ reg1:     2 reg2:     1 reg3:     0</code></pre>
 <p>During the macro definition, sometimes you need to undefine some macro names for a different usage. Similar to C/C++, you can use <code>`undef</code> to un-define the macro.</p>
 <p><code>`ifdef</code> and <code>`ifndef</code> can be used to test whether certain macro has been defined (or not defined). You need to close the compiler directives with <code>`endif</code>. You can also add <code>`else</code> and<code>`elseif</code> to account for different scenarios. Notice that for a header file, they can be used together with <code>`define</code> to provide an include guard, which allows the header file to be included in multiple places. Their usages are identical to those of C/C++, so we will not cover them here.</p>
 <p><code>`timescale</code> is an important compiler directive useful to simulators. It specifies the unit of measurement for time and precision of time in specific design elements. There can be only be at most <em>one</em> timescale defined for any compilation-unit scope. In other words, it is illegal to define timescales at two different source files compiled together. The syntax for <code>`timescale</code> is shown below:</p>
-<div class="sourceCode" id="cb76"><pre class="sourceCode systemverilog"><code class="sourceCode systemverilog"><span id="cb76-1"><a href="#cb76-1" aria-hidden="true"></a><span class="co">// general syntax</span></span>
-<span id="cb76-2"><a href="#cb76-2" aria-hidden="true"></a><span class="ot">`timescale</span> time_unit / time_precision</span>
-<span id="cb76-3"><a href="#cb76-3" aria-hidden="true"></a><span class="co">// e.g.</span></span>
-<span id="cb76-4"><a href="#cb76-4" aria-hidden="true"></a><span class="ot">`timescale</span> 1ns / 1ps</span>
-<span id="cb76-5"><a href="#cb76-5" aria-hidden="true"></a><span class="ot">`timescale</span> 1ns / 1ns</span></code></pre></div>
+<div class="sourceCode" id="cb75"><pre class="sourceCode systemverilog"><code class="sourceCode systemverilog"><a class="sourceLine" id="cb75-1" title="1"><span class="co">// general syntax</span></a>
+<a class="sourceLine" id="cb75-2" title="2"><span class="ot">`timescale</span> time_unit / time_precision</a>
+<a class="sourceLine" id="cb75-3" title="3"><span class="co">// e.g.</span></a>
+<a class="sourceLine" id="cb75-4" title="4"><span class="ot">`timescale</span> 1ns / 1ps</a>
+<a class="sourceLine" id="cb75-5" title="5"><span class="ot">`timescale</span> 1ns / 1ns</a></code></pre></div>
 <p>The <code>time_unit</code> argument specifies the unit of measurement time and delays, and the <code>time_precision</code> argument specifies how delay values are rounded before used in simulation. <code>time_precision</code> should be at least as precise as <code>time_unit</code>, since <code>time_precision</code> is used for finer precision of simulation. The unit of <code>time_unit</code> and <code>time_precision</code> can be <code>s</code>, <code>ms</code>, <code>us</code>, <code>ns</code>, <code>ps</code>, and <code>fs</code>. The integer part specifies an order of magnitude for the size of the value, in other words, the only valid number is <code>1</code>, <code>10</code>, and <code>100</code>.</p>
 <p>Timescale is crucial to simulate jittering and timing violation. It is also required for any power-related analysis. It is highly recommend to include timescale in your top-level test bench, even though it is not used.</p>
 <p><code>`include</code> serves the same purpose as <code>#include</code> in C/C++, where it includes definitions from another file. It’s highly recommended to provide an include guard to the include file. If the filename is enclosed in quotes, e.g. <code>`include "filename.svh"</code>, the compiler will first search its current working directory, and then search any user-specified locations. If the filename is enclosed in angle brackets, e.g. <code>`include &lt;filename.svh&gt;</code>, the filename has to be files defined by language standard. This rule is similar to that of C/C++.</p>
-<h3 data-number="4.1.2" id="packages"><span class="header-section-number">4.1.2</span> Packages</h3>
+<h3 id="packages"><span class="header-section-number">4.1.2</span> Packages</h3>
 <p>Although <code>`include</code> provides a way for designers to share definitions, the compiler directives essentially asks the compiler to copy the content of included file into the source file, which is a legacy feature influenced by C. As modern programming languages start to use modules/packages to structure the source code, e.g. module in C++20, SystemVerilog introduce a construct called <code>package</code> that allows designers to reuse definitions, interfaces, and functions. Since <code>package</code> is synthesizable, it is highly recommend to use it in both RTL and test benches. Here is an example of package:</p>
-<div class="sourceCode" id="cb77"><pre class="sourceCode systemverilog"><code class="sourceCode systemverilog"><span id="cb77-1"><a href="#cb77-1" aria-hidden="true"></a><span class="kw">package</span> my_def_pkg;</span>
-<span id="cb77-2"><a href="#cb77-2" aria-hidden="true"></a></span>
-<span id="cb77-3"><a href="#cb77-3" aria-hidden="true"></a><span class="co">// local parameters</span></span>
-<span id="cb77-4"><a href="#cb77-4" aria-hidden="true"></a><span class="kw">localparam</span> VALUE = <span class="dv">42</span>;</span>
-<span id="cb77-5"><a href="#cb77-5" aria-hidden="true"></a></span>
-<span id="cb77-6"><a href="#cb77-6" aria-hidden="true"></a><span class="co">// struct</span></span>
-<span id="cb77-7"><a href="#cb77-7" aria-hidden="true"></a><span class="kw">typedef</span> <span class="kw">struct</span> {</span>
-<span id="cb77-8"><a href="#cb77-8" aria-hidden="true"></a>    <span class="kw">logic</span> a;</span>
-<span id="cb77-9"><a href="#cb77-9" aria-hidden="true"></a>    <span class="kw">logic</span> b;</span>
-<span id="cb77-10"><a href="#cb77-10" aria-hidden="true"></a>} my_struct_t;</span>
-<span id="cb77-11"><a href="#cb77-11" aria-hidden="true"></a></span>
-<span id="cb77-12"><a href="#cb77-12" aria-hidden="true"></a><span class="co">// enum</span></span>
-<span id="cb77-13"><a href="#cb77-13" aria-hidden="true"></a><span class="kw">typedef</span> <span class="kw">enum</span> <span class="kw">logic</span> { RED, GREEN } color_t;</span>
-<span id="cb77-14"><a href="#cb77-14" aria-hidden="true"></a></span>
-<span id="cb77-15"><a href="#cb77-15" aria-hidden="true"></a><span class="co">// function</span></span>
-<span id="cb77-16"><a href="#cb77-16" aria-hidden="true"></a><span class="kw">function</span> <span class="kw">logic</span> and_op(<span class="kw">logic</span> a, <span class="kw">logic</span> b);</span>
-<span id="cb77-17"><a href="#cb77-17" aria-hidden="true"></a>    <span class="kw">return</span> a &amp; b;</span>
-<span id="cb77-18"><a href="#cb77-18" aria-hidden="true"></a><span class="kw">endfunction</span></span>
-<span id="cb77-19"><a href="#cb77-19" aria-hidden="true"></a></span>
-<span id="cb77-20"><a href="#cb77-20" aria-hidden="true"></a><span class="kw">endpackage</span>: my_def_pkg</span></code></pre></div>
+<div class="sourceCode" id="cb76"><pre class="sourceCode systemverilog"><code class="sourceCode systemverilog"><a class="sourceLine" id="cb76-1" title="1"><span class="kw">package</span> my_def_pkg;</a>
+<a class="sourceLine" id="cb76-2" title="2"></a>
+<a class="sourceLine" id="cb76-3" title="3"><span class="co">// local parameters</span></a>
+<a class="sourceLine" id="cb76-4" title="4"><span class="kw">localparam</span> VALUE = <span class="dv">42</span>;</a>
+<a class="sourceLine" id="cb76-5" title="5"></a>
+<a class="sourceLine" id="cb76-6" title="6"><span class="co">// struct</span></a>
+<a class="sourceLine" id="cb76-7" title="7"><span class="kw">typedef</span> <span class="kw">struct</span> {</a>
+<a class="sourceLine" id="cb76-8" title="8">    <span class="kw">logic</span> a;</a>
+<a class="sourceLine" id="cb76-9" title="9">    <span class="kw">logic</span> b;</a>
+<a class="sourceLine" id="cb76-10" title="10">} my_struct_t;</a>
+<a class="sourceLine" id="cb76-11" title="11"></a>
+<a class="sourceLine" id="cb76-12" title="12"><span class="co">// enum</span></a>
+<a class="sourceLine" id="cb76-13" title="13"><span class="kw">typedef</span> <span class="kw">enum</span> <span class="kw">logic</span> { RED, GREEN } color_t;</a>
+<a class="sourceLine" id="cb76-14" title="14"></a>
+<a class="sourceLine" id="cb76-15" title="15"><span class="co">// function</span></a>
+<a class="sourceLine" id="cb76-16" title="16"><span class="kw">function</span> <span class="kw">logic</span> and_op(<span class="kw">logic</span> a, <span class="kw">logic</span> b);</a>
+<a class="sourceLine" id="cb76-17" title="17">    <span class="kw">return</span> a &amp; b;</a>
+<a class="sourceLine" id="cb76-18" title="18"><span class="kw">endfunction</span></a>
+<a class="sourceLine" id="cb76-19" title="19"></a>
+<a class="sourceLine" id="cb76-20" title="20"><span class="kw">endpackage</span>: my_def_pkg</a></code></pre></div>
 <p>Here is an incomplete list of constructs that are allowed inside a package:</p>
 <ol type="1">
 <li>parameter declaration, e.g. <code>parameter</code> and <code>localparam</code></li>
@@ -158,59 +158,59 @@ reg1:     2 reg2:     1 reg3:     0</code></pre>
 <li>package import declaration</li>
 </ol>
 <p>Since <code>parameter</code> cannot be redefined in side a package, we highly recommend to use <code>localparam</code> in lieu of <code>parameter</code> since they are functionally identical in a <code>package</code>. In other words, <code>localparam</code> does not have the visibility restriction in a <code>package</code>.</p>
-<h4 data-number="4.1.2.1" id="package-import"><span class="header-section-number">4.1.2.1</span> Package Import</h4>
+<h4 id="package-import"><span class="header-section-number">4.1.2.1</span> Package Import</h4>
 <p>To use the package definition in other modules, we need to use <code>import</code> keyword to import definition. There are several ways to import contents of a package and we will cover two commonly used approaches here:</p>
 <ol type="1">
 <li><p>wildcard import. This is similar to Python’s <code>from pkg_name import *</code>:</p>
-<div class="sourceCode" id="cb78"><pre class="sourceCode systemverilog"><code class="sourceCode systemverilog"><span id="cb78-1"><a href="#cb78-1" aria-hidden="true"></a><span class="kw">import</span> my_def_pkg::*;</span></code></pre></div></li>
+<div class="sourceCode" id="cb77"><pre class="sourceCode systemverilog"><code class="sourceCode systemverilog"><a class="sourceLine" id="cb77-1" title="1"><span class="kw">import</span> my_def_pkg::*;</a></code></pre></div></li>
 <li><p>explicit import. This is similar to Python’s <code>from pkg_name import class_name</code>:</p>
-<div class="sourceCode" id="cb79"><pre class="sourceCode systemverilog"><code class="sourceCode systemverilog"><span id="cb79-1"><a href="#cb79-1" aria-hidden="true"></a><span class="kw">import</span> my_def_pkg::my_struct_t;</span></code></pre></div></li>
+<div class="sourceCode" id="cb78"><pre class="sourceCode systemverilog"><code class="sourceCode systemverilog"><a class="sourceLine" id="cb78-1" title="1"><span class="kw">import</span> my_def_pkg::my_struct_t;</a></code></pre></div></li>
 </ol>
 <p>After importing, the identifiers (i.e. struct names or enum value names) can be used directly in the module. One thing to notice that there are several places where we can put package import. Depends on where the content of the package is used, there are two standard approaches to do so:</p>
 <ol type="1">
 <li><p>If the identifier is used for module port definition, the import needs to placed before port list:</p>
-<div class="sourceCode" id="cb80"><pre class="sourceCode systemverilog"><code class="sourceCode systemverilog"><span id="cb80-1"><a href="#cb80-1" aria-hidden="true"></a><span class="kw">module</span> top</span>
-<span id="cb80-2"><a href="#cb80-2" aria-hidden="true"></a>    <span class="kw">import</span> my_def_pkg::*;</span>
-<span id="cb80-3"><a href="#cb80-3" aria-hidden="true"></a>    (<span class="kw">input</span> my_struct_t in);</span>
-<span id="cb80-4"><a href="#cb80-4" aria-hidden="true"></a> <span class="kw">endmodule</span>: top</span></code></pre></div></li>
+<div class="sourceCode" id="cb79"><pre class="sourceCode systemverilog"><code class="sourceCode systemverilog"><a class="sourceLine" id="cb79-1" title="1"><span class="kw">module</span> top</a>
+<a class="sourceLine" id="cb79-2" title="2">    <span class="kw">import</span> my_def_pkg::*;</a>
+<a class="sourceLine" id="cb79-3" title="3">    (<span class="kw">input</span> my_struct_t in);</a>
+<a class="sourceLine" id="cb79-4" title="4"> <span class="kw">endmodule</span>: top</a></code></pre></div></li>
 <li><p>Otherwise, we shall put the import inside the module:</p>
-<div class="sourceCode" id="cb81"><pre class="sourceCode systemverilog"><code class="sourceCode systemverilog"><span id="cb81-1"><a href="#cb81-1" aria-hidden="true"></a><span class="kw">module</span> top;</span>
-<span id="cb81-2"><a href="#cb81-2" aria-hidden="true"></a>    <span class="kw">import</span> my_def_pkg::*;</span>
-<span id="cb81-3"><a href="#cb81-3" aria-hidden="true"></a>    my_struct_t a;</span>
-<span id="cb81-4"><a href="#cb81-4" aria-hidden="true"></a><span class="kw">endmodule</span>: top</span></code></pre></div></li>
+<div class="sourceCode" id="cb80"><pre class="sourceCode systemverilog"><code class="sourceCode systemverilog"><a class="sourceLine" id="cb80-1" title="1"><span class="kw">module</span> top;</a>
+<a class="sourceLine" id="cb80-2" title="2">    <span class="kw">import</span> my_def_pkg::*;</a>
+<a class="sourceLine" id="cb80-3" title="3">    my_struct_t a;</a>
+<a class="sourceLine" id="cb80-4" title="4"><span class="kw">endmodule</span>: top</a></code></pre></div></li>
 </ol>
-<h4 data-number="4.1.2.2" id="import-packages-within-a-package"><span class="header-section-number">4.1.2.2</span> Import Packages within a Package</h4>
+<h4 id="import-packages-within-a-package"><span class="header-section-number">4.1.2.2</span> Import Packages within a Package</h4>
 <p>Like software programming languages, you can import a package content inside another package, and the “chained” imports can be visible to the consumer. Here is an example (<code>code/04/chained_packages.sv</code>) illustrates the package imports:</p>
-<div class="sourceCode" id="cb82"><pre class="sourceCode systemverilog"><code class="sourceCode systemverilog"><span id="cb82-1"><a href="#cb82-1" aria-hidden="true"></a><span class="kw">package</span> def1_pkg;</span>
-<span id="cb82-2"><a href="#cb82-2" aria-hidden="true"></a>    <span class="kw">typedef</span> <span class="kw">enum</span> <span class="kw">logic</span>[<span class="dv">1</span>:<span class="dv">0</span>] {ADD, SUB, MULT, DIV} alu_opcode_t;</span>
-<span id="cb82-3"><a href="#cb82-3" aria-hidden="true"></a><span class="kw">endpackage</span>: def1_pkg</span>
-<span id="cb82-4"><a href="#cb82-4" aria-hidden="true"></a></span>
-<span id="cb82-5"><a href="#cb82-5" aria-hidden="true"></a><span class="kw">package</span> def2_pkg;</span>
-<span id="cb82-6"><a href="#cb82-6" aria-hidden="true"></a>    <span class="co">// import alu_opcode_t from def1_pkg</span></span>
-<span id="cb82-7"><a href="#cb82-7" aria-hidden="true"></a>    <span class="kw">import</span> def1_pkg::alu_opcode_t;</span>
-<span id="cb82-8"><a href="#cb82-8" aria-hidden="true"></a>    <span class="co">// define a new struct that include alu_opcode_t</span></span>
-<span id="cb82-9"><a href="#cb82-9" aria-hidden="true"></a>    <span class="kw">typedef</span> <span class="kw">struct</span> {</span>
-<span id="cb82-10"><a href="#cb82-10" aria-hidden="true"></a>        alu_opcode_t alu_opcode;</span>
-<span id="cb82-11"><a href="#cb82-11" aria-hidden="true"></a>        <span class="kw">logic</span>[<span class="dv">7</span>:<span class="dv">0</span>] addr;</span>
-<span id="cb82-12"><a href="#cb82-12" aria-hidden="true"></a>    } opcode_t;</span>
-<span id="cb82-13"><a href="#cb82-13" aria-hidden="true"></a><span class="kw">endpackage</span>: def2_pkg</span>
-<span id="cb82-14"><a href="#cb82-14" aria-hidden="true"></a></span>
-<span id="cb82-15"><a href="#cb82-15" aria-hidden="true"></a><span class="kw">module</span> top;</span>
-<span id="cb82-16"><a href="#cb82-16" aria-hidden="true"></a>    <span class="co">// alu_opcode_t is NOT accessible from def2_pkg</span></span>
-<span id="cb82-17"><a href="#cb82-17" aria-hidden="true"></a>    <span class="co">// the next line is ILLEGAL</span></span>
-<span id="cb82-18"><a href="#cb82-18" aria-hidden="true"></a>    <span class="co">// import def2_pkg::alu_opcode_t;</span></span>
-<span id="cb82-19"><a href="#cb82-19" aria-hidden="true"></a>    <span class="kw">import</span> def2_pkg::*;</span>
-<span id="cb82-20"><a href="#cb82-20" aria-hidden="true"></a></span>
-<span id="cb82-21"><a href="#cb82-21" aria-hidden="true"></a>    opcode_t opcode;</span>
-<span id="cb82-22"><a href="#cb82-22" aria-hidden="true"></a></span>
-<span id="cb82-23"><a href="#cb82-23" aria-hidden="true"></a><span class="kw">endmodule</span>: top</span></code></pre></div>
+<div class="sourceCode" id="cb81"><pre class="sourceCode systemverilog"><code class="sourceCode systemverilog"><a class="sourceLine" id="cb81-1" title="1"><span class="kw">package</span> def1_pkg;</a>
+<a class="sourceLine" id="cb81-2" title="2">    <span class="kw">typedef</span> <span class="kw">enum</span> <span class="kw">logic</span>[<span class="dv">1</span>:<span class="dv">0</span>] {ADD, SUB, MULT, DIV} alu_opcode_t;</a>
+<a class="sourceLine" id="cb81-3" title="3"><span class="kw">endpackage</span>: def1_pkg</a>
+<a class="sourceLine" id="cb81-4" title="4"></a>
+<a class="sourceLine" id="cb81-5" title="5"><span class="kw">package</span> def2_pkg;</a>
+<a class="sourceLine" id="cb81-6" title="6">    <span class="co">// import alu_opcode_t from def1_pkg</span></a>
+<a class="sourceLine" id="cb81-7" title="7">    <span class="kw">import</span> def1_pkg::alu_opcode_t;</a>
+<a class="sourceLine" id="cb81-8" title="8">    <span class="co">// define a new struct that include alu_opcode_t</span></a>
+<a class="sourceLine" id="cb81-9" title="9">    <span class="kw">typedef</span> <span class="kw">struct</span> {</a>
+<a class="sourceLine" id="cb81-10" title="10">        alu_opcode_t alu_opcode;</a>
+<a class="sourceLine" id="cb81-11" title="11">        <span class="kw">logic</span>[<span class="dv">7</span>:<span class="dv">0</span>] addr;</a>
+<a class="sourceLine" id="cb81-12" title="12">    } opcode_t;</a>
+<a class="sourceLine" id="cb81-13" title="13"><span class="kw">endpackage</span>: def2_pkg</a>
+<a class="sourceLine" id="cb81-14" title="14"></a>
+<a class="sourceLine" id="cb81-15" title="15"><span class="kw">module</span> top;</a>
+<a class="sourceLine" id="cb81-16" title="16">    <span class="co">// alu_opcode_t is NOT accessible from def2_pkg</span></a>
+<a class="sourceLine" id="cb81-17" title="17">    <span class="co">// the next line is ILLEGAL</span></a>
+<a class="sourceLine" id="cb81-18" title="18">    <span class="co">// import def2_pkg::alu_opcode_t;</span></a>
+<a class="sourceLine" id="cb81-19" title="19">    <span class="kw">import</span> def2_pkg::*;</a>
+<a class="sourceLine" id="cb81-20" title="20"></a>
+<a class="sourceLine" id="cb81-21" title="21">    opcode_t opcode;</a>
+<a class="sourceLine" id="cb81-22" title="22"></a>
+<a class="sourceLine" id="cb81-23" title="23"><span class="kw">endmodule</span>: top</a></code></pre></div>
 <p>Notice unlike some software programming language such as Python, where the imported identifier is accessible as part of the new package, SystemVerilog prohibits such behavior. If you try to import <code>alu_opcode_t</code> from <code>def2_pkg</code>, you will get a recursive import error in the compiler.</p>
-<h4 data-number="4.1.2.3" id="package-usage-caveats"><span class="header-section-number">4.1.2.3</span> Package Usage Caveats</h4>
+<h4 id="package-usage-caveats"><span class="header-section-number">4.1.2.3</span> Package Usage Caveats</h4>
 <p>Since the content of a package is scoped, when use wildcard import, there is a chance of naming conflict. A rule of thumb is that when a naming conflicts, always resort to explicit import. Some coding styles prohibit the usage of wildcard import, which make the code a little bit more verbose, but more readable and maintainable. The exact scoping rule is beyond of scope of this book, but interested user should refer to Table 26-1 in 1800-2017.</p>
 <p>Another caveat is that packages have to be compiled before any module files that rely on them. One systematic way is to rely on build tools such as <code>make</code> to ensure the order of compilation. Another simple way to do is to put packages before other sources while supplying file names to the tools.</p>
-<h2 data-number="4.2" id="finite-state-machines"><span class="header-section-number">4.2</span> Finite State Machines</h2>
+<h2 id="finite-state-machines"><span class="header-section-number">4.2</span> Finite State Machines</h2>
 <p>Finite State Machine (FSM) is the core part of hardware control logic. How well the FSM is designed can directly impact the synthesis and verification effort, since these tools have somewhat restricted expectation of how a FSM should be written. Although the theory of FSM is beyond the scope of this book, we will try to cover as much as possible while going over the major topics regarding FSM.</p>
-<h3 data-number="4.2.1" id="moore-and-mealy-fsm"><span class="header-section-number">4.2.1</span> Moore and Mealy FSM</h3>
+<h3 id="moore-and-mealy-fsm"><span class="header-section-number">4.2.1</span> Moore and Mealy FSM</h3>
 <p>Generally speaking there are two types of FSM commonly used in hardware design, namely Moore and Mealy machine. Moore machine, named after Edward F. Moore, is a type of FSM whose output values are determined solely by its current state. On the other hand, Mealy machine, named after George H. Mealy, is a type of FSM whose output values are determined by its current state and the current inputs. To draw a formal distinction between Moore and Mealy machine, we can refer to the following mathematical notations.</p>
 <ul>
 <li>A finite set of states <span class="math inline">\(S\)</span></li>
@@ -223,17 +223,17 @@ reg1:     2 reg2:     1 reg3:     0</code></pre>
 <p>For Moore machines, the output function is <span class="math inline">\(G: S \rightarrow \Lambda\)</span>, whereas for Mealy machines, the output function is <span class="math inline">\(G: \Sigma \times S \rightarrow \Lambda\)</span>. Although Moore and Mealy machine are mathematically equivalent, there is a major difference when represented as a state transition diagram, as shown in Figure <a href="#fig:moore-fsm-diagram">4</a> and <a href="#fig:mealy-fsm-diagram">5</a>, where both diagram describes the logic that counts consecutive ones and output 1 once the count reaches 2. As a notation, the label on edges in Moore machine represents the input values and the label on the node represents the output value. In Mealy machine, the label on the edge follows input/output notation.</p>
 <div id="fig:moore-fsm-diagram" class="fignos">
 <figure>
-<img src="images/04/moore_fsm_diagram.svg" alt="" /><figcaption><span>Figure 4:</span> State transition diagram for Moore Machine.</figcaption>
+<img src="images/04/moore_fsm_diagram.svg" alt="Figure 4: State transition diagram for Moore Machine." /><figcaption><span>Figure 4:</span> State transition diagram for Moore Machine.</figcaption>
 </figure>
 </div>
 <div id="fig:mealy-fsm-diagram" class="fignos">
 <figure>
-<img src="images/04/mealy_fsm_diagram.svg" alt="" /><figcaption><span>Figure 5:</span> State transition diagram for Mealy Machine.</figcaption>
+<img src="images/04/mealy_fsm_diagram.svg" alt="Figure 5: State transition diagram for Mealy Machine." /><figcaption><span>Figure 5:</span> State transition diagram for Mealy Machine.</figcaption>
 </figure>
 </div>
 <p>Due to such difference, we will see timing and area related difference when we design Moore and Mealy machines in SystemVerilog: - To describe the same control logic, Moore machines tend to have more states than Mealy machines - The output from a Moore machines tends to have one extra cycle delay compared to Mealy machines.</p>
 <p>Choosing which type of machine to use usually depends on the control logic you are trying to model. Since Mealy machines can be used as Moore machine if inputs are ignored when computing the outputs, Mealy machines are more general. Although nothing prevents you mixing these two machines together, it is highly recommend to stick to one coding style so that tools can recognize your design easily.</p>
-<h3 data-number="4.2.2" id="fsm-state-encoding"><span class="header-section-number">4.2.2</span> FSM State Encoding</h3>
+<h3 id="fsm-state-encoding"><span class="header-section-number">4.2.2</span> FSM State Encoding</h3>
 <p>There are several different ways to encode your states <span class="math inline">\(S\)</span>, one-hot encoding, Gray encoding, and binary encoding. Given <span class="math inline">\(|S| = N\)</span>:</p>
 <ul>
 <li>one-hot encoding implies that only one of its bits is set to <code>1</code> for a particular state. That means the total number of bits required to represent the states is <span class="math inline">\(N\)</span>. The Hamming distance of this encoding is 2, meaning we have to flip 2 bits for a state transition.</li>
@@ -242,58 +242,58 @@ reg1:     2 reg2:     1 reg3:     0</code></pre>
 </ul>
 <p>Each encoding has its own advantages. For instance, since only one bit is required to test the state variable, one-hot encoding allows smaller multiplexing logic, and Gary encoding allows low switching power, thus favorable for low-power design. The choice to choose which encoding is more of an engineering topic depends on the design needs. As a result, many synthesis tools offer ability to recode FSM states during synthesis automatically. As a result, designers can code the FSM in one encoding scheme and synthesize it in a different scheme. However, this also implies that the synthesized version of RTL is different from the original RTL where all the verification is done. As a result, some corner-case bugs may occur when the tools re-encode the FSM. In general we recommend the design team decides on an encoding scheme early on based on some engineering experiment result. Doing so ensures the consistency between synthesis and verification.</p>
 <p>In SystemVerilog, we typically use <code>enum</code> to define states. Compared to old school methods such as <code>`define</code> and <code>localparam</code>, using <code>enum</code> allows type-checking from the compiler, which makes the code safer and easier to debug. Below are several examples using one-hot encoding, Gray encoding, and binary encoding.</p>
-<div class="sourceCode" id="cb83"><pre class="sourceCode systemverilog"><code class="sourceCode systemverilog"><span id="cb83-1"><a href="#cb83-1" aria-hidden="true"></a><span class="co">// on-hot encoding</span></span>
-<span id="cb83-2"><a href="#cb83-2" aria-hidden="true"></a><span class="kw">typedef</span> <span class="kw">enum</span> <span class="kw">logic</span>[<span class="dv">3</span>:<span class="dv">0</span>] {</span>
-<span id="cb83-3"><a href="#cb83-3" aria-hidden="true"></a>    IDLE  = <span class="bn">4&#39;b0001</span>,</span>
-<span id="cb83-4"><a href="#cb83-4" aria-hidden="true"></a>    READY = <span class="bn">4&#39;b0010</span>,</span>
-<span id="cb83-5"><a href="#cb83-5" aria-hidden="true"></a>    BUSY  = <span class="bn">4&#39;b0100</span>,</span>
-<span id="cb83-6"><a href="#cb83-6" aria-hidden="true"></a>    ERROR = <span class="bn">4&#39;b1000</span></span>
-<span id="cb83-7"><a href="#cb83-7" aria-hidden="true"></a>} hot_hot_state_t;</span>
-<span id="cb83-8"><a href="#cb83-8" aria-hidden="true"></a></span>
-<span id="cb83-9"><a href="#cb83-9" aria-hidden="true"></a><span class="co">// Gray encoding</span></span>
-<span id="cb83-10"><a href="#cb83-10" aria-hidden="true"></a><span class="kw">typedef</span> <span class="kw">enum</span> <span class="kw">logic</span>[<span class="dv">2</span>:<span class="dv">0</span>] {</span>
-<span id="cb83-11"><a href="#cb83-11" aria-hidden="true"></a>    RED    = <span class="bn">4&#39;b00</span>,</span>
-<span id="cb83-12"><a href="#cb83-12" aria-hidden="true"></a>    GREEN  = <span class="bn">4&#39;b01</span>,</span>
-<span id="cb83-13"><a href="#cb83-13" aria-hidden="true"></a>    BLUE   = <span class="bn">4&#39;b11</span>,</span>
-<span id="cb83-14"><a href="#cb83-14" aria-hidden="true"></a>    YELLOW = <span class="bn">4&#39;b10</span></span>
-<span id="cb83-15"><a href="#cb83-15" aria-hidden="true"></a>} gray_state_t;</span>
-<span id="cb83-16"><a href="#cb83-16" aria-hidden="true"></a></span>
-<span id="cb83-17"><a href="#cb83-17" aria-hidden="true"></a><span class="co">// binary encoding</span></span>
-<span id="cb83-18"><a href="#cb83-18" aria-hidden="true"></a><span class="kw">typedef</span> <span class="kw">enum</span> <span class="kw">logic</span>[<span class="dv">1</span>:<span class="dv">0</span>] {</span>
-<span id="cb83-19"><a href="#cb83-19" aria-hidden="true"></a>    STAGE_<span class="dv">0</span> = <span class="bn">2&#39;d0</span>,</span>
-<span id="cb83-20"><a href="#cb83-20" aria-hidden="true"></a>    STAGE_<span class="dv">1</span> = <span class="bn">2&#39;d1</span>,</span>
-<span id="cb83-21"><a href="#cb83-21" aria-hidden="true"></a>    STAGE_<span class="dv">2</span> = <span class="bn">2&#39;d2</span>,</span>
-<span id="cb83-22"><a href="#cb83-22" aria-hidden="true"></a>    STAGE_<span class="dv">3</span> = <span class="bn">2&#39;d3</span></span>
-<span id="cb83-23"><a href="#cb83-23" aria-hidden="true"></a>} binary_state_t;</span></code></pre></div>
-<h3 data-number="4.2.3" id="general-fsm-structure"><span class="header-section-number">4.2.3</span> General FSM Structure</h3>
+<div class="sourceCode" id="cb82"><pre class="sourceCode systemverilog"><code class="sourceCode systemverilog"><a class="sourceLine" id="cb82-1" title="1"><span class="co">// on-hot encoding</span></a>
+<a class="sourceLine" id="cb82-2" title="2"><span class="kw">typedef</span> <span class="kw">enum</span> <span class="kw">logic</span>[<span class="dv">3</span>:<span class="dv">0</span>] {</a>
+<a class="sourceLine" id="cb82-3" title="3">    IDLE  = <span class="bn">4&#39;b0001</span>,</a>
+<a class="sourceLine" id="cb82-4" title="4">    READY = <span class="bn">4&#39;b0010</span>,</a>
+<a class="sourceLine" id="cb82-5" title="5">    BUSY  = <span class="bn">4&#39;b0100</span>,</a>
+<a class="sourceLine" id="cb82-6" title="6">    ERROR = <span class="bn">4&#39;b1000</span></a>
+<a class="sourceLine" id="cb82-7" title="7">} hot_hot_state_t;</a>
+<a class="sourceLine" id="cb82-8" title="8"></a>
+<a class="sourceLine" id="cb82-9" title="9"><span class="co">// Gray encoding</span></a>
+<a class="sourceLine" id="cb82-10" title="10"><span class="kw">typedef</span> <span class="kw">enum</span> <span class="kw">logic</span>[<span class="dv">2</span>:<span class="dv">0</span>] {</a>
+<a class="sourceLine" id="cb82-11" title="11">    RED    = <span class="bn">4&#39;b00</span>,</a>
+<a class="sourceLine" id="cb82-12" title="12">    GREEN  = <span class="bn">4&#39;b01</span>,</a>
+<a class="sourceLine" id="cb82-13" title="13">    BLUE   = <span class="bn">4&#39;b11</span>,</a>
+<a class="sourceLine" id="cb82-14" title="14">    YELLOW = <span class="bn">4&#39;b10</span></a>
+<a class="sourceLine" id="cb82-15" title="15">} gray_state_t;</a>
+<a class="sourceLine" id="cb82-16" title="16"></a>
+<a class="sourceLine" id="cb82-17" title="17"><span class="co">// binary encoding</span></a>
+<a class="sourceLine" id="cb82-18" title="18"><span class="kw">typedef</span> <span class="kw">enum</span> <span class="kw">logic</span>[<span class="dv">1</span>:<span class="dv">0</span>] {</a>
+<a class="sourceLine" id="cb82-19" title="19">    STAGE_<span class="dv">0</span> = <span class="bn">2&#39;d0</span>,</a>
+<a class="sourceLine" id="cb82-20" title="20">    STAGE_<span class="dv">1</span> = <span class="bn">2&#39;d1</span>,</a>
+<a class="sourceLine" id="cb82-21" title="21">    STAGE_<span class="dv">2</span> = <span class="bn">2&#39;d2</span>,</a>
+<a class="sourceLine" id="cb82-22" title="22">    STAGE_<span class="dv">3</span> = <span class="bn">2&#39;d3</span></a>
+<a class="sourceLine" id="cb82-23" title="23">} binary_state_t;</a></code></pre></div>
+<h3 id="general-fsm-structure"><span class="header-section-number">4.2.3</span> General FSM Structure</h3>
 <p>As indicated by the formal definition of FSM, we need to design two components of the FSM: state transition logic <span class="math inline">\(T\)</span> and output function <span class="math inline">\(G\)</span>. However, since FSM needs to hold its state, we need another component that sequentially update the FSM state. As a result, a typical FSM always have three components, as shown in the Figure <a href="#fig:fsm_structure">6</a>.</p>
 <div id="fig:fsm_structure" class="fignos">
 <figure>
-<img src="images/04/fsm_structure.svg" alt="" /><figcaption><span>Figure 6:</span> General FSM structure for Moore and Mealy machine.</figcaption>
+<img src="images/04/fsm_structure.svg" alt="Figure 6: General FSM structure for Moore and Mealy machine." /><figcaption><span>Figure 6:</span> General FSM structure for Moore and Mealy machine.</figcaption>
 </figure>
 </div>
-<h3 data-number="4.2.4" id="one--two--and-three-block-fsm-coding-style"><span class="header-section-number">4.2.4</span> One-, Two-, and Three-Block FSM Coding Style</h3>
+<h3 id="one--two--and-three-block-fsm-coding-style"><span class="header-section-number">4.2.4</span> One-, Two-, and Three-Block FSM Coding Style</h3>
 <p>Although there are three necessary components for an FSM, sometimes we can merge some components together into a single process. As a result, we have three popular FSM coding style, commonly referred as one-block, two-block, and three-block FSM coding style.</p>
 <p>In the following subsections, we will use count consecutive one as an example to show different coding styles. The definition of all states is shown below as a SystemVerilog package.</p>
-<div class="sourceCode" id="cb84"><pre class="sourceCode systemverilog"><code class="sourceCode systemverilog"><span id="cb84-1"><a href="#cb84-1" aria-hidden="true"></a><span class="ot">`ifndef</span> COUNT_ONE_FSM_PKG</span>
-<span id="cb84-2"><a href="#cb84-2" aria-hidden="true"></a><span class="ot">`define</span> COUNT_ONE_FSM_PKG</span>
-<span id="cb84-3"><a href="#cb84-3" aria-hidden="true"></a></span>
-<span id="cb84-4"><a href="#cb84-4" aria-hidden="true"></a><span class="kw">package</span> count_one_fsm_pkg;</span>
-<span id="cb84-5"><a href="#cb84-5" aria-hidden="true"></a></span>
-<span id="cb84-6"><a href="#cb84-6" aria-hidden="true"></a><span class="kw">typedef</span> <span class="kw">enum</span> <span class="kw">logic</span>[<span class="dv">1</span>:<span class="dv">0</span>] {</span>
-<span id="cb84-7"><a href="#cb84-7" aria-hidden="true"></a>    moore_state0,</span>
-<span id="cb84-8"><a href="#cb84-8" aria-hidden="true"></a>    moore_state1,</span>
-<span id="cb84-9"><a href="#cb84-9" aria-hidden="true"></a>    moore_state2</span>
-<span id="cb84-10"><a href="#cb84-10" aria-hidden="true"></a>} moore_state_t;</span>
-<span id="cb84-11"><a href="#cb84-11" aria-hidden="true"></a></span>
-<span id="cb84-12"><a href="#cb84-12" aria-hidden="true"></a><span class="kw">typedef</span> <span class="kw">enum</span> <span class="kw">logic</span> {</span>
-<span id="cb84-13"><a href="#cb84-13" aria-hidden="true"></a>    mealy_state0,</span>
-<span id="cb84-14"><a href="#cb84-14" aria-hidden="true"></a>    mealy_state1</span>
-<span id="cb84-15"><a href="#cb84-15" aria-hidden="true"></a>} mealy_state_t;</span>
-<span id="cb84-16"><a href="#cb84-16" aria-hidden="true"></a></span>
-<span id="cb84-17"><a href="#cb84-17" aria-hidden="true"></a><span class="kw">endpackage</span></span>
-<span id="cb84-18"><a href="#cb84-18" aria-hidden="true"></a><span class="ot">`endif</span> <span class="co">// COUNT_ONE_FSM_PKG</span></span></code></pre></div>
-<h4 data-number="4.2.4.1" id="three-block-fsm-coding-style"><span class="header-section-number">4.2.4.1</span> Three-Block FSM Coding Style</h4>
+<div class="sourceCode" id="cb83"><pre class="sourceCode systemverilog"><code class="sourceCode systemverilog"><a class="sourceLine" id="cb83-1" title="1"><span class="ot">`ifndef</span> COUNT_ONE_FSM_PKG</a>
+<a class="sourceLine" id="cb83-2" title="2"><span class="ot">`define</span> COUNT_ONE_FSM_PKG</a>
+<a class="sourceLine" id="cb83-3" title="3"></a>
+<a class="sourceLine" id="cb83-4" title="4"><span class="kw">package</span> count_one_fsm_pkg;</a>
+<a class="sourceLine" id="cb83-5" title="5"></a>
+<a class="sourceLine" id="cb83-6" title="6"><span class="kw">typedef</span> <span class="kw">enum</span> <span class="kw">logic</span>[<span class="dv">1</span>:<span class="dv">0</span>] {</a>
+<a class="sourceLine" id="cb83-7" title="7">    moore_state0,</a>
+<a class="sourceLine" id="cb83-8" title="8">    moore_state1,</a>
+<a class="sourceLine" id="cb83-9" title="9">    moore_state2</a>
+<a class="sourceLine" id="cb83-10" title="10">} moore_state_t;</a>
+<a class="sourceLine" id="cb83-11" title="11"></a>
+<a class="sourceLine" id="cb83-12" title="12"><span class="kw">typedef</span> <span class="kw">enum</span> <span class="kw">logic</span> {</a>
+<a class="sourceLine" id="cb83-13" title="13">    mealy_state0,</a>
+<a class="sourceLine" id="cb83-14" title="14">    mealy_state1</a>
+<a class="sourceLine" id="cb83-15" title="15">} mealy_state_t;</a>
+<a class="sourceLine" id="cb83-16" title="16"></a>
+<a class="sourceLine" id="cb83-17" title="17"><span class="kw">endpackage</span></a>
+<a class="sourceLine" id="cb83-18" title="18"><span class="ot">`endif</span> <span class="co">// COUNT_ONE_FSM_PKG</span></a></code></pre></div>
+<h4 id="three-block-fsm-coding-style"><span class="header-section-number">4.2.4.1</span> Three-Block FSM Coding Style</h4>
 <p>Three-block FSM coding style is usually implemented as a Moore machine where:</p>
 <ol type="1">
 <li>One block is used to update <code>state</code> with <code>next_state</code>.</li>
@@ -301,161 +301,161 @@ reg1:     2 reg2:     1 reg3:     0</code></pre>
 <li>One block is used to compute output based on <code>state</code>.</li>
 </ol>
 <p>The complete example of three-block FSM is shown below (<code>code/04/three_block_fsm_moore.sv</code>):</p>
-<div class="sourceCode" id="cb85"><pre class="sourceCode systemverilog"><code class="sourceCode systemverilog"><span id="cb85-1"><a href="#cb85-1" aria-hidden="true"></a><span class="kw">module</span> three_block_fsm_moore (</span>
-<span id="cb85-2"><a href="#cb85-2" aria-hidden="true"></a>    <span class="kw">input</span> <span class="kw">logic</span> clk,</span>
-<span id="cb85-3"><a href="#cb85-3" aria-hidden="true"></a>    <span class="kw">input</span> <span class="kw">logic</span> rst_n,</span>
-<span id="cb85-4"><a href="#cb85-4" aria-hidden="true"></a>    <span class="kw">input</span> <span class="kw">logic</span> in,</span>
-<span id="cb85-5"><a href="#cb85-5" aria-hidden="true"></a>    <span class="kw">output</span> <span class="kw">logic</span> out</span>
-<span id="cb85-6"><a href="#cb85-6" aria-hidden="true"></a>);</span>
-<span id="cb85-7"><a href="#cb85-7" aria-hidden="true"></a></span>
-<span id="cb85-8"><a href="#cb85-8" aria-hidden="true"></a><span class="kw">import</span> count_one_fsm_pkg::*;</span>
-<span id="cb85-9"><a href="#cb85-9" aria-hidden="true"></a></span>
-<span id="cb85-10"><a href="#cb85-10" aria-hidden="true"></a>moore_state_t <span class="ot">state</span>, next_state;</span>
-<span id="cb85-11"><a href="#cb85-11" aria-hidden="true"></a></span>
-<span id="cb85-12"><a href="#cb85-12" aria-hidden="true"></a><span class="co">// block 1: state &lt;- next_state</span></span>
-<span id="cb85-13"><a href="#cb85-13" aria-hidden="true"></a><span class="kw">always_ff</span> @(<span class="kw">posedge</span> clk, <span class="kw">negedge</span> rst_n) <span class="kw">begin</span></span>
-<span id="cb85-14"><a href="#cb85-14" aria-hidden="true"></a>    <span class="kw">if</span> (!rst_n) <span class="kw">begin</span></span>
-<span id="cb85-15"><a href="#cb85-15" aria-hidden="true"></a>        <span class="ot">state</span> &lt;= moore_state0;</span>
-<span id="cb85-16"><a href="#cb85-16" aria-hidden="true"></a>    <span class="kw">end</span></span>
-<span id="cb85-17"><a href="#cb85-17" aria-hidden="true"></a>    <span class="kw">else</span> <span class="kw">begin</span></span>
-<span id="cb85-18"><a href="#cb85-18" aria-hidden="true"></a>        <span class="ot">state</span> &lt;= next_state;</span>
-<span id="cb85-19"><a href="#cb85-19" aria-hidden="true"></a>    <span class="kw">end</span></span>
-<span id="cb85-20"><a href="#cb85-20" aria-hidden="true"></a><span class="kw">end</span></span>
-<span id="cb85-21"><a href="#cb85-21" aria-hidden="true"></a></span>
-<span id="cb85-22"><a href="#cb85-22" aria-hidden="true"></a><span class="co">// block 2: determine next_state</span></span>
-<span id="cb85-23"><a href="#cb85-23" aria-hidden="true"></a><span class="kw">always_comb</span> <span class="kw">begin</span></span>
-<span id="cb85-24"><a href="#cb85-24" aria-hidden="true"></a>    <span class="kw">case</span> (next_state)</span>
-<span id="cb85-25"><a href="#cb85-25" aria-hidden="true"></a>        moore_state0: <span class="kw">begin</span></span>
-<span id="cb85-26"><a href="#cb85-26" aria-hidden="true"></a>            <span class="kw">if</span> (in) next_state = moore_state1;</span>
-<span id="cb85-27"><a href="#cb85-27" aria-hidden="true"></a>            <span class="kw">else</span> next_state = moore_state0;</span>
-<span id="cb85-28"><a href="#cb85-28" aria-hidden="true"></a>        <span class="kw">end</span></span>
-<span id="cb85-29"><a href="#cb85-29" aria-hidden="true"></a>        moore_state1: <span class="kw">begin</span></span>
-<span id="cb85-30"><a href="#cb85-30" aria-hidden="true"></a>            <span class="kw">if</span> (in) next_state = moore_state2;</span>
-<span id="cb85-31"><a href="#cb85-31" aria-hidden="true"></a>            <span class="kw">else</span> next_state = moore_state0;</span>
-<span id="cb85-32"><a href="#cb85-32" aria-hidden="true"></a>        <span class="kw">end</span></span>
-<span id="cb85-33"><a href="#cb85-33" aria-hidden="true"></a>        moore_state2: <span class="kw">begin</span></span>
-<span id="cb85-34"><a href="#cb85-34" aria-hidden="true"></a>            <span class="kw">if</span> (in) next_state = moore_state2;</span>
-<span id="cb85-35"><a href="#cb85-35" aria-hidden="true"></a>            <span class="kw">else</span> next_state = moore_state0;</span>
-<span id="cb85-36"><a href="#cb85-36" aria-hidden="true"></a>        <span class="kw">end</span></span>
-<span id="cb85-37"><a href="#cb85-37" aria-hidden="true"></a>        <span class="kw">default</span>: <span class="kw">begin</span></span>
-<span id="cb85-38"><a href="#cb85-38" aria-hidden="true"></a>            next_state = moore_state0;</span>
-<span id="cb85-39"><a href="#cb85-39" aria-hidden="true"></a>        <span class="kw">end</span></span>
-<span id="cb85-40"><a href="#cb85-40" aria-hidden="true"></a>    <span class="kw">endcase</span>    </span>
-<span id="cb85-41"><a href="#cb85-41" aria-hidden="true"></a><span class="kw">end</span></span>
-<span id="cb85-42"><a href="#cb85-42" aria-hidden="true"></a></span>
-<span id="cb85-43"><a href="#cb85-43" aria-hidden="true"></a><span class="co">// block 3: determine output based on state</span></span>
-<span id="cb85-44"><a href="#cb85-44" aria-hidden="true"></a><span class="kw">always_comb</span> <span class="kw">begin</span></span>
-<span id="cb85-45"><a href="#cb85-45" aria-hidden="true"></a>    <span class="kw">case</span> (<span class="ot">state</span>)</span>
-<span id="cb85-46"><a href="#cb85-46" aria-hidden="true"></a>        moore_state0: out = <span class="dv">0</span>;</span>
-<span id="cb85-47"><a href="#cb85-47" aria-hidden="true"></a>        moore_state1: out = <span class="dv">0</span>;</span>
-<span id="cb85-48"><a href="#cb85-48" aria-hidden="true"></a>        moore_state2: out = <span class="dv">1</span>;</span>
-<span id="cb85-49"><a href="#cb85-49" aria-hidden="true"></a>        <span class="kw">default</span>: out = <span class="dv">0</span>; </span>
-<span id="cb85-50"><a href="#cb85-50" aria-hidden="true"></a>    <span class="kw">endcase</span></span>
-<span id="cb85-51"><a href="#cb85-51" aria-hidden="true"></a><span class="kw">end</span></span>
-<span id="cb85-52"><a href="#cb85-52" aria-hidden="true"></a></span>
-<span id="cb85-53"><a href="#cb85-53" aria-hidden="true"></a><span class="kw">endmodule</span>: three_block_fsm_moore</span></code></pre></div>
-<h4 data-number="4.2.4.2" id="two-block-fsm-coding-style"><span class="header-section-number">4.2.4.2</span> Two-Block FSM Coding Style</h4>
+<div class="sourceCode" id="cb84"><pre class="sourceCode systemverilog"><code class="sourceCode systemverilog"><a class="sourceLine" id="cb84-1" title="1"><span class="kw">module</span> three_block_fsm_moore (</a>
+<a class="sourceLine" id="cb84-2" title="2">    <span class="kw">input</span> <span class="kw">logic</span> clk,</a>
+<a class="sourceLine" id="cb84-3" title="3">    <span class="kw">input</span> <span class="kw">logic</span> rst_n,</a>
+<a class="sourceLine" id="cb84-4" title="4">    <span class="kw">input</span> <span class="kw">logic</span> in,</a>
+<a class="sourceLine" id="cb84-5" title="5">    <span class="kw">output</span> <span class="kw">logic</span> out</a>
+<a class="sourceLine" id="cb84-6" title="6">);</a>
+<a class="sourceLine" id="cb84-7" title="7"></a>
+<a class="sourceLine" id="cb84-8" title="8"><span class="kw">import</span> count_one_fsm_pkg::*;</a>
+<a class="sourceLine" id="cb84-9" title="9"></a>
+<a class="sourceLine" id="cb84-10" title="10">moore_state_t <span class="ot">state</span>, next_state;</a>
+<a class="sourceLine" id="cb84-11" title="11"></a>
+<a class="sourceLine" id="cb84-12" title="12"><span class="co">// block 1: state &lt;- next_state</span></a>
+<a class="sourceLine" id="cb84-13" title="13"><span class="kw">always_ff</span> @(<span class="kw">posedge</span> clk, <span class="kw">negedge</span> rst_n) <span class="kw">begin</span></a>
+<a class="sourceLine" id="cb84-14" title="14">    <span class="kw">if</span> (!rst_n) <span class="kw">begin</span></a>
+<a class="sourceLine" id="cb84-15" title="15">        <span class="ot">state</span> &lt;= moore_state0;</a>
+<a class="sourceLine" id="cb84-16" title="16">    <span class="kw">end</span></a>
+<a class="sourceLine" id="cb84-17" title="17">    <span class="kw">else</span> <span class="kw">begin</span></a>
+<a class="sourceLine" id="cb84-18" title="18">        <span class="ot">state</span> &lt;= next_state;</a>
+<a class="sourceLine" id="cb84-19" title="19">    <span class="kw">end</span></a>
+<a class="sourceLine" id="cb84-20" title="20"><span class="kw">end</span></a>
+<a class="sourceLine" id="cb84-21" title="21"></a>
+<a class="sourceLine" id="cb84-22" title="22"><span class="co">// block 2: determine next_state</span></a>
+<a class="sourceLine" id="cb84-23" title="23"><span class="kw">always_comb</span> <span class="kw">begin</span></a>
+<a class="sourceLine" id="cb84-24" title="24">    <span class="kw">case</span> (next_state)</a>
+<a class="sourceLine" id="cb84-25" title="25">        moore_state0: <span class="kw">begin</span></a>
+<a class="sourceLine" id="cb84-26" title="26">            <span class="kw">if</span> (in) next_state = moore_state1;</a>
+<a class="sourceLine" id="cb84-27" title="27">            <span class="kw">else</span> next_state = moore_state0;</a>
+<a class="sourceLine" id="cb84-28" title="28">        <span class="kw">end</span></a>
+<a class="sourceLine" id="cb84-29" title="29">        moore_state1: <span class="kw">begin</span></a>
+<a class="sourceLine" id="cb84-30" title="30">            <span class="kw">if</span> (in) next_state = moore_state2;</a>
+<a class="sourceLine" id="cb84-31" title="31">            <span class="kw">else</span> next_state = moore_state0;</a>
+<a class="sourceLine" id="cb84-32" title="32">        <span class="kw">end</span></a>
+<a class="sourceLine" id="cb84-33" title="33">        moore_state2: <span class="kw">begin</span></a>
+<a class="sourceLine" id="cb84-34" title="34">            <span class="kw">if</span> (in) next_state = moore_state2;</a>
+<a class="sourceLine" id="cb84-35" title="35">            <span class="kw">else</span> next_state = moore_state0;</a>
+<a class="sourceLine" id="cb84-36" title="36">        <span class="kw">end</span></a>
+<a class="sourceLine" id="cb84-37" title="37">        <span class="kw">default</span>: <span class="kw">begin</span></a>
+<a class="sourceLine" id="cb84-38" title="38">            next_state = moore_state0;</a>
+<a class="sourceLine" id="cb84-39" title="39">        <span class="kw">end</span></a>
+<a class="sourceLine" id="cb84-40" title="40">    <span class="kw">endcase</span>    </a>
+<a class="sourceLine" id="cb84-41" title="41"><span class="kw">end</span></a>
+<a class="sourceLine" id="cb84-42" title="42"></a>
+<a class="sourceLine" id="cb84-43" title="43"><span class="co">// block 3: determine output based on state</span></a>
+<a class="sourceLine" id="cb84-44" title="44"><span class="kw">always_comb</span> <span class="kw">begin</span></a>
+<a class="sourceLine" id="cb84-45" title="45">    <span class="kw">case</span> (<span class="ot">state</span>)</a>
+<a class="sourceLine" id="cb84-46" title="46">        moore_state0: out = <span class="dv">0</span>;</a>
+<a class="sourceLine" id="cb84-47" title="47">        moore_state1: out = <span class="dv">0</span>;</a>
+<a class="sourceLine" id="cb84-48" title="48">        moore_state2: out = <span class="dv">1</span>;</a>
+<a class="sourceLine" id="cb84-49" title="49">        <span class="kw">default</span>: out = <span class="dv">0</span>; </a>
+<a class="sourceLine" id="cb84-50" title="50">    <span class="kw">endcase</span></a>
+<a class="sourceLine" id="cb84-51" title="51"><span class="kw">end</span></a>
+<a class="sourceLine" id="cb84-52" title="52"></a>
+<a class="sourceLine" id="cb84-53" title="53"><span class="kw">endmodule</span>: three_block_fsm_moore</a></code></pre></div>
+<h4 id="two-block-fsm-coding-style"><span class="header-section-number">4.2.4.2</span> Two-Block FSM Coding Style</h4>
 <p>Two-block FSM is usually implemented in Mealy machine where: 1. One block is used to update <code>state</code> with <code>next_state</code>. 2. One block is used to determine <code>next_state</code> and the outputs, based on <code>state</code> and current inputs.</p>
 <p>The complete example of two-block FSM is shown below (<code>code/04/two_block_fsm_mealy.sv</code>):</p>
-<div class="sourceCode" id="cb86"><pre class="sourceCode systemverilog"><code class="sourceCode systemverilog"><span id="cb86-1"><a href="#cb86-1" aria-hidden="true"></a><span class="kw">module</span> two_block_fsm_mealy (</span>
-<span id="cb86-2"><a href="#cb86-2" aria-hidden="true"></a>    <span class="kw">input</span> <span class="kw">logic</span> clk,</span>
-<span id="cb86-3"><a href="#cb86-3" aria-hidden="true"></a>    <span class="kw">input</span> <span class="kw">logic</span> rst_n,</span>
-<span id="cb86-4"><a href="#cb86-4" aria-hidden="true"></a>    <span class="kw">input</span> <span class="kw">logic</span> in,</span>
-<span id="cb86-5"><a href="#cb86-5" aria-hidden="true"></a>    <span class="kw">output</span> <span class="kw">logic</span> out</span>
-<span id="cb86-6"><a href="#cb86-6" aria-hidden="true"></a>);</span>
-<span id="cb86-7"><a href="#cb86-7" aria-hidden="true"></a></span>
-<span id="cb86-8"><a href="#cb86-8" aria-hidden="true"></a><span class="kw">import</span> count_one_fsm_pkg::*;</span>
-<span id="cb86-9"><a href="#cb86-9" aria-hidden="true"></a></span>
-<span id="cb86-10"><a href="#cb86-10" aria-hidden="true"></a>mealy_state_t <span class="ot">state</span>, next_state;</span>
-<span id="cb86-11"><a href="#cb86-11" aria-hidden="true"></a></span>
-<span id="cb86-12"><a href="#cb86-12" aria-hidden="true"></a><span class="co">// block 1: state &lt;- next_state</span></span>
-<span id="cb86-13"><a href="#cb86-13" aria-hidden="true"></a><span class="kw">always_ff</span> @(<span class="kw">posedge</span> clk, <span class="kw">negedge</span> rst_n) <span class="kw">begin</span></span>
-<span id="cb86-14"><a href="#cb86-14" aria-hidden="true"></a>    <span class="kw">if</span> (!rst_n) <span class="kw">begin</span></span>
-<span id="cb86-15"><a href="#cb86-15" aria-hidden="true"></a>        <span class="ot">state</span> &lt;= mealy_state0;</span>
-<span id="cb86-16"><a href="#cb86-16" aria-hidden="true"></a>    <span class="kw">end</span></span>
-<span id="cb86-17"><a href="#cb86-17" aria-hidden="true"></a>    <span class="kw">else</span> <span class="kw">begin</span></span>
-<span id="cb86-18"><a href="#cb86-18" aria-hidden="true"></a>        <span class="ot">state</span> &lt;= next_state;</span>
-<span id="cb86-19"><a href="#cb86-19" aria-hidden="true"></a>    <span class="kw">end</span></span>
-<span id="cb86-20"><a href="#cb86-20" aria-hidden="true"></a><span class="kw">end</span></span>
-<span id="cb86-21"><a href="#cb86-21" aria-hidden="true"></a></span>
-<span id="cb86-22"><a href="#cb86-22" aria-hidden="true"></a><span class="co">// block 2: determine next_state and output</span></span>
-<span id="cb86-23"><a href="#cb86-23" aria-hidden="true"></a><span class="kw">always_comb</span> <span class="kw">begin</span></span>
-<span id="cb86-24"><a href="#cb86-24" aria-hidden="true"></a>    <span class="kw">case</span> (<span class="ot">state</span>)</span>
-<span id="cb86-25"><a href="#cb86-25" aria-hidden="true"></a>        mealy_state0: <span class="kw">begin</span></span>
-<span id="cb86-26"><a href="#cb86-26" aria-hidden="true"></a>            <span class="kw">if</span> (in) <span class="kw">begin</span></span>
-<span id="cb86-27"><a href="#cb86-27" aria-hidden="true"></a>                next_state = mealy_state1;</span>
-<span id="cb86-28"><a href="#cb86-28" aria-hidden="true"></a>                out = <span class="dv">0</span>;</span>
-<span id="cb86-29"><a href="#cb86-29" aria-hidden="true"></a>            <span class="kw">end</span></span>
-<span id="cb86-30"><a href="#cb86-30" aria-hidden="true"></a>            <span class="kw">else</span> <span class="kw">begin</span></span>
-<span id="cb86-31"><a href="#cb86-31" aria-hidden="true"></a>                next_state = mealy_state0;</span>
-<span id="cb86-32"><a href="#cb86-32" aria-hidden="true"></a>                out = <span class="dv">0</span>;</span>
-<span id="cb86-33"><a href="#cb86-33" aria-hidden="true"></a>            <span class="kw">end</span></span>
-<span id="cb86-34"><a href="#cb86-34" aria-hidden="true"></a>        <span class="kw">end</span></span>
-<span id="cb86-35"><a href="#cb86-35" aria-hidden="true"></a>        mealy_state1: <span class="kw">begin</span></span>
-<span id="cb86-36"><a href="#cb86-36" aria-hidden="true"></a>            <span class="kw">if</span> (in) <span class="kw">begin</span></span>
-<span id="cb86-37"><a href="#cb86-37" aria-hidden="true"></a>                next_state = mealy_state1;</span>
-<span id="cb86-38"><a href="#cb86-38" aria-hidden="true"></a>                out = <span class="dv">1</span>;</span>
-<span id="cb86-39"><a href="#cb86-39" aria-hidden="true"></a>            <span class="kw">end</span></span>
-<span id="cb86-40"><a href="#cb86-40" aria-hidden="true"></a>            <span class="kw">else</span> <span class="kw">begin</span></span>
-<span id="cb86-41"><a href="#cb86-41" aria-hidden="true"></a>                next_state = mealy_state0;</span>
-<span id="cb86-42"><a href="#cb86-42" aria-hidden="true"></a>                out = <span class="dv">0</span>;</span>
-<span id="cb86-43"><a href="#cb86-43" aria-hidden="true"></a>            <span class="kw">end</span></span>
-<span id="cb86-44"><a href="#cb86-44" aria-hidden="true"></a>        <span class="kw">end</span></span>
-<span id="cb86-45"><a href="#cb86-45" aria-hidden="true"></a>    <span class="kw">endcase</span></span>
-<span id="cb86-46"><a href="#cb86-46" aria-hidden="true"></a><span class="kw">end</span></span>
-<span id="cb86-47"><a href="#cb86-47" aria-hidden="true"></a></span>
-<span id="cb86-48"><a href="#cb86-48" aria-hidden="true"></a><span class="kw">endmodule</span>: two_block_fsm_mealy</span></code></pre></div>
+<div class="sourceCode" id="cb85"><pre class="sourceCode systemverilog"><code class="sourceCode systemverilog"><a class="sourceLine" id="cb85-1" title="1"><span class="kw">module</span> two_block_fsm_mealy (</a>
+<a class="sourceLine" id="cb85-2" title="2">    <span class="kw">input</span> <span class="kw">logic</span> clk,</a>
+<a class="sourceLine" id="cb85-3" title="3">    <span class="kw">input</span> <span class="kw">logic</span> rst_n,</a>
+<a class="sourceLine" id="cb85-4" title="4">    <span class="kw">input</span> <span class="kw">logic</span> in,</a>
+<a class="sourceLine" id="cb85-5" title="5">    <span class="kw">output</span> <span class="kw">logic</span> out</a>
+<a class="sourceLine" id="cb85-6" title="6">);</a>
+<a class="sourceLine" id="cb85-7" title="7"></a>
+<a class="sourceLine" id="cb85-8" title="8"><span class="kw">import</span> count_one_fsm_pkg::*;</a>
+<a class="sourceLine" id="cb85-9" title="9"></a>
+<a class="sourceLine" id="cb85-10" title="10">mealy_state_t <span class="ot">state</span>, next_state;</a>
+<a class="sourceLine" id="cb85-11" title="11"></a>
+<a class="sourceLine" id="cb85-12" title="12"><span class="co">// block 1: state &lt;- next_state</span></a>
+<a class="sourceLine" id="cb85-13" title="13"><span class="kw">always_ff</span> @(<span class="kw">posedge</span> clk, <span class="kw">negedge</span> rst_n) <span class="kw">begin</span></a>
+<a class="sourceLine" id="cb85-14" title="14">    <span class="kw">if</span> (!rst_n) <span class="kw">begin</span></a>
+<a class="sourceLine" id="cb85-15" title="15">        <span class="ot">state</span> &lt;= mealy_state0;</a>
+<a class="sourceLine" id="cb85-16" title="16">    <span class="kw">end</span></a>
+<a class="sourceLine" id="cb85-17" title="17">    <span class="kw">else</span> <span class="kw">begin</span></a>
+<a class="sourceLine" id="cb85-18" title="18">        <span class="ot">state</span> &lt;= next_state;</a>
+<a class="sourceLine" id="cb85-19" title="19">    <span class="kw">end</span></a>
+<a class="sourceLine" id="cb85-20" title="20"><span class="kw">end</span></a>
+<a class="sourceLine" id="cb85-21" title="21"></a>
+<a class="sourceLine" id="cb85-22" title="22"><span class="co">// block 2: determine next_state and output</span></a>
+<a class="sourceLine" id="cb85-23" title="23"><span class="kw">always_comb</span> <span class="kw">begin</span></a>
+<a class="sourceLine" id="cb85-24" title="24">    <span class="kw">case</span> (<span class="ot">state</span>)</a>
+<a class="sourceLine" id="cb85-25" title="25">        mealy_state0: <span class="kw">begin</span></a>
+<a class="sourceLine" id="cb85-26" title="26">            <span class="kw">if</span> (in) <span class="kw">begin</span></a>
+<a class="sourceLine" id="cb85-27" title="27">                next_state = mealy_state1;</a>
+<a class="sourceLine" id="cb85-28" title="28">                out = <span class="dv">0</span>;</a>
+<a class="sourceLine" id="cb85-29" title="29">            <span class="kw">end</span></a>
+<a class="sourceLine" id="cb85-30" title="30">            <span class="kw">else</span> <span class="kw">begin</span></a>
+<a class="sourceLine" id="cb85-31" title="31">                next_state = mealy_state0;</a>
+<a class="sourceLine" id="cb85-32" title="32">                out = <span class="dv">0</span>;</a>
+<a class="sourceLine" id="cb85-33" title="33">            <span class="kw">end</span></a>
+<a class="sourceLine" id="cb85-34" title="34">        <span class="kw">end</span></a>
+<a class="sourceLine" id="cb85-35" title="35">        mealy_state1: <span class="kw">begin</span></a>
+<a class="sourceLine" id="cb85-36" title="36">            <span class="kw">if</span> (in) <span class="kw">begin</span></a>
+<a class="sourceLine" id="cb85-37" title="37">                next_state = mealy_state1;</a>
+<a class="sourceLine" id="cb85-38" title="38">                out = <span class="dv">1</span>;</a>
+<a class="sourceLine" id="cb85-39" title="39">            <span class="kw">end</span></a>
+<a class="sourceLine" id="cb85-40" title="40">            <span class="kw">else</span> <span class="kw">begin</span></a>
+<a class="sourceLine" id="cb85-41" title="41">                next_state = mealy_state0;</a>
+<a class="sourceLine" id="cb85-42" title="42">                out = <span class="dv">0</span>;</a>
+<a class="sourceLine" id="cb85-43" title="43">            <span class="kw">end</span></a>
+<a class="sourceLine" id="cb85-44" title="44">        <span class="kw">end</span></a>
+<a class="sourceLine" id="cb85-45" title="45">    <span class="kw">endcase</span></a>
+<a class="sourceLine" id="cb85-46" title="46"><span class="kw">end</span></a>
+<a class="sourceLine" id="cb85-47" title="47"></a>
+<a class="sourceLine" id="cb85-48" title="48"><span class="kw">endmodule</span>: two_block_fsm_mealy</a></code></pre></div>
 <p>Using Mealy machine based two-block FSM has the advantage that output can update whenever input changes without the need to wait for the next cycle. However, it makes the maintenance difficult. Since the next state logic and output are coded together, if we need to adjust the FSM, significant restructure may be needed in two-block style. It is up to the design team to decide which style to use.</p>
-<h4 data-number="4.2.4.3" id="one-block-fsm-coding-style"><span class="header-section-number">4.2.4.3</span> One-Block FSM Coding Style</h4>
+<h4 id="one-block-fsm-coding-style"><span class="header-section-number">4.2.4.3</span> One-Block FSM Coding Style</h4>
 <p>One-block merges all the blocks together. As a result, maintaining and debugging such FSM is very challenging and we highly discourage people to adopt such FSM style unless absolute necessary. However, for completeness, we will show the code example people so that readers can recognize such programming style in practice.</p>
-<div class="sourceCode" id="cb87"><pre class="sourceCode systemverilog"><code class="sourceCode systemverilog"><span id="cb87-1"><a href="#cb87-1" aria-hidden="true"></a><span class="kw">module</span> one_block_fsm_mealy (</span>
-<span id="cb87-2"><a href="#cb87-2" aria-hidden="true"></a>    <span class="kw">input</span> <span class="kw">logic</span> clk,</span>
-<span id="cb87-3"><a href="#cb87-3" aria-hidden="true"></a>    <span class="kw">input</span> <span class="kw">logic</span> rst_n,</span>
-<span id="cb87-4"><a href="#cb87-4" aria-hidden="true"></a>    <span class="kw">input</span> <span class="kw">logic</span> in,</span>
-<span id="cb87-5"><a href="#cb87-5" aria-hidden="true"></a>    <span class="kw">output</span> <span class="kw">logic</span> out</span>
-<span id="cb87-6"><a href="#cb87-6" aria-hidden="true"></a>);</span>
-<span id="cb87-7"><a href="#cb87-7" aria-hidden="true"></a></span>
-<span id="cb87-8"><a href="#cb87-8" aria-hidden="true"></a><span class="kw">import</span> count_one_fsm_pkg::*;</span>
-<span id="cb87-9"><a href="#cb87-9" aria-hidden="true"></a></span>
-<span id="cb87-10"><a href="#cb87-10" aria-hidden="true"></a>mealy_state_t <span class="ot">state</span>;</span>
-<span id="cb87-11"><a href="#cb87-11" aria-hidden="true"></a></span>
-<span id="cb87-12"><a href="#cb87-12" aria-hidden="true"></a><span class="co">// one block: state update, next state, and output are in the same always_ff block</span></span>
-<span id="cb87-13"><a href="#cb87-13" aria-hidden="true"></a><span class="kw">always_ff</span> @(<span class="kw">posedge</span> clk, <span class="kw">negedge</span> rst_n) <span class="kw">begin</span></span>
-<span id="cb87-14"><a href="#cb87-14" aria-hidden="true"></a>    <span class="kw">if</span> (!rst_n) <span class="kw">begin</span></span>
-<span id="cb87-15"><a href="#cb87-15" aria-hidden="true"></a>        <span class="ot">state</span> &lt;= mealy_state0;</span>
-<span id="cb87-16"><a href="#cb87-16" aria-hidden="true"></a>    <span class="kw">end</span></span>
-<span id="cb87-17"><a href="#cb87-17" aria-hidden="true"></a>    <span class="kw">else</span> <span class="kw">begin</span></span>
-<span id="cb87-18"><a href="#cb87-18" aria-hidden="true"></a>        <span class="kw">case</span> (<span class="ot">state</span>)</span>
-<span id="cb87-19"><a href="#cb87-19" aria-hidden="true"></a>            mealy_state0: <span class="kw">begin</span></span>
-<span id="cb87-20"><a href="#cb87-20" aria-hidden="true"></a>                <span class="kw">if</span> (in) <span class="kw">begin</span></span>
-<span id="cb87-21"><a href="#cb87-21" aria-hidden="true"></a>                    <span class="ot">state</span> &lt;= mealy_state1;</span>
-<span id="cb87-22"><a href="#cb87-22" aria-hidden="true"></a>                    out &lt;= <span class="dv">0</span>;</span>
-<span id="cb87-23"><a href="#cb87-23" aria-hidden="true"></a>                <span class="kw">end</span></span>
-<span id="cb87-24"><a href="#cb87-24" aria-hidden="true"></a>                <span class="kw">else</span> <span class="kw">begin</span></span>
-<span id="cb87-25"><a href="#cb87-25" aria-hidden="true"></a>                    <span class="ot">state</span> &lt;= mealy_state0;</span>
-<span id="cb87-26"><a href="#cb87-26" aria-hidden="true"></a>                    out &lt;= <span class="dv">0</span>;</span>
-<span id="cb87-27"><a href="#cb87-27" aria-hidden="true"></a>                <span class="kw">end</span></span>
-<span id="cb87-28"><a href="#cb87-28" aria-hidden="true"></a>            <span class="kw">end</span></span>
-<span id="cb87-29"><a href="#cb87-29" aria-hidden="true"></a>            mealy_state1: <span class="kw">begin</span></span>
-<span id="cb87-30"><a href="#cb87-30" aria-hidden="true"></a>                <span class="kw">if</span> (in) <span class="kw">begin</span></span>
-<span id="cb87-31"><a href="#cb87-31" aria-hidden="true"></a>                    <span class="ot">state</span> &lt;= mealy_state1;</span>
-<span id="cb87-32"><a href="#cb87-32" aria-hidden="true"></a>                    out &lt;= <span class="dv">1</span>;</span>
-<span id="cb87-33"><a href="#cb87-33" aria-hidden="true"></a>                <span class="kw">end</span></span>
-<span id="cb87-34"><a href="#cb87-34" aria-hidden="true"></a>                <span class="kw">else</span> <span class="kw">begin</span></span>
-<span id="cb87-35"><a href="#cb87-35" aria-hidden="true"></a>                    <span class="ot">state</span> &lt;= mealy_state0;</span>
-<span id="cb87-36"><a href="#cb87-36" aria-hidden="true"></a>                    out &lt;= <span class="dv">0</span>;</span>
-<span id="cb87-37"><a href="#cb87-37" aria-hidden="true"></a>                <span class="kw">end</span></span>
-<span id="cb87-38"><a href="#cb87-38" aria-hidden="true"></a>            <span class="kw">end</span></span>
-<span id="cb87-39"><a href="#cb87-39" aria-hidden="true"></a>            <span class="kw">default</span>: <span class="kw">begin</span></span>
-<span id="cb87-40"><a href="#cb87-40" aria-hidden="true"></a>                <span class="ot">state</span> &lt;= mealy_state0;</span>
-<span id="cb87-41"><a href="#cb87-41" aria-hidden="true"></a>                out &lt;= <span class="dv">0</span>;</span>
-<span id="cb87-42"><a href="#cb87-42" aria-hidden="true"></a>            <span class="kw">end</span></span>
-<span id="cb87-43"><a href="#cb87-43" aria-hidden="true"></a>        <span class="kw">endcase</span></span>
-<span id="cb87-44"><a href="#cb87-44" aria-hidden="true"></a>    <span class="kw">end</span></span>
-<span id="cb87-45"><a href="#cb87-45" aria-hidden="true"></a><span class="kw">end</span></span>
-<span id="cb87-46"><a href="#cb87-46" aria-hidden="true"></a></span>
-<span id="cb87-47"><a href="#cb87-47" aria-hidden="true"></a><span class="kw">endmodule</span>: one_block_fsm_mealy</span></code></pre></div>
-<h3 data-number="4.2.5" id="how-to-write-fsm-effectively"><span class="header-section-number">4.2.5</span> How to Write FSM Effectively</h3>
+<div class="sourceCode" id="cb86"><pre class="sourceCode systemverilog"><code class="sourceCode systemverilog"><a class="sourceLine" id="cb86-1" title="1"><span class="kw">module</span> one_block_fsm_mealy (</a>
+<a class="sourceLine" id="cb86-2" title="2">    <span class="kw">input</span> <span class="kw">logic</span> clk,</a>
+<a class="sourceLine" id="cb86-3" title="3">    <span class="kw">input</span> <span class="kw">logic</span> rst_n,</a>
+<a class="sourceLine" id="cb86-4" title="4">    <span class="kw">input</span> <span class="kw">logic</span> in,</a>
+<a class="sourceLine" id="cb86-5" title="5">    <span class="kw">output</span> <span class="kw">logic</span> out</a>
+<a class="sourceLine" id="cb86-6" title="6">);</a>
+<a class="sourceLine" id="cb86-7" title="7"></a>
+<a class="sourceLine" id="cb86-8" title="8"><span class="kw">import</span> count_one_fsm_pkg::*;</a>
+<a class="sourceLine" id="cb86-9" title="9"></a>
+<a class="sourceLine" id="cb86-10" title="10">mealy_state_t <span class="ot">state</span>;</a>
+<a class="sourceLine" id="cb86-11" title="11"></a>
+<a class="sourceLine" id="cb86-12" title="12"><span class="co">// one block: state update, next state, and output are in the same always_ff block</span></a>
+<a class="sourceLine" id="cb86-13" title="13"><span class="kw">always_ff</span> @(<span class="kw">posedge</span> clk, <span class="kw">negedge</span> rst_n) <span class="kw">begin</span></a>
+<a class="sourceLine" id="cb86-14" title="14">    <span class="kw">if</span> (!rst_n) <span class="kw">begin</span></a>
+<a class="sourceLine" id="cb86-15" title="15">        <span class="ot">state</span> &lt;= mealy_state0;</a>
+<a class="sourceLine" id="cb86-16" title="16">    <span class="kw">end</span></a>
+<a class="sourceLine" id="cb86-17" title="17">    <span class="kw">else</span> <span class="kw">begin</span></a>
+<a class="sourceLine" id="cb86-18" title="18">        <span class="kw">case</span> (<span class="ot">state</span>)</a>
+<a class="sourceLine" id="cb86-19" title="19">            mealy_state0: <span class="kw">begin</span></a>
+<a class="sourceLine" id="cb86-20" title="20">                <span class="kw">if</span> (in) <span class="kw">begin</span></a>
+<a class="sourceLine" id="cb86-21" title="21">                    <span class="ot">state</span> &lt;= mealy_state1;</a>
+<a class="sourceLine" id="cb86-22" title="22">                    out &lt;= <span class="dv">0</span>;</a>
+<a class="sourceLine" id="cb86-23" title="23">                <span class="kw">end</span></a>
+<a class="sourceLine" id="cb86-24" title="24">                <span class="kw">else</span> <span class="kw">begin</span></a>
+<a class="sourceLine" id="cb86-25" title="25">                    <span class="ot">state</span> &lt;= mealy_state0;</a>
+<a class="sourceLine" id="cb86-26" title="26">                    out &lt;= <span class="dv">0</span>;</a>
+<a class="sourceLine" id="cb86-27" title="27">                <span class="kw">end</span></a>
+<a class="sourceLine" id="cb86-28" title="28">            <span class="kw">end</span></a>
+<a class="sourceLine" id="cb86-29" title="29">            mealy_state1: <span class="kw">begin</span></a>
+<a class="sourceLine" id="cb86-30" title="30">                <span class="kw">if</span> (in) <span class="kw">begin</span></a>
+<a class="sourceLine" id="cb86-31" title="31">                    <span class="ot">state</span> &lt;= mealy_state1;</a>
+<a class="sourceLine" id="cb86-32" title="32">                    out &lt;= <span class="dv">1</span>;</a>
+<a class="sourceLine" id="cb86-33" title="33">                <span class="kw">end</span></a>
+<a class="sourceLine" id="cb86-34" title="34">                <span class="kw">else</span> <span class="kw">begin</span></a>
+<a class="sourceLine" id="cb86-35" title="35">                    <span class="ot">state</span> &lt;= mealy_state0;</a>
+<a class="sourceLine" id="cb86-36" title="36">                    out &lt;= <span class="dv">0</span>;</a>
+<a class="sourceLine" id="cb86-37" title="37">                <span class="kw">end</span></a>
+<a class="sourceLine" id="cb86-38" title="38">            <span class="kw">end</span></a>
+<a class="sourceLine" id="cb86-39" title="39">            <span class="kw">default</span>: <span class="kw">begin</span></a>
+<a class="sourceLine" id="cb86-40" title="40">                <span class="ot">state</span> &lt;= mealy_state0;</a>
+<a class="sourceLine" id="cb86-41" title="41">                out &lt;= <span class="dv">0</span>;</a>
+<a class="sourceLine" id="cb86-42" title="42">            <span class="kw">end</span></a>
+<a class="sourceLine" id="cb86-43" title="43">        <span class="kw">endcase</span></a>
+<a class="sourceLine" id="cb86-44" title="44">    <span class="kw">end</span></a>
+<a class="sourceLine" id="cb86-45" title="45"><span class="kw">end</span></a>
+<a class="sourceLine" id="cb86-46" title="46"></a>
+<a class="sourceLine" id="cb86-47" title="47"><span class="kw">endmodule</span>: one_block_fsm_mealy</a></code></pre></div>
+<h3 id="how-to-write-fsm-effectively"><span class="header-section-number">4.2.5</span> How to Write FSM Effectively</h3>
 <p>Designing an efficient FSM requires engineering work and experiments. A typical workflow is shown below:</p>
 <ol type="1">
 <li>Identify states and state transition logic and turn it into a design specification.</li>
@@ -464,153 +464,153 @@ reg1:     2 reg2:     1 reg3:     0</code></pre>
 </ol>
 <p>The first step of FSM design involves with design exploration about how many states are needed, what coding style to use, what state encoding to use, and what’s the output logic. A common way to visualize the FSM is to represent it in a state transition diagram. Another way to represent the FSM is to use tables, where each row represents a state transition. After all states have been identified, we can further optimize the FSM throw methods such as state reduction, where states with exactly the same logic (same outputs and same transition) can be merged into one.</p>
 <p>Once the specification has been decided, translating it into FSM is very mechanical. Each transition arc can be expressed as a case item as we discussed earlier and so is the output logic. Once the implementation is done, we need to thoroughly test the it against common bugs such as dead lock or unreachable state. Some issues could be implementation related and some may be specification related. In any cases we need to fix the design/specification to meet the design requirements. We will discuss strategies about discovering deadlock and unreachable state when discussing formal verification later in the book.</p>
-<h2 data-number="4.3" id="commonly-used-design-building-blocks"><span class="header-section-number">4.3</span> Commonly Used Design Building Blocks</h2>
+<h2 id="commonly-used-design-building-blocks"><span class="header-section-number">4.3</span> Commonly Used Design Building Blocks</h2>
 <p>In this section we lists some code examples of commonly used design building blocks. These circuits are commonly used in various circuit designs and are optimized for high synthesis quality.</p>
-<h3 data-number="4.3.1" id="registers"><span class="header-section-number">4.3.1</span> Registers</h3>
+<h3 id="registers"><span class="header-section-number">4.3.1</span> Registers</h3>
 <p>There are various types registers, such as synchronous and asynchronous registers. Each type has their own benefits. The design team should decide ahead of time what types of registers to use consistently throughout the design. All the code examples here use negative reset.</p>
-<h3 data-number="4.3.2" id="asynchronous-reset-registers"><span class="header-section-number">4.3.2</span> Asynchronous Reset Registers</h3>
+<h3 id="asynchronous-reset-registers"><span class="header-section-number">4.3.2</span> Asynchronous Reset Registers</h3>
 <p>Asynchronous reset register has reset on its sensitivity list.</p>
-<div class="sourceCode" id="cb88"><pre class="sourceCode systemverilog"><code class="sourceCode systemverilog"><span id="cb88-1"><a href="#cb88-1" aria-hidden="true"></a></span>
-<span id="cb88-2"><a href="#cb88-2" aria-hidden="true"></a><span class="kw">logic</span> r, value;</span>
-<span id="cb88-3"><a href="#cb88-3" aria-hidden="true"></a></span>
-<span id="cb88-4"><a href="#cb88-4" aria-hidden="true"></a><span class="kw">always_ff</span> @(<span class="kw">posedge</span> clk, <span class="kw">negedge</span> rst_n) <span class="kw">begin</span></span>
-<span id="cb88-5"><a href="#cb88-5" aria-hidden="true"></a>    <span class="kw">if</span> (!rst_n) <span class="kw">begin</span></span>
-<span id="cb88-6"><a href="#cb88-6" aria-hidden="true"></a>        r &lt;= <span class="bn">1&#39;b0</span>;</span>
-<span id="cb88-7"><a href="#cb88-7" aria-hidden="true"></a>    <span class="kw">end</span></span>
-<span id="cb88-8"><a href="#cb88-8" aria-hidden="true"></a>    <span class="kw">else</span> <span class="kw">begin</span></span>
-<span id="cb88-9"><a href="#cb88-9" aria-hidden="true"></a>        r &lt;= value;</span>
-<span id="cb88-10"><a href="#cb88-10" aria-hidden="true"></a>    <span class="kw">end</span></span>
-<span id="cb88-11"><a href="#cb88-11" aria-hidden="true"></a><span class="kw">end</span></span></code></pre></div>
-<h4 data-number="4.3.2.1" id="synchronous-reset-registers"><span class="header-section-number">4.3.2.1</span> Synchronous Reset Registers</h4>
+<div class="sourceCode" id="cb87"><pre class="sourceCode systemverilog"><code class="sourceCode systemverilog"><a class="sourceLine" id="cb87-1" title="1"></a>
+<a class="sourceLine" id="cb87-2" title="2"><span class="kw">logic</span> r, value;</a>
+<a class="sourceLine" id="cb87-3" title="3"></a>
+<a class="sourceLine" id="cb87-4" title="4"><span class="kw">always_ff</span> @(<span class="kw">posedge</span> clk, <span class="kw">negedge</span> rst_n) <span class="kw">begin</span></a>
+<a class="sourceLine" id="cb87-5" title="5">    <span class="kw">if</span> (!rst_n) <span class="kw">begin</span></a>
+<a class="sourceLine" id="cb87-6" title="6">        r &lt;= <span class="bn">1&#39;b0</span>;</a>
+<a class="sourceLine" id="cb87-7" title="7">    <span class="kw">end</span></a>
+<a class="sourceLine" id="cb87-8" title="8">    <span class="kw">else</span> <span class="kw">begin</span></a>
+<a class="sourceLine" id="cb87-9" title="9">        r &lt;= value;</a>
+<a class="sourceLine" id="cb87-10" title="10">    <span class="kw">end</span></a>
+<a class="sourceLine" id="cb87-11" title="11"><span class="kw">end</span></a></code></pre></div>
+<h4 id="synchronous-reset-registers"><span class="header-section-number">4.3.2.1</span> Synchronous Reset Registers</h4>
 <p>Unlike Asynchronous reset registers, synchronous reset register only resets the register on clock edge, hence the name “synchronous”.</p>
-<div class="sourceCode" id="cb89"><pre class="sourceCode systemverilog"><code class="sourceCode systemverilog"><span id="cb89-1"><a href="#cb89-1" aria-hidden="true"></a><span class="kw">logic</span> r, value;</span>
-<span id="cb89-2"><a href="#cb89-2" aria-hidden="true"></a></span>
-<span id="cb89-3"><a href="#cb89-3" aria-hidden="true"></a><span class="kw">always_ff</span> @(<span class="kw">posedge</span> clk) <span class="kw">begin</span></span>
-<span id="cb89-4"><a href="#cb89-4" aria-hidden="true"></a>    <span class="kw">if</span> (!rst) <span class="kw">begin</span></span>
-<span id="cb89-5"><a href="#cb89-5" aria-hidden="true"></a>        r &lt;= <span class="bn">1&#39;b0</span>;</span>
-<span id="cb89-6"><a href="#cb89-6" aria-hidden="true"></a>    <span class="kw">end</span></span>
-<span id="cb89-7"><a href="#cb89-7" aria-hidden="true"></a>    <span class="kw">else</span> <span class="kw">begin</span></span>
-<span id="cb89-8"><a href="#cb89-8" aria-hidden="true"></a>        r &lt;= value;</span>
-<span id="cb89-9"><a href="#cb89-9" aria-hidden="true"></a>    <span class="kw">end</span></span>
-<span id="cb89-10"><a href="#cb89-10" aria-hidden="true"></a><span class="kw">end</span></span></code></pre></div>
-<h4 data-number="4.3.2.2" id="chip-enable-registers"><span class="header-section-number">4.3.2.2</span> Chip-enable Registers</h4>
+<div class="sourceCode" id="cb88"><pre class="sourceCode systemverilog"><code class="sourceCode systemverilog"><a class="sourceLine" id="cb88-1" title="1"><span class="kw">logic</span> r, value;</a>
+<a class="sourceLine" id="cb88-2" title="2"></a>
+<a class="sourceLine" id="cb88-3" title="3"><span class="kw">always_ff</span> @(<span class="kw">posedge</span> clk) <span class="kw">begin</span></a>
+<a class="sourceLine" id="cb88-4" title="4">    <span class="kw">if</span> (!rst) <span class="kw">begin</span></a>
+<a class="sourceLine" id="cb88-5" title="5">        r &lt;= <span class="bn">1&#39;b0</span>;</a>
+<a class="sourceLine" id="cb88-6" title="6">    <span class="kw">end</span></a>
+<a class="sourceLine" id="cb88-7" title="7">    <span class="kw">else</span> <span class="kw">begin</span></a>
+<a class="sourceLine" id="cb88-8" title="8">        r &lt;= value;</a>
+<a class="sourceLine" id="cb88-9" title="9">    <span class="kw">end</span></a>
+<a class="sourceLine" id="cb88-10" title="10"><span class="kw">end</span></a></code></pre></div>
+<h4 id="chip-enable-registers"><span class="header-section-number">4.3.2.2</span> Chip-enable Registers</h4>
 <p>Chip-enable registers has additional single that enables or disables the value update (sometimes called clock-gating). On ASIC, there are usually specially design cells to handle such logic. As a result, if you follow the code example below you will get optimal synthesis result. We will use asynchronous reset register as an example.</p>
-<div class="sourceCode" id="cb90"><pre class="sourceCode systemverilog"><code class="sourceCode systemverilog"><span id="cb90-1"><a href="#cb90-1" aria-hidden="true"></a><span class="kw">logic</span> r, value;</span>
-<span id="cb90-2"><a href="#cb90-2" aria-hidden="true"></a></span>
-<span id="cb90-3"><a href="#cb90-3" aria-hidden="true"></a><span class="kw">always_ff</span> @(<span class="kw">posedge</span> clk, <span class="kw">negedge</span> rst_n) <span class="kw">begin</span></span>
-<span id="cb90-4"><a href="#cb90-4" aria-hidden="true"></a>    <span class="kw">if</span> (!rst_n) <span class="kw">begin</span></span>
-<span id="cb90-5"><a href="#cb90-5" aria-hidden="true"></a>        r &lt;= <span class="bn">1&#39;b0</span>;</span>
-<span id="cb90-6"><a href="#cb90-6" aria-hidden="true"></a>    <span class="kw">end</span></span>
-<span id="cb90-7"><a href="#cb90-7" aria-hidden="true"></a>    <span class="kw">else</span> <span class="kw">if</span> (c_en) <span class="kw">begin</span></span>
-<span id="cb90-8"><a href="#cb90-8" aria-hidden="true"></a>        r &lt;= value;</span>
-<span id="cb90-9"><a href="#cb90-9" aria-hidden="true"></a>    <span class="kw">end</span></span>
-<span id="cb90-10"><a href="#cb90-10" aria-hidden="true"></a><span class="kw">end</span></span></code></pre></div>
+<div class="sourceCode" id="cb89"><pre class="sourceCode systemverilog"><code class="sourceCode systemverilog"><a class="sourceLine" id="cb89-1" title="1"><span class="kw">logic</span> r, value;</a>
+<a class="sourceLine" id="cb89-2" title="2"></a>
+<a class="sourceLine" id="cb89-3" title="3"><span class="kw">always_ff</span> @(<span class="kw">posedge</span> clk, <span class="kw">negedge</span> rst_n) <span class="kw">begin</span></a>
+<a class="sourceLine" id="cb89-4" title="4">    <span class="kw">if</span> (!rst_n) <span class="kw">begin</span></a>
+<a class="sourceLine" id="cb89-5" title="5">        r &lt;= <span class="bn">1&#39;b0</span>;</a>
+<a class="sourceLine" id="cb89-6" title="6">    <span class="kw">end</span></a>
+<a class="sourceLine" id="cb89-7" title="7">    <span class="kw">else</span> <span class="kw">if</span> (c_en) <span class="kw">begin</span></a>
+<a class="sourceLine" id="cb89-8" title="8">        r &lt;= value;</a>
+<a class="sourceLine" id="cb89-9" title="9">    <span class="kw">end</span></a>
+<a class="sourceLine" id="cb89-10" title="10"><span class="kw">end</span></a></code></pre></div>
 <p>In generally we do not recommend using your own logic control the register update, for instance, multiplexing the update value instead of using the syntax above, or creating your own clock based on the enable logic. These kinds of modification are unlikely to be picked up by the synthesis tools, hence reduce synthesis quality.</p>
-<h4 data-number="4.3.2.3" id="power-up-values"><span class="header-section-number">4.3.2.3</span> Power-up Values</h4>
+<h4 id="power-up-values"><span class="header-section-number">4.3.2.3</span> Power-up Values</h4>
 <p>Some FPGA tool chains allows initial values to be set along with declaration, as shown below. Since this approach does not work for ASIC, we do not recommend such approach if you want your code to be portable.</p>
-<div class="sourceCode" id="cb91"><pre class="sourceCode systemverilog"><code class="sourceCode systemverilog"><span id="cb91-1"><a href="#cb91-1" aria-hidden="true"></a><span class="kw">logic</span> a = <span class="bn">1&#39;b0</span>;</span>
-<span id="cb91-2"><a href="#cb91-2" aria-hidden="true"></a><span class="kw">logic</span> value;</span>
-<span id="cb91-3"><a href="#cb91-3" aria-hidden="true"></a></span>
-<span id="cb91-4"><a href="#cb91-4" aria-hidden="true"></a><span class="kw">always_ff</span> @(<span class="kw">posedge</span> clk) <span class="kw">begin</span></span>
-<span id="cb91-5"><a href="#cb91-5" aria-hidden="true"></a>    a &lt;= value;</span>
-<span id="cb91-6"><a href="#cb91-6" aria-hidden="true"></a><span class="kw">end</span></span></code></pre></div>
-<h3 data-number="4.3.3" id="multiplexer"><span class="header-section-number">4.3.3</span> Multiplexer</h3>
+<div class="sourceCode" id="cb90"><pre class="sourceCode systemverilog"><code class="sourceCode systemverilog"><a class="sourceLine" id="cb90-1" title="1"><span class="kw">logic</span> a = <span class="bn">1&#39;b0</span>;</a>
+<a class="sourceLine" id="cb90-2" title="2"><span class="kw">logic</span> value;</a>
+<a class="sourceLine" id="cb90-3" title="3"></a>
+<a class="sourceLine" id="cb90-4" title="4"><span class="kw">always_ff</span> @(<span class="kw">posedge</span> clk) <span class="kw">begin</span></a>
+<a class="sourceLine" id="cb90-5" title="5">    a &lt;= value;</a>
+<a class="sourceLine" id="cb90-6" title="6"><span class="kw">end</span></a></code></pre></div>
+<h3 id="multiplexer"><span class="header-section-number">4.3.3</span> Multiplexer</h3>
 <p>Multiplexer is a type of hardware circuit that selects output signals from a list of input signals. There are many ways to implement a multiplexer and we will cover two common implementation of multiplexers.</p>
-<h4 data-number="4.3.3.1" id="case-based-multiplexer"><span class="header-section-number">4.3.3.1</span> <code>case</code>-based Multiplexer</h4>
+<h4 id="case-based-multiplexer"><span class="header-section-number">4.3.3.1</span> <code>case</code>-based Multiplexer</h4>
 <p>The simplest way to implement a multiplexer is using <code>case</code> statement. It is straightforward to implement and also allows synthesis tools to recognize the multiplexer and optimize the netlist. Here is an example of multiplexer that takes 5 inputs. Notice that the number of inputs does not need to be 2’s power.</p>
-<div class="sourceCode" id="cb92"><pre class="sourceCode systemverilog"><code class="sourceCode systemverilog"><span id="cb92-1"><a href="#cb92-1" aria-hidden="true"></a><span class="kw">module</span> Mux5</span>
-<span id="cb92-2"><a href="#cb92-2" aria-hidden="true"></a>  #(<span class="kw">parameter</span> <span class="kw">int</span> WIDTH = <span class="dv">1</span>) (</span>
-<span id="cb92-3"><a href="#cb92-3" aria-hidden="true"></a>    <span class="kw">input</span>  <span class="kw">logic</span>[WIDTH<span class="dv">-1</span>:<span class="dv">0</span>] I0,</span>
-<span id="cb92-4"><a href="#cb92-4" aria-hidden="true"></a>    <span class="kw">input</span>  <span class="kw">logic</span>[WIDTH<span class="dv">-1</span>:<span class="dv">0</span>] I1,</span>
-<span id="cb92-5"><a href="#cb92-5" aria-hidden="true"></a>    <span class="kw">input</span>  <span class="kw">logic</span>[WIDTH<span class="dv">-1</span>:<span class="dv">0</span>] I2,</span>
-<span id="cb92-6"><a href="#cb92-6" aria-hidden="true"></a>    <span class="kw">input</span>  <span class="kw">logic</span>[WIDTH<span class="dv">-1</span>:<span class="dv">0</span>] I3,</span>
-<span id="cb92-7"><a href="#cb92-7" aria-hidden="true"></a>    <span class="kw">input</span>  <span class="kw">logic</span>[WIDTH<span class="dv">-1</span>:<span class="dv">0</span>] I4,</span>
-<span id="cb92-8"><a href="#cb92-8" aria-hidden="true"></a>    <span class="kw">input</span>  <span class="kw">logic</span>[<span class="kw">$clog2</span>(<span class="dv">5</span>):<span class="dv">0</span>] S,</span>
-<span id="cb92-9"><a href="#cb92-9" aria-hidden="true"></a>    <span class="kw">output</span> <span class="kw">logic</span>[WIDTH<span class="dv">-1</span>:<span class="dv">0</span>] O</span>
-<span id="cb92-10"><a href="#cb92-10" aria-hidden="true"></a>);</span>
-<span id="cb92-11"><a href="#cb92-11" aria-hidden="true"></a></span>
-<span id="cb92-12"><a href="#cb92-12" aria-hidden="true"></a><span class="kw">always_comb</span> <span class="kw">begin</span></span>
-<span id="cb92-13"><a href="#cb92-13" aria-hidden="true"></a>    <span class="kw">unique</span> <span class="kw">case</span> (S)</span>
-<span id="cb92-14"><a href="#cb92-14" aria-hidden="true"></a>        <span class="dv">0</span>: O = I0;</span>
-<span id="cb92-15"><a href="#cb92-15" aria-hidden="true"></a>        <span class="dv">1</span>: O = I1;</span>
-<span id="cb92-16"><a href="#cb92-16" aria-hidden="true"></a>        <span class="dv">2</span>: O = I2;</span>
-<span id="cb92-17"><a href="#cb92-17" aria-hidden="true"></a>        <span class="dv">3</span>: O = I3;</span>
-<span id="cb92-18"><a href="#cb92-18" aria-hidden="true"></a>        <span class="dv">4</span>: O = I4;</span>
-<span id="cb92-19"><a href="#cb92-19" aria-hidden="true"></a>        <span class="kw">default</span>:</span>
-<span id="cb92-20"><a href="#cb92-20" aria-hidden="true"></a>           O = I0;</span>
-<span id="cb92-21"><a href="#cb92-21" aria-hidden="true"></a>    <span class="kw">endcase</span></span>
-<span id="cb92-22"><a href="#cb92-22" aria-hidden="true"></a><span class="kw">end</span></span>
-<span id="cb92-23"><a href="#cb92-23" aria-hidden="true"></a></span>
-<span id="cb92-24"><a href="#cb92-24" aria-hidden="true"></a><span class="kw">endmodule</span></span></code></pre></div>
+<div class="sourceCode" id="cb91"><pre class="sourceCode systemverilog"><code class="sourceCode systemverilog"><a class="sourceLine" id="cb91-1" title="1"><span class="kw">module</span> Mux5</a>
+<a class="sourceLine" id="cb91-2" title="2">  #(<span class="kw">parameter</span> <span class="kw">int</span> WIDTH = <span class="dv">1</span>) (</a>
+<a class="sourceLine" id="cb91-3" title="3">    <span class="kw">input</span>  <span class="kw">logic</span>[WIDTH<span class="dv">-1</span>:<span class="dv">0</span>] I0,</a>
+<a class="sourceLine" id="cb91-4" title="4">    <span class="kw">input</span>  <span class="kw">logic</span>[WIDTH<span class="dv">-1</span>:<span class="dv">0</span>] I1,</a>
+<a class="sourceLine" id="cb91-5" title="5">    <span class="kw">input</span>  <span class="kw">logic</span>[WIDTH<span class="dv">-1</span>:<span class="dv">0</span>] I2,</a>
+<a class="sourceLine" id="cb91-6" title="6">    <span class="kw">input</span>  <span class="kw">logic</span>[WIDTH<span class="dv">-1</span>:<span class="dv">0</span>] I3,</a>
+<a class="sourceLine" id="cb91-7" title="7">    <span class="kw">input</span>  <span class="kw">logic</span>[WIDTH<span class="dv">-1</span>:<span class="dv">0</span>] I4,</a>
+<a class="sourceLine" id="cb91-8" title="8">    <span class="kw">input</span>  <span class="kw">logic</span>[<span class="kw">$clog2</span>(<span class="dv">5</span>):<span class="dv">0</span>] S,</a>
+<a class="sourceLine" id="cb91-9" title="9">    <span class="kw">output</span> <span class="kw">logic</span>[WIDTH<span class="dv">-1</span>:<span class="dv">0</span>] O</a>
+<a class="sourceLine" id="cb91-10" title="10">);</a>
+<a class="sourceLine" id="cb91-11" title="11"></a>
+<a class="sourceLine" id="cb91-12" title="12"><span class="kw">always_comb</span> <span class="kw">begin</span></a>
+<a class="sourceLine" id="cb91-13" title="13">    <span class="kw">unique</span> <span class="kw">case</span> (S)</a>
+<a class="sourceLine" id="cb91-14" title="14">        <span class="dv">0</span>: O = I0;</a>
+<a class="sourceLine" id="cb91-15" title="15">        <span class="dv">1</span>: O = I1;</a>
+<a class="sourceLine" id="cb91-16" title="16">        <span class="dv">2</span>: O = I2;</a>
+<a class="sourceLine" id="cb91-17" title="17">        <span class="dv">3</span>: O = I3;</a>
+<a class="sourceLine" id="cb91-18" title="18">        <span class="dv">4</span>: O = I4;</a>
+<a class="sourceLine" id="cb91-19" title="19">        <span class="kw">default</span>:</a>
+<a class="sourceLine" id="cb91-20" title="20">           O = I0;</a>
+<a class="sourceLine" id="cb91-21" title="21">    <span class="kw">endcase</span></a>
+<a class="sourceLine" id="cb91-22" title="22"><span class="kw">end</span></a>
+<a class="sourceLine" id="cb91-23" title="23"></a>
+<a class="sourceLine" id="cb91-24" title="24"><span class="kw">endmodule</span></a></code></pre></div>
 <p>Notice that default is used to handle edges cases where the select signal <code>S</code> is out of range or containing <code>x</code>.</p>
 <p>A slightly shorten version is to merge all the input signals into an array and use index operator as multiplexer, as shown below:</p>
-<div class="sourceCode" id="cb93"><pre class="sourceCode systemverilog"><code class="sourceCode systemverilog"><span id="cb93-1"><a href="#cb93-1" aria-hidden="true"></a><span class="kw">module</span> Mux</span>
-<span id="cb93-2"><a href="#cb93-2" aria-hidden="true"></a>  #(<span class="kw">parameter</span> <span class="kw">int</span> WIDTH=<span class="dv">1</span>,</span>
-<span id="cb93-3"><a href="#cb93-3" aria-hidden="true"></a>    <span class="kw">parameter</span> <span class="kw">int</span> NUM_INPUT=<span class="dv">2</span>) (</span>
-<span id="cb93-4"><a href="#cb93-4" aria-hidden="true"></a>    <span class="kw">input</span>  <span class="kw">logic</span>[NUM_INPUT<span class="dv">-1</span>:<span class="dv">0</span>][WIDTH<span class="dv">-1</span>:<span class="dv">0</span>] I,</span>
-<span id="cb93-5"><a href="#cb93-5" aria-hidden="true"></a>    <span class="kw">input</span>  <span class="kw">logic</span>[<span class="kw">$clog2</span>(NUM_INPUT)-<span class="dv">1</span>:<span class="dv">0</span>] S,</span>
-<span id="cb93-6"><a href="#cb93-6" aria-hidden="true"></a>    <span class="kw">output</span> <span class="kw">logic</span>[WIDTH<span class="dv">-1</span>:<span class="dv">0</span>] O</span>
-<span id="cb93-7"><a href="#cb93-7" aria-hidden="true"></a>);</span>
-<span id="cb93-8"><a href="#cb93-8" aria-hidden="true"></a></span>
-<span id="cb93-9"><a href="#cb93-9" aria-hidden="true"></a><span class="kw">assign</span> O = (S &lt; NUM_INPUT)?</span>
-<span id="cb93-10"><a href="#cb93-10" aria-hidden="true"></a>            I[S]:</span>
-<span id="cb93-11"><a href="#cb93-11" aria-hidden="true"></a>            I[<span class="dv">0</span>];</span>
-<span id="cb93-12"><a href="#cb93-12" aria-hidden="true"></a><span class="kw">endmodule</span></span></code></pre></div>
+<div class="sourceCode" id="cb92"><pre class="sourceCode systemverilog"><code class="sourceCode systemverilog"><a class="sourceLine" id="cb92-1" title="1"><span class="kw">module</span> Mux</a>
+<a class="sourceLine" id="cb92-2" title="2">  #(<span class="kw">parameter</span> <span class="kw">int</span> WIDTH=<span class="dv">1</span>,</a>
+<a class="sourceLine" id="cb92-3" title="3">    <span class="kw">parameter</span> <span class="kw">int</span> NUM_INPUT=<span class="dv">2</span>) (</a>
+<a class="sourceLine" id="cb92-4" title="4">    <span class="kw">input</span>  <span class="kw">logic</span>[NUM_INPUT<span class="dv">-1</span>:<span class="dv">0</span>][WIDTH<span class="dv">-1</span>:<span class="dv">0</span>] I,</a>
+<a class="sourceLine" id="cb92-5" title="5">    <span class="kw">input</span>  <span class="kw">logic</span>[<span class="kw">$clog2</span>(NUM_INPUT)-<span class="dv">1</span>:<span class="dv">0</span>] S,</a>
+<a class="sourceLine" id="cb92-6" title="6">    <span class="kw">output</span> <span class="kw">logic</span>[WIDTH<span class="dv">-1</span>:<span class="dv">0</span>] O</a>
+<a class="sourceLine" id="cb92-7" title="7">);</a>
+<a class="sourceLine" id="cb92-8" title="8"></a>
+<a class="sourceLine" id="cb92-9" title="9"><span class="kw">assign</span> O = (S &lt; NUM_INPUT)?</a>
+<a class="sourceLine" id="cb92-10" title="10">            I[S]:</a>
+<a class="sourceLine" id="cb92-11" title="11">            I[<span class="dv">0</span>];</a>
+<a class="sourceLine" id="cb92-12" title="12"><span class="kw">endmodule</span></a></code></pre></div>
 <p>In the code example above, we implicitly ask the synthesis tool to create a multiplexer for us. There are several advantage of this approach:</p>
 <ol type="1">
 <li>We let synthesis tool to do its job to optimize the design</li>
 <li>The module works with any arbitrary number inputs (<code>NUM_INPUT</code> has to be larger than 1), as well as outputs.</li>
 </ol>
-<h4 data-number="4.3.3.2" id="aoi-multiplexer"><span class="header-section-number">4.3.3.2</span> AOI Multiplexer</h4>
+<h4 id="aoi-multiplexer"><span class="header-section-number">4.3.3.2</span> AOI Multiplexer</h4>
 <p>In situations where hand-optimization is required, we can implement an AOI max. AOI stands for AND-OR-Invert, which implies the the basic logic operation we are going to do with the inputs. AOI gates are efficient with CMOS technology since we can use NAND and NOR logic gate to construct AOI gate.</p>
 <p>There are two components of AOI mux, namely a precoder and AOI logic. The precoder translate select signal into one-hot encoding, and AOI logic merge the inputs into output based on the one-hot-encoded select signal. Here is the complete implementation of the AOI mux with 5 inputs (<code>code/04/aoi_mux.sv</code>).</p>
-<div class="sourceCode" id="cb94"><pre class="sourceCode systemverilog"><code class="sourceCode systemverilog"><span id="cb94-1"><a href="#cb94-1" aria-hidden="true"></a><span class="kw">module</span> aoi_mux</span>
-<span id="cb94-2"><a href="#cb94-2" aria-hidden="true"></a>  #(<span class="kw">parameter</span> <span class="kw">int</span> WIDTH=<span class="dv">1</span>,</span>
-<span id="cb94-3"><a href="#cb94-3" aria-hidden="true"></a>    <span class="kw">parameter</span> <span class="kw">int</span> NUM_INPUT=<span class="dv">2</span>) (</span>
-<span id="cb94-4"><a href="#cb94-4" aria-hidden="true"></a>    <span class="kw">input</span>  <span class="kw">logic</span>[NUM_INPUT<span class="dv">-1</span>:<span class="dv">0</span>][WIDTH<span class="dv">-1</span>:<span class="dv">0</span>] I,</span>
-<span id="cb94-5"><a href="#cb94-5" aria-hidden="true"></a>    <span class="kw">input</span>  <span class="kw">logic</span>[<span class="kw">$clog2</span>(NUM_INPUT)-<span class="dv">1</span>:<span class="dv">0</span>] S,</span>
-<span id="cb94-6"><a href="#cb94-6" aria-hidden="true"></a>    <span class="kw">output</span> <span class="kw">logic</span>[WIDTH<span class="dv">-1</span>:<span class="dv">0</span>] O</span>
-<span id="cb94-7"><a href="#cb94-7" aria-hidden="true"></a>);</span>
-<span id="cb94-8"><a href="#cb94-8" aria-hidden="true"></a></span>
-<span id="cb94-9"><a href="#cb94-9" aria-hidden="true"></a><span class="co">// calculate the ceiling of num_input / 2</span></span>
-<span id="cb94-10"><a href="#cb94-10" aria-hidden="true"></a><span class="kw">localparam</span> NUM_OPS = (NUM_INPUT + <span class="dv">1</span>) &gt;&gt; <span class="dv">1</span>;</span>
-<span id="cb94-11"><a href="#cb94-11" aria-hidden="true"></a><span class="kw">localparam</span> MAX_RANGE = NUM_INPUT &gt;&gt; <span class="dv">1</span>;</span>
-<span id="cb94-12"><a href="#cb94-12" aria-hidden="true"></a></span>
-<span id="cb94-13"><a href="#cb94-13" aria-hidden="true"></a><span class="kw">logic</span> [NUM_INPUT<span class="dv">-1</span>:<span class="dv">0</span>] sel_one_hot;</span>
-<span id="cb94-14"><a href="#cb94-14" aria-hidden="true"></a><span class="co">// simplified one-hot precoder.</span></span>
-<span id="cb94-15"><a href="#cb94-15" aria-hidden="true"></a><span class="kw">assign</span> sel_one_hot = (S &lt; NUM_INPUT)?</span>
-<span id="cb94-16"><a href="#cb94-16" aria-hidden="true"></a>                      <span class="dv">1</span> &lt;&lt; S:</span>
-<span id="cb94-17"><a href="#cb94-17" aria-hidden="true"></a>                      <span class="dv">0</span>;</span>
-<span id="cb94-18"><a href="#cb94-18" aria-hidden="true"></a></span>
-<span id="cb94-19"><a href="#cb94-19" aria-hidden="true"></a><span class="co">// intermediate results</span></span>
-<span id="cb94-20"><a href="#cb94-20" aria-hidden="true"></a><span class="kw">logic</span> [NUM_OPS<span class="dv">-1</span>:<span class="dv">0</span>][WIDTH<span class="dv">-1</span>:<span class="dv">0</span>] inter_O;</span>
-<span id="cb94-21"><a href="#cb94-21" aria-hidden="true"></a></span>
-<span id="cb94-22"><a href="#cb94-22" aria-hidden="true"></a><span class="co">// AOI logic part</span></span>
-<span id="cb94-23"><a href="#cb94-23" aria-hidden="true"></a><span class="kw">always_comb</span> <span class="kw">begin</span></span>
-<span id="cb94-24"><a href="#cb94-24" aria-hidden="true"></a>    <span class="co">// working on each bit</span></span>
-<span id="cb94-25"><a href="#cb94-25" aria-hidden="true"></a>    <span class="kw">for</span> (<span class="kw">int</span> w = <span class="dv">0</span>; w &lt; WIDTH; w++) <span class="kw">begin</span></span>
-<span id="cb94-26"><a href="#cb94-26" aria-hidden="true"></a>        <span class="co">// half the tree</span></span>
-<span id="cb94-27"><a href="#cb94-27" aria-hidden="true"></a>        <span class="kw">for</span> (<span class="kw">int</span> i = <span class="dv">0</span>; i &lt; MAX_RANGE; i++) <span class="kw">begin</span></span>
-<span id="cb94-28"><a href="#cb94-28" aria-hidden="true"></a>            inter_O[i][w] = (sel_one_hot[i * <span class="dv">2</span>] &amp; I[i * <span class="dv">2</span>][w]) |</span>
-<span id="cb94-29"><a href="#cb94-29" aria-hidden="true"></a>                            (sel_one_hot[i * <span class="dv">2</span> + <span class="dv">1</span>] &amp; I[i * <span class="dv">2</span> + <span class="dv">1</span>][w]);</span>
-<span id="cb94-30"><a href="#cb94-30" aria-hidden="true"></a>        <span class="kw">end</span></span>
-<span id="cb94-31"><a href="#cb94-31" aria-hidden="true"></a>        <span class="co">// need to take care of odd number of inputs</span></span>
-<span id="cb94-32"><a href="#cb94-32" aria-hidden="true"></a>        <span class="kw">if</span> (NUM_INPUT % <span class="dv">2</span>) <span class="kw">begin</span></span>
-<span id="cb94-33"><a href="#cb94-33" aria-hidden="true"></a>            inter_O[MAX_RANGE][w] = sel_one_hot[MAX_RANGE * <span class="dv">2</span>] &amp; I[MAX_RANGE * <span class="dv">2</span>][w];</span>
-<span id="cb94-34"><a href="#cb94-34" aria-hidden="true"></a>        <span class="kw">end</span></span>
-<span id="cb94-35"><a href="#cb94-35" aria-hidden="true"></a>    <span class="kw">end</span></span>
-<span id="cb94-36"><a href="#cb94-36" aria-hidden="true"></a><span class="kw">end</span></span>
-<span id="cb94-37"><a href="#cb94-37" aria-hidden="true"></a></span>
-<span id="cb94-38"><a href="#cb94-38" aria-hidden="true"></a><span class="co">// compute the final result, i.e. OR the intermediate result together</span></span>
-<span id="cb94-39"><a href="#cb94-39" aria-hidden="true"></a><span class="co">// notice that |inter_O doesn&#39;t work here since it will reduce to 1-bit signal</span></span>
-<span id="cb94-40"><a href="#cb94-40" aria-hidden="true"></a><span class="kw">always_comb</span> <span class="kw">begin</span></span>
-<span id="cb94-41"><a href="#cb94-41" aria-hidden="true"></a>    O = <span class="dv">0</span>;</span>
-<span id="cb94-42"><a href="#cb94-42" aria-hidden="true"></a>    <span class="kw">for</span> (<span class="kw">int</span> i = <span class="dv">0</span>; i &lt; NUM_OPS; i++) <span class="kw">begin</span></span>
-<span id="cb94-43"><a href="#cb94-43" aria-hidden="true"></a>        O = O | inter_O[i];</span>
-<span id="cb94-44"><a href="#cb94-44" aria-hidden="true"></a>    <span class="kw">end</span></span>
-<span id="cb94-45"><a href="#cb94-45" aria-hidden="true"></a><span class="kw">end</span></span>
-<span id="cb94-46"><a href="#cb94-46" aria-hidden="true"></a></span>
-<span id="cb94-47"><a href="#cb94-47" aria-hidden="true"></a><span class="kw">endmodule</span></span></code></pre></div>
+<div class="sourceCode" id="cb93"><pre class="sourceCode systemverilog"><code class="sourceCode systemverilog"><a class="sourceLine" id="cb93-1" title="1"><span class="kw">module</span> aoi_mux</a>
+<a class="sourceLine" id="cb93-2" title="2">  #(<span class="kw">parameter</span> <span class="kw">int</span> WIDTH=<span class="dv">1</span>,</a>
+<a class="sourceLine" id="cb93-3" title="3">    <span class="kw">parameter</span> <span class="kw">int</span> NUM_INPUT=<span class="dv">2</span>) (</a>
+<a class="sourceLine" id="cb93-4" title="4">    <span class="kw">input</span>  <span class="kw">logic</span>[NUM_INPUT<span class="dv">-1</span>:<span class="dv">0</span>][WIDTH<span class="dv">-1</span>:<span class="dv">0</span>] I,</a>
+<a class="sourceLine" id="cb93-5" title="5">    <span class="kw">input</span>  <span class="kw">logic</span>[<span class="kw">$clog2</span>(NUM_INPUT)-<span class="dv">1</span>:<span class="dv">0</span>] S,</a>
+<a class="sourceLine" id="cb93-6" title="6">    <span class="kw">output</span> <span class="kw">logic</span>[WIDTH<span class="dv">-1</span>:<span class="dv">0</span>] O</a>
+<a class="sourceLine" id="cb93-7" title="7">);</a>
+<a class="sourceLine" id="cb93-8" title="8"></a>
+<a class="sourceLine" id="cb93-9" title="9"><span class="co">// calculate the ceiling of num_input / 2</span></a>
+<a class="sourceLine" id="cb93-10" title="10"><span class="kw">localparam</span> NUM_OPS = (NUM_INPUT + <span class="dv">1</span>) &gt;&gt; <span class="dv">1</span>;</a>
+<a class="sourceLine" id="cb93-11" title="11"><span class="kw">localparam</span> MAX_RANGE = NUM_INPUT &gt;&gt; <span class="dv">1</span>;</a>
+<a class="sourceLine" id="cb93-12" title="12"></a>
+<a class="sourceLine" id="cb93-13" title="13"><span class="kw">logic</span> [NUM_INPUT<span class="dv">-1</span>:<span class="dv">0</span>] sel_one_hot;</a>
+<a class="sourceLine" id="cb93-14" title="14"><span class="co">// simplified one-hot precoder.</span></a>
+<a class="sourceLine" id="cb93-15" title="15"><span class="kw">assign</span> sel_one_hot = (S &lt; NUM_INPUT)?</a>
+<a class="sourceLine" id="cb93-16" title="16">                      <span class="dv">1</span> &lt;&lt; S:</a>
+<a class="sourceLine" id="cb93-17" title="17">                      <span class="dv">0</span>;</a>
+<a class="sourceLine" id="cb93-18" title="18"></a>
+<a class="sourceLine" id="cb93-19" title="19"><span class="co">// intermediate results</span></a>
+<a class="sourceLine" id="cb93-20" title="20"><span class="kw">logic</span> [NUM_OPS<span class="dv">-1</span>:<span class="dv">0</span>][WIDTH<span class="dv">-1</span>:<span class="dv">0</span>] inter_O;</a>
+<a class="sourceLine" id="cb93-21" title="21"></a>
+<a class="sourceLine" id="cb93-22" title="22"><span class="co">// AOI logic part</span></a>
+<a class="sourceLine" id="cb93-23" title="23"><span class="kw">always_comb</span> <span class="kw">begin</span></a>
+<a class="sourceLine" id="cb93-24" title="24">    <span class="co">// working on each bit</span></a>
+<a class="sourceLine" id="cb93-25" title="25">    <span class="kw">for</span> (<span class="kw">int</span> w = <span class="dv">0</span>; w &lt; WIDTH; w++) <span class="kw">begin</span></a>
+<a class="sourceLine" id="cb93-26" title="26">        <span class="co">// half the tree</span></a>
+<a class="sourceLine" id="cb93-27" title="27">        <span class="kw">for</span> (<span class="kw">int</span> i = <span class="dv">0</span>; i &lt; MAX_RANGE; i++) <span class="kw">begin</span></a>
+<a class="sourceLine" id="cb93-28" title="28">            inter_O[i][w] = (sel_one_hot[i * <span class="dv">2</span>] &amp; I[i * <span class="dv">2</span>][w]) |</a>
+<a class="sourceLine" id="cb93-29" title="29">                            (sel_one_hot[i * <span class="dv">2</span> + <span class="dv">1</span>] &amp; I[i * <span class="dv">2</span> + <span class="dv">1</span>][w]);</a>
+<a class="sourceLine" id="cb93-30" title="30">        <span class="kw">end</span></a>
+<a class="sourceLine" id="cb93-31" title="31">        <span class="co">// need to take care of odd number of inputs</span></a>
+<a class="sourceLine" id="cb93-32" title="32">        <span class="kw">if</span> (NUM_INPUT % <span class="dv">2</span>) <span class="kw">begin</span></a>
+<a class="sourceLine" id="cb93-33" title="33">            inter_O[MAX_RANGE][w] = sel_one_hot[MAX_RANGE * <span class="dv">2</span>] &amp; I[MAX_RANGE * <span class="dv">2</span>][w];</a>
+<a class="sourceLine" id="cb93-34" title="34">        <span class="kw">end</span></a>
+<a class="sourceLine" id="cb93-35" title="35">    <span class="kw">end</span></a>
+<a class="sourceLine" id="cb93-36" title="36"><span class="kw">end</span></a>
+<a class="sourceLine" id="cb93-37" title="37"></a>
+<a class="sourceLine" id="cb93-38" title="38"><span class="co">// compute the final result, i.e. OR the intermediate result together</span></a>
+<a class="sourceLine" id="cb93-39" title="39"><span class="co">// notice that |inter_O doesn&#39;t work here since it will reduce to 1-bit signal</span></a>
+<a class="sourceLine" id="cb93-40" title="40"><span class="kw">always_comb</span> <span class="kw">begin</span></a>
+<a class="sourceLine" id="cb93-41" title="41">    O = <span class="dv">0</span>;</a>
+<a class="sourceLine" id="cb93-42" title="42">    <span class="kw">for</span> (<span class="kw">int</span> i = <span class="dv">0</span>; i &lt; NUM_OPS; i++) <span class="kw">begin</span></a>
+<a class="sourceLine" id="cb93-43" title="43">        O = O | inter_O[i];</a>
+<a class="sourceLine" id="cb93-44" title="44">    <span class="kw">end</span></a>
+<a class="sourceLine" id="cb93-45" title="45"><span class="kw">end</span></a>
+<a class="sourceLine" id="cb93-46" title="46"></a>
+<a class="sourceLine" id="cb93-47" title="47"><span class="kw">endmodule</span></a></code></pre></div>
 <p>The example above can be explained with matrix operation. After one-hot encoding transformation, we create a matrix <span class="math inline">\(S\)</span> where <span class="math inline">\(S[i] = sel\_one\_hot\)</span> for <span class="math inline">\(i \in \{0, 1, \dots, NUM\_INPUT - 1\}\)</span>. In other words, all entries in matrix S is zero except for the column indicated by the select signal, which are all one’s. The input signals can be expressed as <span class="math inline">\(I\)</span> where each row of <span class="math inline">\(I\)</span> is one input. We then compute the following result: <span class="math display">\[
     O_{inter} = S \times I
 \]</span></p>

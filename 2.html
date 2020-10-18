@@ -2,7 +2,7 @@
 <html>
     <head>
         <meta charset="UTF-8">
-        <title>title - Types, Operator, and Expressions</title>
+        <title>SystemVerilog for RTL Modeling, Simulation, and Verification - Types, Operator, and Expressions</title>
         <link rel="stylesheet" href="https://unpkg.com/purecss@2.0.3/build/pure-min.css" integrity="sha384-cg6SkqEOCV1NbJoCu11+bm0NvBRc8IYLRGXkmNrqUBfTjmMYwNKPWBTIKyw9mHNJ" crossorigin="anonymous">
         <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.1.2/es5/tex-mml-chtml.min.js" integrity="sha512-7rZgZU/u5XjLaO7dBpkcvZ2+ilGXbdIak0FXUgMoO+adNy7RUceort055Wn7LkZY3VLwEsSDpi8Ui+32N1vrfw==" crossorigin="anonymous"></script>
         <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -40,9 +40,9 @@
                 <div class="content">
                     <h1>Types, Operator, and Expressions</h1>
 <p>Like ordinary software programming languages, SystemVerilog allows designers manipulate different types and data objects when modeling the hardware. Although bears much similarity to languages such as C/C++ (in fact SystemVerilog is influenced by them), SystemVerilog is a language to model hardware, which has different semantics than software programming models. This chapter explores the type system and associated operators in SystemVerilog.</p>
-<h2 data-number="2.1" id="data-types"><span class="header-section-number">2.1</span> Data Types</h2>
+<h2 id="data-types"><span class="header-section-number">2.1</span> Data Types</h2>
 <p>SystemVerilog uses the terminology of data type and data objects to distinguish between objects and its data type. As specified in the language specification, a data type is a set of values and a set of operations that can be performed on those values. A data object is a named entity that has a data value and a data type associated with it.</p>
-<h3 data-number="2.1.1" id="state-values"><span class="header-section-number">2.1.1</span> 4-State Values</h3>
+<h3 id="state-values"><span class="header-section-number">2.1.1</span> 4-State Values</h3>
 <p>One major distinction between SystemVerilog and other software programming languages is that the value set in SystemVerilog consists of the following four basic values:</p>
 <ul>
 <li><strong>0</strong>: represents a logic zero or false condition</li>
@@ -53,13 +53,13 @@
 <p>Values 0 and 1 serve the same purpose as in languages such as C/C++, but x and z are hardware specific. High-impedance value z typically implies a physically disconnected state, i.e. an infinitely high resistance. It commonly appears in designs where a pin used as a bi-directional bus, e.g. tri-state. Unknown value x means the system is able to determine the value, which may happen in various condition. One common situation for x to appear in simulation is usage of uninitialized memory cells. Another common scenario is low-power designs where some part of circuit is “shut-down”, i.e. no supply voltage. Any signal coming out from the shut-down region will be x. Keep in mind that x can propagate through your circuit if not taken care of, since any logic operation on unknown values results in unknown values.</p>
 <p>Notice that the truth table for 4-state values are slightly different than the normal 2-state values. Any 4-state value <code>OR</code> with <code>1</code> is <code>1</code>, any 4-state value <code>AND</code> with 0 is 0, and any 4-state value <code>XOR</code> with <code>x</code> is <code>x</code>. This can be useful when dealing with x-prorogation.</p>
 <p>Data types that only use <strong>0</strong> or <strong>1</strong> have 2-state values.</p>
-<h3 data-number="2.1.2" id="basic-data-types"><span class="header-section-number">2.1.2</span> Basic data types</h3>
+<h3 id="basic-data-types"><span class="header-section-number">2.1.2</span> Basic data types</h3>
 <p><code>logic</code> is the most commonly used basic data types in SystemVerilog. <code>logic</code> signal has 4-state values. It can either represent a combinational signal or a sequential signal, since the downstream tools such simulator and synthesis tools will determine whether to instantiate a flip-flop based on the usage. A rule of thumb is that any signals in your synthesizable design should be declared as <code>logic</code> (a few exceptions apply, which will be discussed). This is to ensure that the simulator and synthesis tool agree with each other, avoiding critical bugs that can only been discovered through gate-level simulation or even post-silicon tests. For instance, if a signal is declared as 2-state value, the simulator will happily compute with 0 and 1s. However, since the actual silicon has z and x values, we will see a discrepancy after the synthesis, which leads to a potential bug.</p>
 <p>By default, a signal declared as <code>logic</code> only has one bit value. To declare a multi-bit signal, we can do <code>logic[15:0] a</code>, which declares a 16-bit signal. Notice that we can also do <code>logic[0:15] a</code>. The difference is bit-ordering, similar to endianness for byte-ordering. Typically bit-ordering follows the same endianness as the byte order. It is highly recommend to use a consist bit-ordering throughout the design to avoid potential bugs. In this book we will use big-endian and <code>high:low</code> bit-ordering.</p>
 <p>By default, every declared variable is unsigned. To declare a signed variable, use <code>signed</code> keyword such as <code>logic signed [15:0] a</code>. Although SystemVerilog allows you to mix signed variable with unsigned, similar to C/C++, it leaves a potential bug that cannot be caught by the compiler (some tools may produce a warning), we shall never mix signed and unsigned arithmetics and any assumption about the how the automatic conversion work is grounded for future errors that is difficult to debug.</p>
 <p>To declare an array, we can add extra dimension to the “left”, such as <code>logic[3:0][15:0] a</code>, which declares 4 16-bit logics. We can adding arbitrary more dimensions as well. The array created by such approached is called packed array. To access the first 16-bit <code>logic</code>, we can do <code>a[0]</code>. Notice that we can also slice out a sub-array, such as <code>a[1:0]</code>, which gives as the first two values.</p>
 <p>Notice that we can also do <code>logic[15:0] a[3:0]</code>, which is called unpacked array. Although unpacked array has advantage over packed array such as giving simulator more flexibility to allocate arrays since they do not need to be contiguous, because of that, we cannot slice a sub-array, nor can we bulk assign values. Again, choosing which representation depends on the project style, as long as it is consistent throughout the entire project. In this book we will use packed array.</p>
-<h4 data-number="2.1.2.1" id="state-variables"><span class="header-section-number">2.1.2.1</span> 2-state Variables</h4>
+<h4 id="state-variables"><span class="header-section-number">2.1.2.1</span> 2-state Variables</h4>
 <p>SystemVerilog also defines 2-state types, typically used for test benches or functional models that are more high-level. Unlike C, these data types has pre-defined widths, as show in Table <a href="#tbl:2-state-data-type">2</a>.</p>
 <div id="tbl:2-state-data-type" class="tablenos">
 <table>
@@ -94,135 +94,135 @@
 </tbody>
 </table>
 </div>
-<h3 data-number="2.1.3" id="enumeration"><span class="header-section-number">2.1.3</span> Enumeration</h3>
+<h3 id="enumeration"><span class="header-section-number">2.1.3</span> Enumeration</h3>
 <p>SystemVerilog defines enumerations as a set of integral named constants, similar to that of C/C++. Enumeration need to be declared with a type with the default type be <code>int</code>. Since <code>int</code> is unwelcoming in synthesizable RTL, we shall always use <code>logic</code> data types. An example of enumeration is shown below:</p>
-<div class="sourceCode" id="cb4"><pre class="sourceCode systemverilog"><code class="sourceCode systemverilog"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true"></a><span class="kw">enum</span> <span class="kw">logic</span>[<span class="dv">1</span>:<span class="dv">0</span>] { STATE1, STATE2, STATE3 } <span class="ot">state</span>;</span>
-<span id="cb4-2"><a href="#cb4-2" aria-hidden="true"></a><span class="co">// later on</span></span>
-<span id="cb4-3"><a href="#cb4-3" aria-hidden="true"></a><span class="ot">state</span> = STATE1;</span></code></pre></div>
+<div class="sourceCode" id="cb4"><pre class="sourceCode systemverilog"><code class="sourceCode systemverilog"><a class="sourceLine" id="cb4-1" title="1"><span class="kw">enum</span> <span class="kw">logic</span>[<span class="dv">1</span>:<span class="dv">0</span>] { STATE1, STATE2, STATE3 } <span class="ot">state</span>;</a>
+<a class="sourceLine" id="cb4-2" title="2"><span class="co">// later on</span></a>
+<a class="sourceLine" id="cb4-3" title="3"><span class="ot">state</span> = STATE1;</a></code></pre></div>
 <p>Here are some rules regarding the name and integral values of enumeration:</p>
 <ol type="1">
 <li><p>Values in enum can be integers and increment from an initial value of 0. This, however, can be overridden, as shown below. In this case, <code>STATE2</code> will be 2 and <code>STATE3</code> will be 3.</p>
-<div class="sourceCode" id="cb5"><pre class="sourceCode systemverilog"><code class="sourceCode systemverilog"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true"></a><span class="kw">enum</span> <span class="kw">logic</span>[<span class="dv">1</span>:<span class="dv">0</span>] {STATE1 = <span class="dv">1</span>, STATE2, STATE3 } <span class="ot">state</span>;</span></code></pre></div></li>
-<li><p>Both the enumeration names and their integer values shall be unique. This can be combined with the first rule.</p></li>
+<div class="sourceCode" id="cb5"><pre class="sourceCode systemverilog"><code class="sourceCode systemverilog"><a class="sourceLine" id="cb5-1" title="1"><span class="kw">enum</span> <span class="kw">logic</span>[<span class="dv">1</span>:<span class="dv">0</span>] {STATE1 = <span class="dv">1</span>, STATE2, STATE3 } <span class="ot">state</span>;</a></code></pre></div></li>
+<li>Both the enumeration names and their integer values shall be unique. This can be combined with the first rule.</li>
 <li><p>The integer values in enumerate will be casted to their corresponding type. An overflow will be treated as an error</p>
-<div class="sourceCode" id="cb6"><pre class="sourceCode systemverilog"><code class="sourceCode systemverilog"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true"></a><span class="kw">enum</span> <span class="kw">logic</span>[<span class="dv">1</span>:<span class="dv">0</span>] {STATE = <span class="dv">4</span>} <span class="ot">state</span>; <span class="co">// this will result in an error</span></span></code></pre></div></li>
+<div class="sourceCode" id="cb6"><pre class="sourceCode systemverilog"><code class="sourceCode systemverilog"><a class="sourceLine" id="cb6-1" title="1"><span class="kw">enum</span> <span class="kw">logic</span>[<span class="dv">1</span>:<span class="dv">0</span>] {STATE = <span class="dv">4</span>} <span class="ot">state</span>; <span class="co">// this will result in an error</span></a></code></pre></div></li>
 <li><p>Enumeration are strongly typed. Although directly assigning integer to enumerate variables will trigger an automatic cast, we highly recommend to use explicit cast.</p></li>
 </ol>
 <p>There are several helper functions with enumerated types:</p>
 <ol type="1">
 <li><p><code>first()</code>: returns the value of the first member of the enumeration.</p>
-<div class="sourceCode" id="cb7"><pre class="sourceCode systemverilog"><code class="sourceCode systemverilog"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true"></a><span class="kw">enum</span> <span class="kw">logic</span>[<span class="dv">1</span>:<span class="dv">0</span>] { STATE1, STATE2, STATE3 } <span class="ot">state</span>;</span>
-<span id="cb7-2"><a href="#cb7-2" aria-hidden="true"></a><span class="co">// later on</span></span>
-<span id="cb7-3"><a href="#cb7-3" aria-hidden="true"></a><span class="ot">state</span> = <span class="ot">state</span>.<span class="ot">first</span>(); <span class="co">// assigns STATE1 to state</span></span></code></pre></div></li>
-<li><p><code>last()</code>: returns the value of the last member of the enumeration.</p></li>
+<div class="sourceCode" id="cb7"><pre class="sourceCode systemverilog"><code class="sourceCode systemverilog"><a class="sourceLine" id="cb7-1" title="1"><span class="kw">enum</span> <span class="kw">logic</span>[<span class="dv">1</span>:<span class="dv">0</span>] { STATE1, STATE2, STATE3 } <span class="ot">state</span>;</a>
+<a class="sourceLine" id="cb7-2" title="2"><span class="co">// later on</span></a>
+<a class="sourceLine" id="cb7-3" title="3"><span class="ot">state</span> = <span class="ot">state</span>.<span class="ot">first</span>(); <span class="co">// assigns STATE1 to state</span></a></code></pre></div></li>
+<li><code>last()</code>: returns the value of the last member of the enumeration.</li>
 <li><p><code>next(int unsigned N = 1)</code>: returns <code>N</code>th next enumeration stating from the current value.</p>
-<div class="sourceCode" id="cb8"><pre class="sourceCode systemverilog"><code class="sourceCode systemverilog"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true"></a><span class="kw">enum</span> <span class="kw">logic</span>[<span class="dv">1</span>:<span class="dv">0</span>] { STATE1, STATE2, STATE3 } <span class="ot">state</span>;</span>
-<span id="cb8-2"><a href="#cb8-2" aria-hidden="true"></a><span class="co">// later on</span></span>
-<span id="cb8-3"><a href="#cb8-3" aria-hidden="true"></a><span class="ot">state</span> = <span class="ot">state</span>.<span class="ot">first</span>(); <span class="co">// assigns STATE1 to state</span></span>
-<span id="cb8-4"><a href="#cb8-4" aria-hidden="true"></a><span class="ot">state</span> = <span class="ot">state</span>.<span class="ot">next</span>(); <span class="co">// assigns STATE2 to state</span></span></code></pre></div></li>
+<div class="sourceCode" id="cb8"><pre class="sourceCode systemverilog"><code class="sourceCode systemverilog"><a class="sourceLine" id="cb8-1" title="1"><span class="kw">enum</span> <span class="kw">logic</span>[<span class="dv">1</span>:<span class="dv">0</span>] { STATE1, STATE2, STATE3 } <span class="ot">state</span>;</a>
+<a class="sourceLine" id="cb8-2" title="2"><span class="co">// later on</span></a>
+<a class="sourceLine" id="cb8-3" title="3"><span class="ot">state</span> = <span class="ot">state</span>.<span class="ot">first</span>(); <span class="co">// assigns STATE1 to state</span></a>
+<a class="sourceLine" id="cb8-4" title="4"><span class="ot">state</span> = <span class="ot">state</span>.<span class="ot">next</span>(); <span class="co">// assigns STATE2 to state</span></a></code></pre></div></li>
 <li><p><code>prev(int unsigned N = 1)</code>: returns <code>N</code>th previous enumeration value starting from the current value.</p></li>
 </ol>
 <p>Notice that <code>next()</code> and <code>prev()</code> are type-safe ways to increment enumeration values, which is highly recommend to use compared to simply addition followed by mod.</p>
-<h3 data-number="2.1.4" id="struct"><span class="header-section-number">2.1.4</span> Struct</h3>
+<h3 id="struct"><span class="header-section-number">2.1.4</span> Struct</h3>
 <p>To represent data in a more meaningful way, SystemVerilog allows users to define a <code>struct</code> similar to C/C++. The members of a <code>struct</code> can be any data type, thus nesting <code>struct</code> is allowed. Since <code>struct</code> represents an aggregated values, similar to array, we have the concept of packed and unpacked struct. By default, without <code>packed</code> keyword, the <code>struct</code> is unpacked. Again we will use packed struct in this book. Here is an example to define an instruction type;</p>
-<div class="sourceCode" id="cb9"><pre class="sourceCode systemverilog"><code class="sourceCode systemverilog"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true"></a><span class="kw">struct</span> <span class="kw">packed</span> {</span>
-<span id="cb9-2"><a href="#cb9-2" aria-hidden="true"></a>    <span class="kw">logic</span> [<span class="dv">7</span>:<span class="dv">0</span>] opcode;</span>
-<span id="cb9-3"><a href="#cb9-3" aria-hidden="true"></a>    <span class="kw">logic</span> [<span class="dv">23</span>:<span class="dv">0</span>] addr;</span>
-<span id="cb9-4"><a href="#cb9-4" aria-hidden="true"></a>} inst;</span>
-<span id="cb9-5"><a href="#cb9-5" aria-hidden="true"></a></span>
-<span id="cb9-6"><a href="#cb9-6" aria-hidden="true"></a>inst.opcode = &#39;<span class="dv">1</span>; <span class="co">// set opcode to 1</span></span></code></pre></div>
-<h3 data-number="2.1.5" id="user-defined-types"><span class="header-section-number">2.1.5</span> User-Defined Types</h3>
+<div class="sourceCode" id="cb9"><pre class="sourceCode systemverilog"><code class="sourceCode systemverilog"><a class="sourceLine" id="cb9-1" title="1"><span class="kw">struct</span> <span class="kw">packed</span> {</a>
+<a class="sourceLine" id="cb9-2" title="2">    <span class="kw">logic</span> [<span class="dv">7</span>:<span class="dv">0</span>] opcode;</a>
+<a class="sourceLine" id="cb9-3" title="3">    <span class="kw">logic</span> [<span class="dv">23</span>:<span class="dv">0</span>] addr;</a>
+<a class="sourceLine" id="cb9-4" title="4">} inst;</a>
+<a class="sourceLine" id="cb9-5" title="5"></a>
+<a class="sourceLine" id="cb9-6" title="6">inst.opcode = &#39;<span class="dv">1</span>; <span class="co">// set opcode to 1</span></a></code></pre></div>
+<h3 id="user-defined-types"><span class="header-section-number">2.1.5</span> User-Defined Types</h3>
 <p>Like C, SystemVerilog allows complex data types to be aliased to a new type using the keyword <code>typedef</code> to make the code more readable. The syntax is similar to that of C as well:</p>
 <pre><code>typedef [old_type] new_type;</code></pre>
 <p>For instance, to define the state enumeration as a new type, we can do something such as</p>
-<div class="sourceCode" id="cb11"><pre class="sourceCode systemverilog"><code class="sourceCode systemverilog"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true"></a><span class="kw">typedef</span> <span class="kw">enum</span> <span class="kw">logic</span>[<span class="dv">1</span>:<span class="dv">0</span>] {</span>
-<span id="cb11-2"><a href="#cb11-2" aria-hidden="true"></a>    STATE1,</span>
-<span id="cb11-3"><a href="#cb11-3" aria-hidden="true"></a>    STATE2</span>
-<span id="cb11-4"><a href="#cb11-4" aria-hidden="true"></a>} state_enum_t;</span>
-<span id="cb11-5"><a href="#cb11-5" aria-hidden="true"></a></span>
-<span id="cb11-6"><a href="#cb11-6" aria-hidden="true"></a>state_enum_t <span class="ot">state</span>;</span></code></pre></div>
+<div class="sourceCode" id="cb11"><pre class="sourceCode systemverilog"><code class="sourceCode systemverilog"><a class="sourceLine" id="cb11-1" title="1"><span class="kw">typedef</span> <span class="kw">enum</span> <span class="kw">logic</span>[<span class="dv">1</span>:<span class="dv">0</span>] {</a>
+<a class="sourceLine" id="cb11-2" title="2">    STATE1,</a>
+<a class="sourceLine" id="cb11-3" title="3">    STATE2</a>
+<a class="sourceLine" id="cb11-4" title="4">} state_enum_t;</a>
+<a class="sourceLine" id="cb11-5" title="5"></a>
+<a class="sourceLine" id="cb11-6" title="6">state_enum_t <span class="ot">state</span>;</a></code></pre></div>
 <p><code>enum</code> definition is between <code>typedef</code> and <code>state_enum_t</code>. We can then use <code>state_enum_t</code> as a type to declare <code>state</code> variable. Notice that we add suffix <code>_t</code> to indicate that <code>state_enum_t</code> is a user-defined type. This is a useful naming convention that has been adopted in many design style guides and we will follow this convention in the book.</p>
 <p>Similar to <code>enum</code>, we can use <code>typedef</code> to give <code>struct</code> a type name and re-use it later.</p>
-<div class="sourceCode" id="cb12"><pre class="sourceCode systemverilog"><code class="sourceCode systemverilog"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true"></a><span class="kw">typedef</span> <span class="kw">struct</span> <span class="kw">packed</span> {</span>
-<span id="cb12-2"><a href="#cb12-2" aria-hidden="true"></a>    <span class="kw">logic</span>[<span class="dv">19</span>:<span class="dv">0</span>] imm;</span>
-<span id="cb12-3"><a href="#cb12-3" aria-hidden="true"></a>    <span class="kw">logic</span>[<span class="dv">5</span>:<span class="dv">0</span>]  rd;</span>
-<span id="cb12-4"><a href="#cb12-4" aria-hidden="true"></a>} data_t;</span>
-<span id="cb12-5"><a href="#cb12-5" aria-hidden="true"></a></span>
-<span id="cb12-6"><a href="#cb12-6" aria-hidden="true"></a><span class="kw">typedef</span> <span class="kw">struct</span> <span class="kw">packed</span> {</span>
-<span id="cb12-7"><a href="#cb12-7" aria-hidden="true"></a>    data_t     <span class="ot">data</span>;</span>
-<span id="cb12-8"><a href="#cb12-8" aria-hidden="true"></a>    <span class="kw">logic</span>[<span class="dv">5</span>:<span class="dv">0</span>] opcode;</span>
-<span id="cb12-9"><a href="#cb12-9" aria-hidden="true"></a>} inst_t;</span>
-<span id="cb12-10"><a href="#cb12-10" aria-hidden="true"></a></span>
-<span id="cb12-11"><a href="#cb12-11" aria-hidden="true"></a>inst_t instruction; <span class="co">// instantiate inst_t</span></span></code></pre></div>
+<div class="sourceCode" id="cb12"><pre class="sourceCode systemverilog"><code class="sourceCode systemverilog"><a class="sourceLine" id="cb12-1" title="1"><span class="kw">typedef</span> <span class="kw">struct</span> <span class="kw">packed</span> {</a>
+<a class="sourceLine" id="cb12-2" title="2">    <span class="kw">logic</span>[<span class="dv">19</span>:<span class="dv">0</span>] imm;</a>
+<a class="sourceLine" id="cb12-3" title="3">    <span class="kw">logic</span>[<span class="dv">5</span>:<span class="dv">0</span>]  rd;</a>
+<a class="sourceLine" id="cb12-4" title="4">} data_t;</a>
+<a class="sourceLine" id="cb12-5" title="5"></a>
+<a class="sourceLine" id="cb12-6" title="6"><span class="kw">typedef</span> <span class="kw">struct</span> <span class="kw">packed</span> {</a>
+<a class="sourceLine" id="cb12-7" title="7">    data_t     <span class="ot">data</span>;</a>
+<a class="sourceLine" id="cb12-8" title="8">    <span class="kw">logic</span>[<span class="dv">5</span>:<span class="dv">0</span>] opcode;</a>
+<a class="sourceLine" id="cb12-9" title="9">} inst_t;</a>
+<a class="sourceLine" id="cb12-10" title="10"></a>
+<a class="sourceLine" id="cb12-11" title="11">inst_t instruction; <span class="co">// instantiate inst_t</span></a></code></pre></div>
 <p>In the example here we first define <code>data_t</code> and refer to it when defining <code>inst_t</code>. Since we use <code>packed</code> for both <code>struct</code>, we can actually assign the instruction to a 32-bit signal.</p>
 <p>We can also use <code>typedef</code> to define other types. For instance, <code>typedef logic[7:0] byte_logic</code> defines a <code>byte_logic</code> as 8-bit logic. We can stack <code>typedef</code> on top of each other. For instance, <code>typedef byte_logic[7:0] int_logic</code> defines <code>int_logic</code> to be a packed array of <code>byte_logic</code>.</p>
-<h3 data-number="2.1.6" id="union"><span class="header-section-number">2.1.6</span> Union</h3>
+<h3 id="union"><span class="header-section-number">2.1.6</span> Union</h3>
 <p>Although SystemVerilog offers the <code>union</code> similar to that of C/C++, it introduces a potential type loophole since the union can be updated using a value of one memory type and read as a value of another member type. To avoid this, SystemVerilog introduce a new construct called <em>tagged</em> union. A tagged union stores both the member values and a <em>tag</em>. The tag and value can only be updated together using a type-checked expression, as specified by the SystemVerilog standard. We will focus on tagged union since it offers more type safety and it is an underrated feature introduced by SystemVerilog.</p>
 <p>In the example here, we will try to specify RISC-V basic instruction formats. The complete code can be found in <code>02/tagged_union.sv</code>. Unfortunately, at the time of writing, only the latest <code>vcs</code> supports <code>tagged union</code> feature.</p>
-<div class="sourceCode" id="cb13"><pre class="sourceCode systemverilog"><code class="sourceCode systemverilog"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true"></a><span class="co">// definition of r_inst_t, i_inst_t, s_inst_t, and u_inst_t are omitted</span></span>
-<span id="cb13-2"><a href="#cb13-2" aria-hidden="true"></a></span>
-<span id="cb13-3"><a href="#cb13-3" aria-hidden="true"></a><span class="kw">typedef</span> <span class="kw">union</span> <span class="kw">tagged</span> <span class="kw">packed</span> {</span>
-<span id="cb13-4"><a href="#cb13-4" aria-hidden="true"></a>    r_inst_t r_inst;</span>
-<span id="cb13-5"><a href="#cb13-5" aria-hidden="true"></a>    i_inst_t i_inst;</span>
-<span id="cb13-6"><a href="#cb13-6" aria-hidden="true"></a>    s_inst_t s_inst;</span>
-<span id="cb13-7"><a href="#cb13-7" aria-hidden="true"></a>    u_inst_t u_inst;</span>
-<span id="cb13-8"><a href="#cb13-8" aria-hidden="true"></a>} risc_v_inst_t;</span>
-<span id="cb13-9"><a href="#cb13-9" aria-hidden="true"></a></span>
-<span id="cb13-10"><a href="#cb13-10" aria-hidden="true"></a><span class="kw">initial</span> <span class="kw">begin</span></span>
-<span id="cb13-11"><a href="#cb13-11" aria-hidden="true"></a>    risc_v_inst_t i1;</span>
-<span id="cb13-12"><a href="#cb13-12" aria-hidden="true"></a></span>
-<span id="cb13-13"><a href="#cb13-13" aria-hidden="true"></a>    i1 = <span class="kw">tagged</span> i_inst &#39;{<span class="dv">1</span>, <span class="dv">2</span>, <span class="dv">3</span>, <span class="dv">4</span>, <span class="dv">5</span>};</span>
-<span id="cb13-14"><a href="#cb13-14" aria-hidden="true"></a>    <span class="kw">assert</span> (i1.i_inst.opcode == <span class="dv">5</span>);</span>
-<span id="cb13-15"><a href="#cb13-15" aria-hidden="true"></a></span>
-<span id="cb13-16"><a href="#cb13-16" aria-hidden="true"></a>    <span class="co">// the following code result an error at runtime</span></span>
-<span id="cb13-17"><a href="#cb13-17" aria-hidden="true"></a>    <span class="co">// i1.s_inst.opcode = 5;</span></span>
-<span id="cb13-18"><a href="#cb13-18" aria-hidden="true"></a></span>
-<span id="cb13-19"><a href="#cb13-19" aria-hidden="true"></a>    <span class="co">// siwtch tag</span></span>
-<span id="cb13-20"><a href="#cb13-20" aria-hidden="true"></a>    i1 = <span class="kw">tagged</span> u_inst &#39;{<span class="dv">1</span>, <span class="dv">2</span>, <span class="dv">3</span>};</span>
-<span id="cb13-21"><a href="#cb13-21" aria-hidden="true"></a>    <span class="kw">assert</span> (i1.u_inst.opcode == <span class="dv">3</span>);</span>
-<span id="cb13-22"><a href="#cb13-22" aria-hidden="true"></a><span class="kw">end</span></span></code></pre></div>
+<div class="sourceCode" id="cb13"><pre class="sourceCode systemverilog"><code class="sourceCode systemverilog"><a class="sourceLine" id="cb13-1" title="1"><span class="co">// definition of r_inst_t, i_inst_t, s_inst_t, and u_inst_t are omitted</span></a>
+<a class="sourceLine" id="cb13-2" title="2"></a>
+<a class="sourceLine" id="cb13-3" title="3"><span class="kw">typedef</span> <span class="kw">union</span> <span class="kw">tagged</span> <span class="kw">packed</span> {</a>
+<a class="sourceLine" id="cb13-4" title="4">    r_inst_t r_inst;</a>
+<a class="sourceLine" id="cb13-5" title="5">    i_inst_t i_inst;</a>
+<a class="sourceLine" id="cb13-6" title="6">    s_inst_t s_inst;</a>
+<a class="sourceLine" id="cb13-7" title="7">    u_inst_t u_inst;</a>
+<a class="sourceLine" id="cb13-8" title="8">} risc_v_inst_t;</a>
+<a class="sourceLine" id="cb13-9" title="9"></a>
+<a class="sourceLine" id="cb13-10" title="10"><span class="kw">initial</span> <span class="kw">begin</span></a>
+<a class="sourceLine" id="cb13-11" title="11">    risc_v_inst_t i1;</a>
+<a class="sourceLine" id="cb13-12" title="12"></a>
+<a class="sourceLine" id="cb13-13" title="13">    i1 = <span class="kw">tagged</span> i_inst &#39;{<span class="dv">1</span>, <span class="dv">2</span>, <span class="dv">3</span>, <span class="dv">4</span>, <span class="dv">5</span>};</a>
+<a class="sourceLine" id="cb13-14" title="14">    <span class="kw">assert</span> (i1.i_inst.opcode == <span class="dv">5</span>);</a>
+<a class="sourceLine" id="cb13-15" title="15"></a>
+<a class="sourceLine" id="cb13-16" title="16">    <span class="co">// the following code result an error at runtime</span></a>
+<a class="sourceLine" id="cb13-17" title="17">    <span class="co">// i1.s_inst.opcode = 5;</span></a>
+<a class="sourceLine" id="cb13-18" title="18"></a>
+<a class="sourceLine" id="cb13-19" title="19">    <span class="co">// siwtch tag</span></a>
+<a class="sourceLine" id="cb13-20" title="20">    i1 = <span class="kw">tagged</span> u_inst &#39;{<span class="dv">1</span>, <span class="dv">2</span>, <span class="dv">3</span>};</a>
+<a class="sourceLine" id="cb13-21" title="21">    <span class="kw">assert</span> (i1.u_inst.opcode == <span class="dv">3</span>);</a>
+<a class="sourceLine" id="cb13-22" title="22"><span class="kw">end</span></a></code></pre></div>
 <p>Notice that we use the keyword <code>packed</code> here, which tells the compiler to check the bit-width for each union member to make sure they are match. In most cases we want the same size, hence <code>packed</code> needed. However, in the case where tagged union has unmatched bit-width, the tools need to layout the memory carefully. Readers are encouraged to refer to Section 7.3.2 in the SystemVerilog standard for more details.</p>
 <p>In the example, we have explicitly specify the <em>tag</em> for the variable, and the tag value is checked at runtime to ensure the type correctness.</p>
 <p>For completeness, we cover the ordinary <code>union</code> here, which shares the same semantics as that of C/C++.</p>
-<div class="sourceCode" id="cb14"><pre class="sourceCode systemverilog"><code class="sourceCode systemverilog"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true"></a><span class="kw">typedef</span> <span class="kw">union</span> <span class="kw">packed</span> {</span>
-<span id="cb14-2"><a href="#cb14-2" aria-hidden="true"></a>    <span class="kw">logic</span>[<span class="dv">31</span>:<span class="dv">0</span>] raw_value;</span>
-<span id="cb14-3"><a href="#cb14-3" aria-hidden="true"></a>    inst_t      inst;</span>
-<span id="cb14-4"><a href="#cb14-4" aria-hidden="true"></a>} memory_read_t;</span></code></pre></div>
+<div class="sourceCode" id="cb14"><pre class="sourceCode systemverilog"><code class="sourceCode systemverilog"><a class="sourceLine" id="cb14-1" title="1"><span class="kw">typedef</span> <span class="kw">union</span> <span class="kw">packed</span> {</a>
+<a class="sourceLine" id="cb14-2" title="2">    <span class="kw">logic</span>[<span class="dv">31</span>:<span class="dv">0</span>] raw_value;</a>
+<a class="sourceLine" id="cb14-3" title="3">    inst_t      inst;</a>
+<a class="sourceLine" id="cb14-4" title="4">} memory_read_t;</a></code></pre></div>
 <p>In this example, we can assign value to <code>raw_value</code> and then read out appropriate values from <code>inst</code>.</p>
-<h3 data-number="2.1.7" id="non-synthesizable-data-types"><span class="header-section-number">2.1.7</span> Non-Synthesizable Data Types</h3>
+<h3 id="non-synthesizable-data-types"><span class="header-section-number">2.1.7</span> Non-Synthesizable Data Types</h3>
 <p>When modeling high-level logic designs, such as functional model used for test benches, we can use non-synthesizable data types to reduce the amount of work. For instance, SystemVerilog offers data type <code>real</code> and <code>shortreal</code> the same way as <code>double</code> and <code>float</code> in C, respectively, which conforms to IEEE Standard 754. This can be useful when developing models that needs floating point. HOwever, please keep in mind that if you want to use floating points in your synthesizable design, you have to either use vendor provided IPs, or implement your own. The former approach is recommended, since they have been thoroughly verified and optimized for various design metrics.</p>
 <p>Another data-type non-synthesizable data type is <code>string</code>. <code>string</code> in SystemVerilog is close to that of <code>Python</code> where the space allocation is fixed. However, although <code>string</code> itself is not synthesizable, logics can be assigned directly from string literals. The tools will automatically convert the string literal into bytes based on the ASCII table behind the scene. Please keep this in mind when using string literals in your synthesizable design, as shown in the code usage in the code blow. Notice that since the string literal is represented as logic, we can display it in both string and number format, whereas the the <code>string</code> data type cannot.</p>
-<div class="sourceCode" id="cb15"><pre class="sourceCode systemverilog"><code class="sourceCode systemverilog"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true"></a><span class="kw">module</span> String;</span>
-<span id="cb15-2"><a href="#cb15-2" aria-hidden="true"></a></span>
-<span id="cb15-3"><a href="#cb15-3" aria-hidden="true"></a><span class="kw">string</span>       non_synthesizable_variable = <span class="st">&quot;SystemVerilog&quot;</span>;</span>
-<span id="cb15-4"><a href="#cb15-4" aria-hidden="true"></a><span class="kw">logic</span>[<span class="dv">103</span>:<span class="dv">0</span>] synthesizable_variable     = <span class="st">&quot;SystemVerilog&quot;</span>;</span>
-<span id="cb15-5"><a href="#cb15-5" aria-hidden="true"></a></span>
-<span id="cb15-6"><a href="#cb15-6" aria-hidden="true"></a><span class="kw">initial</span> <span class="kw">begin</span></span>
-<span id="cb15-7"><a href="#cb15-7" aria-hidden="true"></a>    <span class="co">// the line below results in an error:</span></span>
-<span id="cb15-8"><a href="#cb15-8" aria-hidden="true"></a>    <span class="co">//    A variable of type string is supplied to (%d).</span></span>
-<span id="cb15-9"><a href="#cb15-9" aria-hidden="true"></a>    <span class="co">// $display(&quot;%s, %d&quot;, non_synthesizable_variable, non_synthesizable_variable);</span></span>
-<span id="cb15-10"><a href="#cb15-10" aria-hidden="true"></a></span>
-<span id="cb15-11"><a href="#cb15-11" aria-hidden="true"></a>    <span class="co">// the line below displays:</span></span>
-<span id="cb15-12"><a href="#cb15-12" aria-hidden="true"></a>    <span class="co">// SystemVerilog:  6613524751007090216398647750503</span></span>
-<span id="cb15-13"><a href="#cb15-13" aria-hidden="true"></a>    <span class="kw">$display</span>(<span class="st">&quot;%s: %d&quot;</span>, synthesizable_variable, synthesizable_variable);</span>
-<span id="cb15-14"><a href="#cb15-14" aria-hidden="true"></a><span class="kw">end</span></span>
-<span id="cb15-15"><a href="#cb15-15" aria-hidden="true"></a></span>
-<span id="cb15-16"><a href="#cb15-16" aria-hidden="true"></a><span class="kw">endmodule</span></span></code></pre></div>
+<div class="sourceCode" id="cb15"><pre class="sourceCode systemverilog"><code class="sourceCode systemverilog"><a class="sourceLine" id="cb15-1" title="1"><span class="kw">module</span> String;</a>
+<a class="sourceLine" id="cb15-2" title="2"></a>
+<a class="sourceLine" id="cb15-3" title="3"><span class="kw">string</span>       non_synthesizable_variable = <span class="st">&quot;SystemVerilog&quot;</span>;</a>
+<a class="sourceLine" id="cb15-4" title="4"><span class="kw">logic</span>[<span class="dv">103</span>:<span class="dv">0</span>] synthesizable_variable     = <span class="st">&quot;SystemVerilog&quot;</span>;</a>
+<a class="sourceLine" id="cb15-5" title="5"></a>
+<a class="sourceLine" id="cb15-6" title="6"><span class="kw">initial</span> <span class="kw">begin</span></a>
+<a class="sourceLine" id="cb15-7" title="7">    <span class="co">// the line below results in an error:</span></a>
+<a class="sourceLine" id="cb15-8" title="8">    <span class="co">//    A variable of type string is supplied to (%d).</span></a>
+<a class="sourceLine" id="cb15-9" title="9">    <span class="co">// $display(&quot;%s, %d&quot;, non_synthesizable_variable, non_synthesizable_variable);</span></a>
+<a class="sourceLine" id="cb15-10" title="10"></a>
+<a class="sourceLine" id="cb15-11" title="11">    <span class="co">// the line below displays:</span></a>
+<a class="sourceLine" id="cb15-12" title="12">    <span class="co">// SystemVerilog:  6613524751007090216398647750503</span></a>
+<a class="sourceLine" id="cb15-13" title="13">    <span class="kw">$display</span>(<span class="st">&quot;%s: %d&quot;</span>, synthesizable_variable, synthesizable_variable);</a>
+<a class="sourceLine" id="cb15-14" title="14"><span class="kw">end</span></a>
+<a class="sourceLine" id="cb15-15" title="15"></a>
+<a class="sourceLine" id="cb15-16" title="16"><span class="kw">endmodule</span></a></code></pre></div>
 <p>One thing to keep in mind when using string literal assigned to numeric types such as <code>logic</code>: if the string length smaller than the bit width of the variable, 0 padding happens. SystemVerilog will pad 0 to the left, which can be a potential problem as normal software programming languages do not have such behavior.</p>
-<h4 data-number="2.1.7.1" id="other-data-types"><span class="header-section-number">2.1.7.1</span> Other Data Types</h4>
+<h4 id="other-data-types"><span class="header-section-number">2.1.7.1</span> Other Data Types</h4>
 <p>There are other data types in SystemVerilog we have not covered so far, such as <code>event</code> and <code>chandle</code>. We will cover <code>chandle</code> later in DPI, which is a data type used for foreign language pointers.</p>
-<h3 data-number="2.1.8" id="type-casting"><span class="header-section-number">2.1.8</span> Type Casting</h3>
+<h3 id="type-casting"><span class="header-section-number">2.1.8</span> Type Casting</h3>
 <p>Many types in SystemVerilog are strongly typed, meaning a wrong type assignment will trigger either a compiler warning or error, such as directly assigning logic values to enum variables. Unfortunately its predecessor Verilog is weak-typed and SystemVerilog inherits all its shortcomings, such as mixing with signed and unsigned assignments. To make the code less error-prone, it is recommended to stick with explicit casting whenever there is a type mismatch, rather than relying on the language’s default type conversions.</p>
 <p>A data type can be casted into another using the cast <code>'</code> operation. The general syntax is</p>
 <pre><code>cast ::= casting_type&#39;(expression)</code></pre>
 <p>For instance, suppose we have a enum type <code>state_enum_t</code> defined earlier, and we want to directly assign a logic to it (not recommended but in some cases it is necessary), we can cast the logic variable to the enum type we want, as shown below.</p>
-<div class="sourceCode" id="cb17"><pre class="sourceCode systemverilog"><code class="sourceCode systemverilog"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true"></a><span class="kw">logic</span> value = <span class="dv">1</span>;</span>
-<span id="cb17-2"><a href="#cb17-2" aria-hidden="true"></a>state_enum_t <span class="ot">state</span> = state_enum_t&#39;(value);</span></code></pre></div>
+<div class="sourceCode" id="cb17"><pre class="sourceCode systemverilog"><code class="sourceCode systemverilog"><a class="sourceLine" id="cb17-1" title="1"><span class="kw">logic</span> value = <span class="dv">1</span>;</a>
+<a class="sourceLine" id="cb17-2" title="2">state_enum_t <span class="ot">state</span> = state_enum_t&#39;(value);</a></code></pre></div>
 <p>To cast an unsigned number to signed, we can use <code>signed'()</code>, and <code>unsigned</code>()` to cast signed to unsigned numbers.</p>
-<h3 data-number="2.1.9" id="variable-scopes-and-lifetime"><span class="header-section-number">2.1.9</span> Variable scopes and lifetime</h3>
+<h3 id="variable-scopes-and-lifetime"><span class="header-section-number">2.1.9</span> Variable scopes and lifetime</h3>
 <p>Variables in SystemVerilog can have different lifetime depends on where and how they are defined. We will discuss more in details in the next chapter when we discuss various scopes.</p>
-<h2 data-number="2.2" id="operator-and-expressions"><span class="header-section-number">2.2</span> Operator and Expressions</h2>
-<h3 data-number="2.2.1" id="numeric-literals"><span class="header-section-number">2.2.1</span> Numeric Literals</h3>
+<h2 id="operator-and-expressions"><span class="header-section-number">2.2</span> Operator and Expressions</h2>
+<h3 id="numeric-literals"><span class="header-section-number">2.2.1</span> Numeric Literals</h3>
 <p>Numeric literals in SystemVerilog can be specified in decimal, hexadecimal, octal, or binary format. The general syntax to specify a numeric literals is shown below (taken from SystemVerilog standard A.8):</p>
 <pre><code>decimal_number ::=
       unsigned_number
@@ -244,28 +244,28 @@ hex_base 33 ::= &#39; [ s | S ] h | &#39; [ s | S ] H</code></pre>
 <li>If unsized number is used in an expression, the other values has higher number of bit width, the unsized number will be extended with respect to the highest bit, including <code>x</code> and <code>z</code>.</li>
 </ol>
 <p>As a result, we only recommend to use unsized number such as 0, where the extension and truncation do not affect the actual value. For other occasions the size is recommended since it helps linters to catch size mismatch.</p>
-<h3 data-number="2.2.2" id="struct-and-array-literals"><span class="header-section-number">2.2.2</span> Struct and Array Literals</h3>
+<h3 id="struct-and-array-literals"><span class="header-section-number">2.2.2</span> Struct and Array Literals</h3>
 <p>Although we can set the struct members individually when initializing the struct variable, SystemVerilog provides a concise way to do so. Suppose we have a struct and a variable defined as</p>
-<div class="sourceCode" id="cb19"><pre class="sourceCode systemverilog"><code class="sourceCode systemverilog"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true"></a><span class="kw">typedef</span> <span class="kw">struct</span> {</span>
-<span id="cb19-2"><a href="#cb19-2" aria-hidden="true"></a>    <span class="kw">logic</span> [<span class="dv">3</span>:<span class="dv">0</span>] a;</span>
-<span id="cb19-3"><a href="#cb19-3" aria-hidden="true"></a>    <span class="kw">logic</span> [<span class="dv">15</span>:<span class="dv">0</span>] b;</span>
-<span id="cb19-4"><a href="#cb19-4" aria-hidden="true"></a>} example_t;</span>
-<span id="cb19-5"><a href="#cb19-5" aria-hidden="true"></a></span>
-<span id="cb19-6"><a href="#cb19-6" aria-hidden="true"></a>example_t value;</span></code></pre></div>
+<div class="sourceCode" id="cb19"><pre class="sourceCode systemverilog"><code class="sourceCode systemverilog"><a class="sourceLine" id="cb19-1" title="1"><span class="kw">typedef</span> <span class="kw">struct</span> {</a>
+<a class="sourceLine" id="cb19-2" title="2">    <span class="kw">logic</span> [<span class="dv">3</span>:<span class="dv">0</span>] a;</a>
+<a class="sourceLine" id="cb19-3" title="3">    <span class="kw">logic</span> [<span class="dv">15</span>:<span class="dv">0</span>] b;</a>
+<a class="sourceLine" id="cb19-4" title="4">} example_t;</a>
+<a class="sourceLine" id="cb19-5" title="5"></a>
+<a class="sourceLine" id="cb19-6" title="6">example_t value;</a></code></pre></div>
 <p>Instead of assigning values to <code>a</code> and <code>b</code> individually, we can use the structure assignment patterns by using <code>'{}</code>:</p>
-<div class="sourceCode" id="cb20"><pre class="sourceCode systemverilog"><code class="sourceCode systemverilog"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true"></a><span class="co">// assigning individually</span></span>
-<span id="cb20-2"><a href="#cb20-2" aria-hidden="true"></a>value.a = <span class="dv">4</span>&#39;<span class="dv">5</span>;</span>
-<span id="cb20-3"><a href="#cb20-3" aria-hidden="true"></a>value.b = <span class="dv">16</span>&#39;<span class="dv">42</span>;</span>
-<span id="cb20-4"><a href="#cb20-4" aria-hidden="true"></a></span>
-<span id="cb20-5"><a href="#cb20-5" aria-hidden="true"></a><span class="co">// structure assignment pattern</span></span>
-<span id="cb20-6"><a href="#cb20-6" aria-hidden="true"></a>value = &#39;{<span class="dv">4</span>&#39;<span class="dv">5</span>, <span class="dv">16</span>&#39;<span class="dv">42</span>};</span></code></pre></div>
+<div class="sourceCode" id="cb20"><pre class="sourceCode systemverilog"><code class="sourceCode systemverilog"><a class="sourceLine" id="cb20-1" title="1"><span class="co">// assigning individually</span></a>
+<a class="sourceLine" id="cb20-2" title="2">value.a = <span class="dv">4</span>&#39;<span class="dv">5</span>;</a>
+<a class="sourceLine" id="cb20-3" title="3">value.b = <span class="dv">16</span>&#39;<span class="dv">42</span>;</a>
+<a class="sourceLine" id="cb20-4" title="4"></a>
+<a class="sourceLine" id="cb20-5" title="5"><span class="co">// structure assignment pattern</span></a>
+<a class="sourceLine" id="cb20-6" title="6">value = &#39;{<span class="dv">4</span>&#39;<span class="dv">5</span>, <span class="dv">16</span>&#39;<span class="dv">42</span>};</a></code></pre></div>
 <p>This assignment pattern also works for an array of structures, which is similar to that of C++:</p>
-<div class="sourceCode" id="cb21"><pre class="sourceCode systemverilog"><code class="sourceCode systemverilog"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true"></a>example_t [<span class="dv">1</span>:<span class="dv">0</span>] values;</span>
-<span id="cb21-2"><a href="#cb21-2" aria-hidden="true"></a>values = &#39;{&#39;{<span class="dv">4</span>, <span class="dv">42</span>}, &#39;{<span class="dv">5</span>, <span class="dv">43</span>}};</span></code></pre></div>
+<div class="sourceCode" id="cb21"><pre class="sourceCode systemverilog"><code class="sourceCode systemverilog"><a class="sourceLine" id="cb21-1" title="1">example_t [<span class="dv">1</span>:<span class="dv">0</span>] values;</a>
+<a class="sourceLine" id="cb21-2" title="2">values = &#39;{&#39;{<span class="dv">4</span>, <span class="dv">42</span>}, &#39;{<span class="dv">5</span>, <span class="dv">43</span>}};</a></code></pre></div>
 <p>Array literals assignment is the same as struct literal, where each item in the array can be specified using <code>'{}</code> syntax. Notice that we can use replication operator <code>{{}}</code> to make the code more readable.</p>
-<div class="sourceCode" id="cb22"><pre class="sourceCode systemverilog"><code class="sourceCode systemverilog"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true"></a><span class="kw">logic</span> [<span class="dv">3</span>:<span class="dv">0</span>][<span class="dv">1</span>:<span class="dv">0</span>] array = &#39;{<span class="dv">4</span>{&#39;{<span class="dv">1</span>, <span class="dv">0</span>}}};</span>
-<span id="cb22-2"><a href="#cb22-2" aria-hidden="true"></a><span class="co">// same as &#39;{&#39;{1, 0}, &#39;{1, 0}, &#39;{1, 0}, &#39;{1, 0}}</span></span></code></pre></div>
-<h3 data-number="2.2.3" id="operators"><span class="header-section-number">2.2.3</span> Operators</h3>
+<div class="sourceCode" id="cb22"><pre class="sourceCode systemverilog"><code class="sourceCode systemverilog"><a class="sourceLine" id="cb22-1" title="1"><span class="kw">logic</span> [<span class="dv">3</span>:<span class="dv">0</span>][<span class="dv">1</span>:<span class="dv">0</span>] array = &#39;{<span class="dv">4</span>{&#39;{<span class="dv">1</span>, <span class="dv">0</span>}}};</a>
+<a class="sourceLine" id="cb22-2" title="2"><span class="co">// same as &#39;{&#39;{1, 0}, &#39;{1, 0}, &#39;{1, 0}, &#39;{1, 0}}</span></a></code></pre></div>
+<h3 id="operators"><span class="header-section-number">2.2.3</span> Operators</h3>
 <p>SystemVerilog has a rich set of operators similar to that of C/C++ with enhancement to deal with bit vectors. The complete operators and data types is listed in Table <a href="#tbl:sv-ops">3</a>, which is taken from Table 11-1 from the SystemVerilog standard.</p>
 <div id="tbl:sv-ops" class="tablenos">
 <table>
