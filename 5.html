@@ -288,7 +288,64 @@
 <a class="sourceLine" id="cb115-3" title="3">ClassA #<span class="dt">(.width</span>(<span class="dv">10</span>)) a1;</a></code></pre></div>
 <p>Value parametrization is useful in cases where the width/size of the variable or constant values that can only be set at compile time. For other values we recommend to use class constructor instead.</p>
 <h3 id="type-parametrization"><span class="header-section-number">5.4.2</span> Type Parametrization</h3>
+<p>SystemVerilog allows type parametrization for classes in a similar manner as generics in Java/C#. Below is an example of how to use class with type parametrization.</p>
+<div class="sourceCode" id="cb116"><pre class="sourceCode systemverilog"><code class="sourceCode systemverilog"><a class="sourceLine" id="cb116-1" title="1"><span class="kw">class</span> Node #(<span class="kw">type</span> T = <span class="kw">int</span>);</a>
+<a class="sourceLine" id="cb116-2" title="2">    <span class="kw">local</span> Node #(T) <span class="ot">next</span>;</a>
+<a class="sourceLine" id="cb116-3" title="3">    T value;</a>
+<a class="sourceLine" id="cb116-4" title="4"></a>
+<a class="sourceLine" id="cb116-5" title="5">    <span class="kw">function</span> <span class="kw">new</span>(Node #(T) next_node=<span class="kw">null</span>);</a>
+<a class="sourceLine" id="cb116-6" title="6">        <span class="ot">next</span> = next_node;</a>
+<a class="sourceLine" id="cb116-7" title="7">    <span class="kw">endfunction</span></a>
+<a class="sourceLine" id="cb116-8" title="8"></a>
+<a class="sourceLine" id="cb116-9" title="9"><span class="kw">endclass</span></a></code></pre></div>
+<p>In the example, we define a <code>Node</code> class that can be instantiated with variables types, e.g. <code>int</code> or even other classes. The type for <code>Node</code> class that has a parametrized type specified can be referred as <code>Node #(T)</code>, where <code>T</code> can be any type. To avoid duplicated code, we can use <code>typedef</code> to redefine the type as follows:</p>
+<div class="sourceCode" id="cb117"><pre class="sourceCode systemverilog"><code class="sourceCode systemverilog"><a class="sourceLine" id="cb117-1" title="1"><span class="kw">class</span> Node #(<span class="kw">type</span> T = <span class="kw">int</span>);</a>
+<a class="sourceLine" id="cb117-2" title="2">    <span class="kw">typedef</span> Node #(T) NodeT;</a>
+<a class="sourceLine" id="cb117-3" title="3">    T value;</a>
+<a class="sourceLine" id="cb117-4" title="4"></a>
+<a class="sourceLine" id="cb117-5" title="5">    <span class="kw">function</span> <span class="kw">new</span>(NodeT next_node=<span class="kw">null</span>);</a>
+<a class="sourceLine" id="cb117-6" title="6">        <span class="ot">next</span> = next_node;</a>
+<a class="sourceLine" id="cb117-7" title="7">    <span class="kw">endfunction</span></a>
+<a class="sourceLine" id="cb117-8" title="8"></a>
+<a class="sourceLine" id="cb117-9" title="9"><span class="kw">endclass</span></a></code></pre></div>
+<p>We can use the same syntax as class with parametrized values to instantiate a class with parametrized types:</p>
+<div class="sourceCode" id="cb118"><pre class="sourceCode systemverilog"><code class="sourceCode systemverilog"><a class="sourceLine" id="cb118-1" title="1">Node #(<span class="kw">int</span>) node1;</a>
+<a class="sourceLine" id="cb118-2" title="2">Node #<span class="dt">(.T</span>(<span class="kw">string</span>)) node2;</a></code></pre></div>
+<p>Type checking for class with parametrized types happens at compile time and designers can use the error information from the compiler to fix their code.</p>
 <h2 id="interface-class"><span class="header-section-number">5.5</span> Interface Class</h2>
+<p>Interface class is an OOP concept borrowed from languages such as Java and C#. It defines public functions and other public information about the class. However, one major distinction between interface class and other class is that typically interface class does not have any implementation details (some recent change in some OOP languages may change this fact).</p>
+<p>To declare an interface class, we can use the following syntax:</p>
+<div class="sourceCode" id="cb119"><pre class="sourceCode systemverilog"><code class="sourceCode systemverilog"><a class="sourceLine" id="cb119-1" title="1"><span class="kw">interface</span> <span class="kw">class</span> IClassA;</a>
+<a class="sourceLine" id="cb119-2" title="2">    <span class="kw">pure</span> <span class="kw">virtual</span> <span class="kw">function</span> <span class="kw">void</span> foo();</a>
+<a class="sourceLine" id="cb119-3" title="3"><span class="kw">endinterface</span></a></code></pre></div>
+<p>Notice that every functions in defined in the interface class should be <code>pure virtual</code>. Interface class can inherit from another interface class using the keyword <code>extends</code>, as shown below:</p>
+<div class="sourceCode" id="cb120"><pre class="sourceCode systemverilog"><code class="sourceCode systemverilog"><a class="sourceLine" id="cb120-1" title="1"><span class="kw">interface</span> <span class="kw">class</span> IClassB <span class="kw">extends</span> IClassA;</a>
+<a class="sourceLine" id="cb120-2" title="2">    <span class="kw">pure</span> <span class="kw">virtual</span> <span class="kw">function</span> bar();</a>
+<a class="sourceLine" id="cb120-3" title="3"><span class="kw">endinterface</span></a></code></pre></div>
+<p>For a class to implement the interface class, we can use the keyword <code>implements</code>, as shown below. A class can implement as many interface class as the designers see fit.</p>
+<div class="sourceCode" id="cb121"><pre class="sourceCode systemverilog"><code class="sourceCode systemverilog"><a class="sourceLine" id="cb121-1" title="1"><span class="kw">class</span> ClassA implements IClassA;</a>
+<a class="sourceLine" id="cb121-2" title="2">    <span class="kw">function</span> <span class="kw">void</span> foo();</a>
+<a class="sourceLine" id="cb121-3" title="3">        <span class="co">// actual logic here</span></a>
+<a class="sourceLine" id="cb121-4" title="4">    <span class="kw">endfunction</span></a>
+<a class="sourceLine" id="cb121-5" title="5"><span class="kw">endclass</span></a></code></pre></div>
+<p>You can also put other non-implementation related information in the interface class, such as enum definition, as shown below:</p>
+<div class="sourceCode" id="cb122"><pre class="sourceCode systemverilog"><code class="sourceCode systemverilog"><a class="sourceLine" id="cb122-1" title="1"><span class="kw">interface</span> <span class="kw">class</span> IEnum;</a>
+<a class="sourceLine" id="cb122-2" title="2">    <span class="kw">typedef</span> <span class="kw">enum</span> <span class="kw">int</span> {RED, GREEN, BLUE} color_t;</a>
+<a class="sourceLine" id="cb122-3" title="3">    <span class="kw">pure</span> <span class="kw">virtual</span> <span class="kw">function</span> color_t color();</a>
+<a class="sourceLine" id="cb122-4" title="4"><span class="kw">endinterface</span></a></code></pre></div>
+<p>As with normal class, interface class can also have parametrized types. However, there are some syntax restriction on how interface are used:</p>
+<ul>
+<li><p>An class cannot not implements/extends an interface class that has been forward declared. The following code describe an illegal usage</p>
+<div class="sourceCode" id="cb123"><pre class="sourceCode systemverilog"><code class="sourceCode systemverilog"><a class="sourceLine" id="cb123-1" title="1"><span class="kw">typedef</span> interface <span class="kw">class</span> IClassA;</a>
+<a class="sourceLine" id="cb123-2" title="2"></a>
+<a class="sourceLine" id="cb123-3" title="3"><span class="co">// this is illegal</span></a>
+<a class="sourceLine" id="cb123-4" title="4"><span class="kw">class</span> ClassA implements IClassA;</a>
+<a class="sourceLine" id="cb123-5" title="5"><span class="kw">endclass</span></a>
+<a class="sourceLine" id="cb123-6" title="6"></a>
+<a class="sourceLine" id="cb123-7" title="7"><span class="kw">interface</span> <span class="kw">class</span> IClassA;</a>
+<a class="sourceLine" id="cb123-8" title="8"><span class="kw">endinterface</span></a></code></pre></div></li>
+<li><p>Interface class cannot be used as a type parameter.</p></li>
+</ul>
                 </div>
             </div>
         </div>

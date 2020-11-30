@@ -2,7 +2,7 @@
 <html>
     <head>
         <meta charset="UTF-8">
-        <title>SystemVerilog for RTL Modeling, Simulation, and Verification - Test Benches and UVM</title>
+        <title>SystemVerilog for RTL Modeling, Simulation, and Verification - Simulation and Test Benches</title>
         <link rel="stylesheet" href="https://unpkg.com/purecss@2.0.3/build/pure-min.css" integrity="sha384-cg6SkqEOCV1NbJoCu11+bm0NvBRc8IYLRGXkmNrqUBfTjmMYwNKPWBTIKyw9mHNJ" crossorigin="anonymous">
         <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.1.2/es5/tex-mml-chtml.min.js" integrity="sha512-7rZgZU/u5XjLaO7dBpkcvZ2+ilGXbdIak0FXUgMoO+adNy7RUceort055Wn7LkZY3VLwEsSDpi8Ui+32N1vrfw==" crossorigin="anonymous"></script>
         <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -38,8 +38,24 @@
 
             <div id="main">
                 <div class="content">
-                    <h1>Test Benches and UVM</h1>
-<p>Working in progress.</p>
+                    <h1>Simulation and Test Benches</h1>
+<p>A significant portion of the language are dedicated to test benches and testing. In this chapter we will cover some commonly used techniques to write efficient test bench for your hardware designs.</p>
+<h2 id="how-systemverilog-simulator-works"><span class="header-section-number">6.1</span> How SystemVerilog Simulator Works</h2>
+<p>Before we delve into details of how to write a proper test bench, we need to establish a deep understanding of how simulator works and how it schedules events. This will help us troubleshoot bugs and errors in the future.</p>
+<p>A specification-compliant SystemVerilog simulator follows a discrete event execution model, where the simulation time advances with value updates. The hardware design is inherently parallel, where processes such as <code>always_comb</code> and <code>always_ff</code> are executed currently. Each time the value of a net/variable changes, we will have an <em>update event</em> and any processes that are sensitive to that event need to be evaluated as well, which is called <em>evaluation event</em>. At each “timestamp”, the simulator needs to first compute the update events, evaluate update events, and loop back to see if there is more update events triggered by previous update events.</p>
+<p>The term for “timestamp” in SystemVerilog is <em>simulation time</em>. It can be transformed back to real time using the <code>timescale</code> compiler directive introduced earlier in the book. We use simulation time, or simply time throughout the entire chapter to avoid confusion.</p>
+<p>Although the design and test bench is parallel by nature, most simulators are single-threaded and follows certain rules to evaluate the code to ensure it is conceptually correct. Typically the simulator divides the unit time slop into multiple regions where events can be scheduled in a pre-defined orders. In each region, the events can be scheduled arbitrarily, allowing simulator performs optimization when it sees fit. Figure <a href="#fig:sim_diagram">7</a> shows how the time slot is divided into different regions and the execution flow between different regions.</p>
+<div id="fig:sim_diagram" class="fignos">
+<figure>
+<img src="images/06/sim-diagram.svg" alt="Figure 7: Event scheduling regions. Image taken from SystemVerilog LRM Figure4-1" /><figcaption><span>Figure 7:</span> Event scheduling regions. Image taken from SystemVerilog LRM Figure4-1</figcaption>
+</figure>
+</div>
+<p>PLI regions will be discussed in much details later in the book. For now it is enough to know there are regions reserved for third-party libraries that can be loaded into the simulator and can have direct access to the simulator state.</p>
+<p>Fully cover each region requires much lengthy details and readers are encouraged to read through the language LRM and even try to implement a simple interpreter-based simulator. We will focus on three major regions: active event region, inactive events region, and NBA events region.</p>
+<h2 id="timing-controls"><span class="header-section-number">6.2</span> Timing Controls</h2>
+<p>Timing is one of the most important factor to consider when writing a test bench. Should the signal be stable before the clock edge, or how long should the signal be valid for? What does delay mean? This section will cover various aspect of timing controls.</p>
+<h2 id="fork-and-join"><span class="header-section-number">6.3</span> Fork and Join</h2>
+<h2 id="how-to-avoid-race-conditions"><span class="header-section-number">6.4</span> How to Avoid Race Conditions</h2>
                 </div>
             </div>
         </div>
