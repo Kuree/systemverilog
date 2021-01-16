@@ -52,10 +52,113 @@
 </div>
 <p>PLI regions will be discussed in much details later in the book. For now it is enough to know there are regions reserved for third-party libraries that can be loaded into the simulator and can have direct access to the simulator state.</p>
 <p>Fully cover each region requires much lengthy details and readers are encouraged to read through the language LRM and even try to implement a simple interpreter-based simulator. We will focus on three major regions: active event region, inactive events region, and NBA events region.</p>
+<p>Generally speaking, any events (e.g. blocking assignment) specified in the <code>always_comb</code> and continuous assignment are evaluated in the active event region. The simulator continues evaluate the events in the active event region in a loop until no events left in the region. If there is an explicit timing control, e.g. #0 delay control, in the process, the process will be suspended and the following events are scheduled into the inactive events region. Again, the simulator runs in loop to clear out the events in the inactive events region.</p>
+<p>The NBA events region contains nonblocking assignment update. It will only be executed after precedent active and inactive region are cleared.</p>
+<h3 id="simulation-order"><span class="header-section-number">6.1.1</span> Simulation order</h3>
+<p>The SystemVerilog LRM guarantees a certain scheduling order. Any simulator claims to be standard compliant should obey the execution order:</p>
+<ol type="1">
+<li>Statements within a <code>begin</code>-<code>end</code> block shall be executed in lexical order, i.e., the order in whey they appear in the source code</li>
+<li>NBAs shall be performed in the order the statement where executed.</li>
+</ol>
+<p>To understand the second requirement, let’s consider the following example:</p>
+<div class="sourceCode" id="cb124"><pre class="sourceCode systemverilog"><code class="sourceCode systemverilog"><a class="sourceLine" id="cb124-1" title="1"></a>
+<a class="sourceLine" id="cb124-2" title="2"><span class="kw">logic</span> a;</a>
+<a class="sourceLine" id="cb124-3" title="3"><span class="kw">initial</span> <span class="kw">begin</span></a>
+<a class="sourceLine" id="cb124-4" title="4">    a &lt;= <span class="dv">0</span>;</a>
+<a class="sourceLine" id="cb124-5" title="5">    a &lt;= <span class="dv">1</span>;</a>
+<a class="sourceLine" id="cb124-6" title="6"><span class="kw">end</span></a></code></pre></div>
+<p>At the end of simulation time, variable <code>a</code> will be first assign to 0, and then 1.</p>
+<p>As one can suspect, such ordering poses a hard restriction on reordering-related compiler optimization. Simulation vendors typically employ different types of optimization to ensure the semantics is met, but necessary the actual ordering of execution. For instance, if no third-party entity is expected to read out the exact simulation order (e.g. debugger that allows step through), we can reorder the statements as long as it is side-effects free and matches the ordering semantics. This significantly speeds up the simulation but requires extra flags if users wish to debug and step through the code, e.g. <code>-line_debug</code> flag in Xcelium. Verilator, on the other hand, only offers reordered simulation order for the sake of performance. As a result, it is not standard compliant.</p>
+<p>The SystemVerilog LRM, however, does not specify the ordering at which processes are evaluated. As a result, it is up to the simulator to decide which process to execute first. This introduce nondeterminism among the simulators. Another source of nondeterminism comes from the fact that simulator may suspend the process and place partially completed events as pending event in the event region whenever it encounters a timing control statement. This typically happens in the test bench instead of the RTL design, since synthesizable RTL disallows timing control except for <code>always_ff</code>.</p>
 <h2 id="timing-controls"><span class="header-section-number">6.2</span> Timing Controls</h2>
 <p>Timing is one of the most important factor to consider when writing a test bench. Should the signal be stable before the clock edge, or how long should the signal be valid for? What does delay mean? This section will cover various aspect of timing controls.</p>
+<p>The compiler directive `<code>timescale</code> specifies the precision at which the simulator should run. Since different modules may have different timescale, the simulator needs to make a decision on how to represent simulation time. In most simulators, in fact any simulator that supports VPI standard (discussed later), simulation time is represented as an unsigned 64-bit integer, even though the RTL model may expect the time to be a float. To do so, time is rounded off to the specified precision and then scaled to the simulation time units. Consider the following example:</p>
+<div class="sourceCode" id="cb125"><pre class="sourceCode systemverilog"><code class="sourceCode systemverilog"><a class="sourceLine" id="cb125-1" title="1"><span class="ot">`timescale</span> 1ns/10ps</a>
+<a class="sourceLine" id="cb125-2" title="2"><span class="kw">module</span> A;</a>
+<a class="sourceLine" id="cb125-3" title="3"><span class="kw">logic</span> a;</a>
+<a class="sourceLine" id="cb125-4" title="4"><span class="kw">initial</span> <span class="kw">begin</span></a>
+<a class="sourceLine" id="cb125-5" title="5">    <span class="bn">#1</span><span class="fl">.2</span> a = <span class="dv">1</span>;</a>
+<a class="sourceLine" id="cb125-6" title="6"><span class="kw">end</span></a>
+<a class="sourceLine" id="cb125-7" title="7"><span class="kw">endmodule</span></a>
+<a class="sourceLine" id="cb125-8" title="8"></a>
+<a class="sourceLine" id="cb125-9" title="9"><span class="ot">`timescale</span> 1us/10ns</a>
+<a class="sourceLine" id="cb125-10" title="10"></a>
+<a class="sourceLine" id="cb125-11" title="11"><span class="kw">module</span> B;</a>
+<a class="sourceLine" id="cb125-12" title="12"><span class="kw">logic</span> b;</a>
+<a class="sourceLine" id="cb125-13" title="13"><span class="kw">initial</span> <span class="kw">begin</span></a>
+<a class="sourceLine" id="cb125-14" title="14">    <span class="bn">#3</span><span class="fl">.4</span> b = <span class="dv">1</span>;</a>
+<a class="sourceLine" id="cb125-15" title="15"><span class="kw">end</span></a>
+<a class="sourceLine" id="cb125-16" title="16"><span class="kw">endmodule</span></a></code></pre></div>
+<p>For all modules, 10ps is the finest precision so 1 simulation time unit corresponds to 10ps. Before we convert every delay into the simulation time, we first round the delay into module’s precision. So 1.2 in module <code>A</code> becomes <span class="math inline">\(1.2ns = 120 \times 10ps\)</span>, i.e. 120 10-picoseconds unit; 3.4 in module <code>B</code> becomes <span class="math inline">\(3.4us = 340 \times 10us\)</span>, i.e. 340 10-microseconds. Then we scale everything into simulation time. Hence 1.2 in module <code>A</code> becomes 120 10-picoseconds and 3.4 in module <code>B</code> becomes 340000 10-picoseconds.</p>
+<p>To obtain the simulation time, we can use <code>$time</code>, which can be printed out either via <code>%d</code> or <code>%t</code> in the <code>$display</code> function.</p>
+<p>The most common usage of timing control is setting the clock. A standard code style is shown below:</p>
+<div class="sourceCode" id="cb126"><pre class="sourceCode systemverilog"><code class="sourceCode systemverilog"><a class="sourceLine" id="cb126-1" title="1"><span class="kw">module</span> top;</a>
+<a class="sourceLine" id="cb126-2" title="2"><span class="kw">logic</span> clk;</a>
+<a class="sourceLine" id="cb126-3" title="3"></a>
+<a class="sourceLine" id="cb126-4" title="4"><span class="kw">initial</span> clk = <span class="dv">0</span>;</a>
+<a class="sourceLine" id="cb126-5" title="5"><span class="kw">always</span> clk = <span class="bn">#10</span> ~clk;</a>
+<a class="sourceLine" id="cb126-6" title="6"></a>
+<a class="sourceLine" id="cb126-7" title="7"><span class="kw">endmodule</span></a></code></pre></div>
+<p>Notice that the clock changes its value every 10 units of time, hence the clock period is 20 units of time. Because this <code>always</code> block runs forever, we have to terminate the simulation with the builtin SystemVerilog task <code>$finish</code>, as shown below:</p>
+<div class="sourceCode" id="cb127"><pre class="sourceCode systemverilog"><code class="sourceCode systemverilog"><a class="sourceLine" id="cb127-1" title="1"><span class="kw">initial</span> <span class="kw">begin</span></a>
+<a class="sourceLine" id="cb127-2" title="2">    <span class="co">// test bench logic</span></a>
+<a class="sourceLine" id="cb127-3" title="3"></a>
+<a class="sourceLine" id="cb127-4" title="4">    <span class="kw">$finish</span>;</a>
+<a class="sourceLine" id="cb127-5" title="5"><span class="kw">end</span></a></code></pre></div>
+<p>To synchronize the values against the clock, we highly discourage readers to set delays by hand, which is error-prone and reduce the readability. Instead, we recommend to use timing controls (<code>@</code>) directly. Here is an example:</p>
+<div class="sourceCode" id="cb128"><pre class="sourceCode systemverilog"><code class="sourceCode systemverilog"><a class="sourceLine" id="cb128-1" title="1"><span class="kw">initial</span> <span class="kw">begin</span></a>
+<a class="sourceLine" id="cb128-2" title="2">    input1 = <span class="dv">1</span>;</a>
+<a class="sourceLine" id="cb128-3" title="3">    input2 = <span class="dv">2</span>;</a>
+<a class="sourceLine" id="cb128-4" title="4"></a>
+<a class="sourceLine" id="cb128-5" title="5">    @(<span class="kw">posedge</span> clk);</a>
+<a class="sourceLine" id="cb128-6" title="6"></a>
+<a class="sourceLine" id="cb128-7" title="7">    input1 = <span class="dv">2</span>;</a>
+<a class="sourceLine" id="cb128-8" title="8">    input2 = <span class="dv">3</span>;</a>
+<a class="sourceLine" id="cb128-9" title="9"></a>
+<a class="sourceLine" id="cb128-10" title="10">    @(<span class="kw">posedge</span> clk);</a>
+<a class="sourceLine" id="cb128-11" title="11"><span class="kw">end</span></a></code></pre></div>
+<p>In such way, we are guaranteed that signals <code>input1</code> and <code>input2</code> are set before the rising edge of the clock signal, regardless of the clock period! If you have checking/assertion logics, you can place them after the negative edge of the clock, assuming there is no synchronous logic depends on negative edge of the clock in your design (dual triggering typically happens in some high-performance design), as shown below:</p>
+<div class="sourceCode" id="cb129"><pre class="sourceCode systemverilog"><code class="sourceCode systemverilog"><a class="sourceLine" id="cb129-1" title="1"><span class="kw">initial</span> <span class="kw">begin</span></a>
+<a class="sourceLine" id="cb129-2" title="2">    <span class="co">// input logic</span></a>
+<a class="sourceLine" id="cb129-3" title="3">    input1 = <span class="dv">1</span>;</a>
+<a class="sourceLine" id="cb129-4" title="4">    @posedge (clk);</a>
+<a class="sourceLine" id="cb129-5" title="5">    @negedge (clk);</a>
+<a class="sourceLine" id="cb129-6" title="6">    <span class="co">// checking logic</span></a>
+<a class="sourceLine" id="cb129-7" title="7">    <span class="kw">assert</span>(output1 == <span class="dv">1</span>);</a>
+<a class="sourceLine" id="cb129-8" title="8">    <span class="co">// input logic</span></a>
+<a class="sourceLine" id="cb129-9" title="9">    input1 = <span class="dv">2</span>;</a>
+<a class="sourceLine" id="cb129-10" title="10">    @posedge (clk);</a>
+<a class="sourceLine" id="cb129-11" title="11">    @negedge (clk);</a>
+<a class="sourceLine" id="cb129-12" title="12">    <span class="co">// checking logic</span></a>
+<a class="sourceLine" id="cb129-13" title="13">    <span class="kw">assert</span>(output1 == <span class="dv">2</span>);</a>
+<a class="sourceLine" id="cb129-14" title="14">    <span class="co">//...</span></a>
+<a class="sourceLine" id="cb129-15" title="15"><span class="kw">end</span></a></code></pre></div>
+<p>We will discuss more complex but reusable test bench design pattern later in the chapter.</p>
 <h2 id="fork-and-join"><span class="header-section-number">6.3</span> Fork and Join</h2>
-<h2 id="how-to-avoid-race-conditions"><span class="header-section-number">6.4</span> How to Avoid Race Conditions</h2>
+<p>Because hardware is inherently concurrent, in many cases we want to have multiple threads performing tasks at the same time, either driving or checking differently parts of the design. SystemVerilog offers fork and join semantics that is similar to that of software programming languages, e.g. <code>std::thread</code> in C++.</p>
+<p>The general syntax for <code>fork</code> and <code>join</code> is shown below. Notice that each statement inside the <code>fork</code> <code>join</code> is an individual thread, so if you want complex logic, you need to enclose it with <code>begin</code> and <code>end</code> block.</p>
+<div class="sourceCode" id="cb130"><pre class="sourceCode systemverilog"><code class="sourceCode systemverilog"><a class="sourceLine" id="cb130-1" title="1"><span class="kw">fork</span></a>
+<a class="sourceLine" id="cb130-2" title="2">    <span class="co">// thread 1</span></a>
+<a class="sourceLine" id="cb130-3" title="3">    <span class="co">// thread 2</span></a>
+<a class="sourceLine" id="cb130-4" title="4">    <span class="co">// thread 3</span></a>
+<a class="sourceLine" id="cb130-5" title="5"><span class="kw">join</span></a></code></pre></div>
+<p>Here is a simple example to illustrate how to use <code>fork</code> and <code>join</code>:</p>
+<div class="sourceCode" id="cb131"><pre class="sourceCode systemverilog"><code class="sourceCode systemverilog"><a class="sourceLine" id="cb131-1" title="1"><span class="kw">module</span> fork_join_ex;</a>
+<a class="sourceLine" id="cb131-2" title="2">    <span class="kw">initial</span> <span class="kw">begin</span></a>
+<a class="sourceLine" id="cb131-3" title="3">        <span class="kw">fork</span></a>
+<a class="sourceLine" id="cb131-4" title="4">            <span class="bn">#10</span> <span class="kw">$display</span>(<span class="st">&quot;Thread 1 finished at %t&quot;</span>, <span class="kw">$time</span>);</a>
+<a class="sourceLine" id="cb131-5" title="5">            <span class="kw">begin</span></a>
+<a class="sourceLine" id="cb131-6" title="6">                <span class="co">// thread 2</span></a>
+<a class="sourceLine" id="cb131-7" title="7">                <span class="bn">#5</span> <span class="kw">$display</span>(<span class="st">&quot;Thread 2 finished at %t&quot;</span>, <span class="kw">$time</span>);</a>
+<a class="sourceLine" id="cb131-8" title="8">            <span class="kw">end</span></a>
+<a class="sourceLine" id="cb131-9" title="9">            <span class="bn">#20</span> <span class="kw">$display</span>(<span class="st">&quot;Thread 3 finished at %t&quot;</span>, <span class="kw">$time</span>);</a>
+<a class="sourceLine" id="cb131-10" title="10">        <span class="kw">join</span></a>
+<a class="sourceLine" id="cb131-11" title="11">    <span class="kw">end</span></a>
+<a class="sourceLine" id="cb131-12" title="12"><span class="kw">endmodule</span></a></code></pre></div>
+<h3 id="different-join-semantics"><span class="header-section-number">6.3.1</span> Different Join Semantics</h3>
+<h2 id="standard-data-structures"><span class="header-section-number">6.4</span> Standard Data Structures</h2>
+<h2 id="how-to-avoid-race-conditions"><span class="header-section-number">6.5</span> How to Avoid Race Conditions</h2>
+<h2 id="generator-driver-and-monitor-design-pattern"><span class="header-section-number">6.6</span> Generator, Driver, and Monitor Design Pattern</h2>
                 </div>
             </div>
         </div>
