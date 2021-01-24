@@ -134,7 +134,7 @@
 <a class="sourceLine" id="cb129-14" title="14">    <span class="co">//...</span></a>
 <a class="sourceLine" id="cb129-15" title="15"><span class="kw">end</span></a></code></pre></div>
 <p>We will discuss more complex but reusable test bench design pattern later in the chapter.</p>
-<h2 id="fork-and-join"><span class="header-section-number">6.3</span> Fork and Join</h2>
+<h3 id="fork-and-join"><span class="header-section-number">6.2.1</span> Fork and Join</h3>
 <p>Because hardware is inherently concurrent, in many cases we want to have multiple threads performing tasks at the same time, either driving or checking differently parts of the design. SystemVerilog offers fork and join semantics that is similar to that of software programming languages, e.g. <code>std::thread</code> in C++.</p>
 <p>The general syntax for <code>fork</code> and <code>join</code> is shown below. Notice that each statement inside the <code>fork</code> <code>join</code> is an individual thread, so if you want complex logic, you need to enclose it with <code>begin</code> and <code>end</code> block.</p>
 <div class="sourceCode" id="cb130"><pre class="sourceCode systemverilog"><code class="sourceCode systemverilog"><a class="sourceLine" id="cb130-1" title="1"><span class="kw">fork</span></a>
@@ -155,10 +155,164 @@
 <a class="sourceLine" id="cb131-10" title="10">        <span class="kw">join</span></a>
 <a class="sourceLine" id="cb131-11" title="11">    <span class="kw">end</span></a>
 <a class="sourceLine" id="cb131-12" title="12"><span class="kw">endmodule</span></a></code></pre></div>
-<h3 id="different-join-semantics"><span class="header-section-number">6.3.1</span> Different Join Semantics</h3>
-<h2 id="standard-data-structures"><span class="header-section-number">6.4</span> Standard Data Structures</h2>
-<h2 id="how-to-avoid-race-conditions"><span class="header-section-number">6.5</span> How to Avoid Race Conditions</h2>
-<h2 id="generator-driver-and-monitor-design-pattern"><span class="header-section-number">6.6</span> Generator, Driver, and Monitor Design Pattern</h2>
+<p>Run the file (<code>code/06/fork_join_ex.sv</code>) with <code>xrun</code> we will get:</p>
+<pre><code>Thread 2 finished at                    5
+Thread 1 finished at                   10
+Thread 3 finished at                   20</code></pre>
+<p>Notice that you can even have nested <code>fork</code> <code>join</code>, i.e. one thread can spawn multiple threads as well. Although the fork join semantics is similar to software programming languages, there are some properties we need to keep in mind:</p>
+<ol type="1">
+<li>All statements are executed concurrently, regardless of whether it is simulated on a single CPU core or not.</li>
+<li>Timing controls are local to each fork block and are computed relative to the simulation time when entering the block.</li>
+<li><p>It is always a good practice to name the fork block, especially when you’re creating variables inside, as shown below:</p>
+<div class="sourceCode" id="cb133"><pre class="sourceCode systemverilog"><code class="sourceCode systemverilog"><a class="sourceLine" id="cb133-1" title="1"><span class="kw">fork</span></a>
+<a class="sourceLine" id="cb133-2" title="2">   <span class="kw">begin:</span><span class="dt"> </span><span class="kw">blk_1</span></a>
+<a class="sourceLine" id="cb133-3" title="3">       <span class="co">// logic</span></a>
+<a class="sourceLine" id="cb133-4" title="4">   <span class="kw">end</span>: blk_<span class="dv">1</span></a>
+<a class="sourceLine" id="cb133-5" title="5">   <span class="kw">begin:</span><span class="dt"> </span><span class="kw">blk_2</span></a>
+<a class="sourceLine" id="cb133-6" title="6">       <span class="co">// logic</span></a>
+<a class="sourceLine" id="cb133-7" title="7">   <span class="kw">end</span>: blk_<span class="dv">2</span></a>
+<a class="sourceLine" id="cb133-8" title="8"> <span class="kw">join</span></a></code></pre></div></li>
+<li>Since fork and join is part of SystemVerilog’s timing control, it is not allowed inside <code>function</code>. You need to use <code>task</code> instead.</li>
+<li>Any objects declared inside the fork-join block are managed by the simulator, so we don’t need to worry about dangling references or memory leaks. However, they should be declared as <code>automatic</code> so that it is local to the block.</li>
+<li><p>You cannot put fork-join inside <code>always_comb</code>.</p></li>
+</ol>
+<h4 id="different-join-semantics"><span class="header-section-number">6.2.1.1</span> Different Join Semantics</h4>
+<p>There are three different join keywords we can use in SystemVerilog and each have different semantics:</p>
+<ul>
+<li><code>join</code>: this keyword blocks the execution until all the forked processes finish, This is similar to <code>join()</code> in software threads</li>
+<li><code>join_any</code>: this keyword blocks until any of the forked processes finishes. As a result, some processes may still be running when the execution of the main thread continues</li>
+<li><code>join_none</code>: this keyword does not block and execution as the forked processes continue to execute in the background.</li>
+</ul>
+<h2 id="standard-data-structures"><span class="header-section-number">6.3</span> Standard Data Structures</h2>
+<p>SystemVerilog introduces many common data structures to help designers build complex test logic. These data structure interfaces are heavily influenced by C++ standard libraries. We will take a quick look at some commonly used data structures. Interested readers should refer to LRM for more information. Keep in mind that all the data structures introduced in this sub-chapter is not synthesizable, as with any construct discussed in this chapter.</p>
+<h3 id="dynamic-array"><span class="header-section-number">6.3.1</span> Dynamic Array</h3>
+<p>Most arrays in SystemVerilog are fix-sized and their dimensions cannot be changed at run time. Dynamic array, as its name suggests, is an <em>unpacked</em> array whose dimension can be changed at runtime. To decare a dynamic array we can use the following syntax</p>
+<div class="sourceCode" id="cb134"><pre class="sourceCode systemverilog"><code class="sourceCode systemverilog"><a class="sourceLine" id="cb134-1" title="1">    <span class="co">// data_type name[];</span></a>
+<a class="sourceLine" id="cb134-2" title="2">    <span class="kw">integer</span> a[];</a>
+<a class="sourceLine" id="cb134-3" title="3">    <span class="kw">logic</span>[<span class="dv">15</span>:<span class="dv">0</span>] b[];</a></code></pre></div>
+<p>You can also combine it with other arrays, as shown below, which declares a fix-sized array of dynamic arrays.</p>
+<div class="sourceCode" id="cb135"><pre class="sourceCode systemverilog"><code class="sourceCode systemverilog"><a class="sourceLine" id="cb135-1" title="1">    <span class="kw">integer</span> a[<span class="dv">1</span>:<span class="dv">0</span>][];</a></code></pre></div>
+<p>To initialize the dynamic array, we can use the keyword <code>new</code> with the targeted dimension:</p>
+<div class="sourceCode" id="cb136"><pre class="sourceCode systemverilog"><code class="sourceCode systemverilog"><a class="sourceLine" id="cb136-1" title="1">    <span class="kw">integer</span> a[];</a>
+<a class="sourceLine" id="cb136-2" title="2">    a = <span class="kw">new</span>[<span class="dv">10</span>];</a></code></pre></div>
+<p>Keep in mind that even though we have initialized the dynamic array, the content of each array element is still uninitialized. As a result, you can get <code>x</code> when reading the element values.</p>
+<p>To loop through the array, we can simply do</p>
+<div class="sourceCode" id="cb137"><pre class="sourceCode systemverilog"><code class="sourceCode systemverilog"><a class="sourceLine" id="cb137-1" title="1"><span class="kw">integer</span> a[];</a>
+<a class="sourceLine" id="cb137-2" title="2">a = <span class="kw">new</span>[<span class="dv">4</span>];</a>
+<a class="sourceLine" id="cb137-3" title="3"><span class="kw">foreach</span> (a[i]) <span class="kw">begin</span></a>
+<a class="sourceLine" id="cb137-4" title="4">    <span class="kw">$display</span>(<span class="st">&quot;a[%0d] = %0d&quot;</span>, i, a[i]);</a>
+<a class="sourceLine" id="cb137-5" title="5"><span class="kw">end</span></a></code></pre></div>
+<p>Notice that we implicitly create an index variable <code>i</code> with the <code>foreach</code> keyword.</p>
+<p>Below is a list of methods associated with the dynamic array:</p>
+<ul>
+<li><code>size()</code>: in additional to the standard system call function <code>$size()</code>, dynamic array has a method that returns the size of the array.</li>
+<li><code>delete()</code>: clears all the elements and becomes an empty array.</li>
+</ul>
+<h3 id="queue"><span class="header-section-number">6.3.2</span> Queue</h3>
+<p>Queue is SystemVerilog’s equivalence for vector in C++. To declare a queue, we can use the following syntax:</p>
+<div class="sourceCode" id="cb138"><pre class="sourceCode systemverilog"><code class="sourceCode systemverilog"><a class="sourceLine" id="cb138-1" title="1"><span class="co">// type name[$];</span></a>
+<a class="sourceLine" id="cb138-2" title="2"><span class="kw">string</span> names[$];</a>
+<a class="sourceLine" id="cb138-3" title="3"><span class="kw">integer</span> values[$];</a></code></pre></div>
+<p>Like normal arrays, queue supports slicing operations: - Like the usual slicing operator, the indexing is inclusive, that is, <code>queue[a:b]</code> should returns <code>b - a + 1</code> elements. - If the slicing is out of range or malformed, e.g., <code>queue[1:0]</code>, an empty queue should be returned. - If any 4-state value containing <code>x</code> or <code>z</code> is used for slicing, an empty queue should be returned.</p>
+<p>Looping through the queue is the same as looping through dynamic arrays:</p>
+<div class="sourceCode" id="cb139"><pre class="sourceCode systemverilog"><code class="sourceCode systemverilog"><a class="sourceLine" id="cb139-1" title="1"><span class="kw">integer</span> a[$];</a>
+<a class="sourceLine" id="cb139-2" title="2"><span class="kw">foreach</span> (a[i]) <span class="kw">begin</span></a>
+<a class="sourceLine" id="cb139-3" title="3">    <span class="kw">$display</span>(<span class="st">&quot;a[%0d] = %d&quot;</span>, i, a[i]);</a>
+<a class="sourceLine" id="cb139-4" title="4"><span class="kw">end</span></a></code></pre></div>
+<p>Below is a list of methods associated with the queue: - <code>size()</code>: in additional to the standard system call function <code>$size()</code>, <code>size()</code> returns the size of the queue. - <code>delete(index)</code>: deletes the element based on given index; if index is not provided as a function argument, clear the queue. - <code>insert(index, value)</code>: insert the <code>value</code> into given <code>index</code>. - <code>push_back(value)</code>: put the element to the end of the queue. - <code>pop_back()</code>: removes and returns the last element of the queue. If the queue is empty, default value for the data type is returned and a warning may be issued. - <code>push_front(value)</code>: put the element to the front of the queue. - <code>pop_front()</code>: removes and returns the first element of the queue. If the queue is empty, default value for the data type is returned and a warning may be issued.</p>
+<h3 id="associative-array"><span class="header-section-number">6.3.3</span> Associative Array</h3>
+<p>Associative array is SystemVerilog’s equivalence for map containers in C++. The index expression can be any legal SystemVerilog type and the size of the container grows as more elements are inserted. To declare an associative array, we can use the following syntax:</p>
+<div class="sourceCode" id="cb140"><pre class="sourceCode systemverilog"><code class="sourceCode systemverilog"><a class="sourceLine" id="cb140-1" title="1"><span class="co">// data_type name [index_type]</span></a>
+<a class="sourceLine" id="cb140-2" title="2"><span class="kw">integer</span> array1[<span class="kw">string</span>];</a>
+<a class="sourceLine" id="cb140-3" title="3"><span class="kw">logic</span>[<span class="dv">15</span>:<span class="dv">0</span>] array2[ClassA]; <span class="co">// ClassA is a class</span></a>
+<a class="sourceLine" id="cb140-4" title="4"><span class="co">// * implies any integral expression of any size</span></a>
+<a class="sourceLine" id="cb140-5" title="5"><span class="co">// more details below</span></a>
+<a class="sourceLine" id="cb140-6" title="6"><span class="kw">logic</span> array3[*];</a></code></pre></div>
+<p>SystemVerilog supports using <code>*</code> as a wildcard for index type with the following restrictions:</p>
+<ol type="1">
+<li>The index type must be an integral type, but can be different size. The “true value” is used for indexing; that is, SystemVerilog needs to resolve two values with different sizes to the same index location if their values match.</li>
+<li>4-state values with <code>x</code> and <code>z</code> is illegal.</li>
+<li>Non-integral index types/values are illegal and will result in an error</li>
+<li>String can be used, but will be casted as integral values.</li>
+</ol>
+<p>To initialize the associative map when declaring it, we can use the following syntax:</p>
+<div class="sourceCode" id="cb141"><pre class="sourceCode systemverilog"><code class="sourceCode systemverilog"><a class="sourceLine" id="cb141-1" title="1"><span class="kw">string</span> map[<span class="kw">integer</span>] = {<span class="dv">0</span>: <span class="st">&quot;a&quot;</span>, <span class="dv">1</span>: <span class="st">&quot;b&quot;</span>};</a></code></pre></div>
+<p>Similar to other data structures, we can loop through the associative array using <code>foreach</code> keyword:</p>
+<div class="sourceCode" id="cb142"><pre class="sourceCode systemverilog"><code class="sourceCode systemverilog"><a class="sourceLine" id="cb142-1" title="1"><span class="kw">string</span> map[<span class="kw">integer</span>] = {<span class="dv">0</span>: <span class="st">&quot;a&quot;</span>, <span class="dv">1</span>: <span class="st">&quot;b&quot;</span>};</a>
+<a class="sourceLine" id="cb142-2" title="2"><span class="kw">foreach</span> (map[key]) <span class="kw">begin</span></a>
+<a class="sourceLine" id="cb142-3" title="3">    <span class="kw">string</span> value = map[key];</a>
+<a class="sourceLine" id="cb142-4" title="4"><span class="kw">end</span></a></code></pre></div>
+<p>Below is a list of useful methods for associative array: - <code>size()</code>: in additional to the standard system call function <code>$size()</code>, <code>size()</code> returns the number of elements in the associative array. - <code>delete([index])</code>: if index is provided, deletes the index and its associated value from the array. If index is not provided as function argument, clear the entire array. - <code>exists(index)</code>: returns 1 if the element with given index exists and 0 otherwise.</p>
+<h2 id="event-control-and-synchronization"><span class="header-section-number">6.4</span> Event Control and Synchronization</h2>
+<p>Because the programming model lof a standard RTL test bench requires concurrency and therefore synchronization, SystemVerilog offers various constructs and keywords to help programmers reason about the concurrency.</p>
+<p>The basic synchronization unit is event, which can be either named or unnamed. An unnamed event is created implicitly through detecting the values changes on nets and variables. There are three types of value changes that can trigger an event:</p>
+<ul>
+<li><code>posedge</code>: it happens when the net become non-zero from zero or from <code>x/z</code> to 1, , e.g. <code>0 -&gt; 1</code> or <code>0 -&gt; x</code></li>
+<li><code>negedge</code>: it happens when the net becomes non-one from one or from <code>x/z</code> to 0, e.g. <code>1 -&gt; 0</code> or <code>1 -&gt; x</code></li>
+<li><code>edge</code>: it happens whenever <code>posedge</code> or <code>negedge</code> happens.</li>
+</ul>
+<p>Only integral values or strings can be used in the implicit event.</p>
+<p>To synchronize the logic with <em>edge-triggered</em> events, we need to use <code>@</code> keyword as shown below. Notice that we have seen the event control in <code>always_ff</code> and previous sections on how to write a simple test bench!</p>
+<div class="sourceCode" id="cb143"><pre class="sourceCode systemverilog"><code class="sourceCode systemverilog"><a class="sourceLine" id="cb143-1" title="1">@(<span class="kw">posedge</span> clk);</a>
+<a class="sourceLine" id="cb143-2" title="2">@(<span class="kw">negedge</span> ckl);</a></code></pre></div>
+<p>Events can also be OR-ed together so that the code can be synchronized by any of the events, as shown below:</p>
+<div class="sourceCode" id="cb144"><pre class="sourceCode systemverilog"><code class="sourceCode systemverilog"><a class="sourceLine" id="cb144-1" title="1">@(<span class="kw">posedge</span> clk <span class="kw">or</span> <span class="kw">posedge</span> clk2);</a></code></pre></div>
+<p>Notice that SystemVerilog also offers a syntax sugar that uses comma (<code>,</code>) as OR operator in the events, which we have seen in the <code>always_ff</code> earlier:</p>
+<div class="sourceCode" id="cb145"><pre class="sourceCode systemverilog"><code class="sourceCode systemverilog"><a class="sourceLine" id="cb145-1" title="1"><span class="kw">always_ff</span> @(<span class="kw">posedge</span> clk, <span class="kw">negedge</span> rst_n);</a></code></pre></div>
+<p>Another way to synchronize events is blocking the execution until a condition becomes true. This is called <em>level-sensitive</em>, as oppose to edge-sensitive in the case of using <code>@</code>. To do so, we need the <code>wait</code> keyword, which evaluates a specified condition. If the condition is false, the following procedure statement shall be blocked until that condition becomes true. Below shows an example (<code>code/06/wait_ex.sv</code>) of <code>wait</code> with <code>fork</code>:</p>
+<div class="sourceCode" id="cb146"><pre class="sourceCode systemverilog"><code class="sourceCode systemverilog"><a class="sourceLine" id="cb146-1" title="1"><span class="kw">module</span> wait_ex;</a>
+<a class="sourceLine" id="cb146-2" title="2"><span class="kw">logic</span> a;</a>
+<a class="sourceLine" id="cb146-3" title="3"></a>
+<a class="sourceLine" id="cb146-4" title="4"><span class="kw">initial</span> <span class="kw">begin</span></a>
+<a class="sourceLine" id="cb146-5" title="5">    <span class="kw">fork</span></a>
+<a class="sourceLine" id="cb146-6" title="6">        <span class="kw">begin</span></a>
+<a class="sourceLine" id="cb146-7" title="7">            <span class="bn">#10</span>;</a>
+<a class="sourceLine" id="cb146-8" title="8">            a = <span class="dv">1</span>;</a>
+<a class="sourceLine" id="cb146-9" title="9">        <span class="kw">end</span></a>
+<a class="sourceLine" id="cb146-10" title="10">        <span class="kw">begin</span></a>
+<a class="sourceLine" id="cb146-11" title="11">            <span class="kw">wait</span>(a);</a>
+<a class="sourceLine" id="cb146-12" title="12">            <span class="kw">$display</span>(<span class="st">&quot;@(%0t) a = %d&quot;</span>, <span class="kw">$time</span>, a);</a>
+<a class="sourceLine" id="cb146-13" title="13">        <span class="kw">end</span></a>
+<a class="sourceLine" id="cb146-14" title="14">    <span class="kw">join</span></a>
+<a class="sourceLine" id="cb146-15" title="15"><span class="kw">end</span></a>
+<a class="sourceLine" id="cb146-16" title="16"><span class="kw">endmodule</span></a></code></pre></div>
+<p>After running the example we will see the following printout, which is expected.</p>
+<pre><code>@(10) a = 1</code></pre>
+<p>Although <code>@</code> and <code>wait</code> seems similar, they are fundamentally different since one is edge-triggered and the other is level-triggered. One direct implication of this is they are scheduled differently in the simulator.</p>
+<p>A named event can be constructed through the builtin type in SystemVerilog, <code>event</code>, which allows aliasing, as shown bellow.</p>
+<div class="sourceCode" id="cb148"><pre class="sourceCode systemverilog"><code class="sourceCode systemverilog"><a class="sourceLine" id="cb148-1" title="1"><span class="kw">event</span> e1;       <span class="co">// declare a new event called e1</span></a>
+<a class="sourceLine" id="cb148-2" title="2"><span class="kw">event</span> e2 = e1;  <span class="co">// e2 becomes an alias of e1</span></a>
+<a class="sourceLine" id="cb148-3" title="3"><span class="kw">event</span> e3 = <span class="kw">null</span>; <span class="co">// event e3 does not hold any synchronization object</span></a></code></pre></div>
+<p>To trigger a named event, we can use <code>-&gt;</code> and <code>-&gt;&gt;</code>. <code>-&gt;&gt;</code> is the non-blocking version of <code>-&gt;</code>. To wait for an event to be triggered, we can use <code>triggered</code> with <code>wait</code> keyword, as shown below.</p>
+<div class="sourceCode" id="cb149"><pre class="sourceCode systemverilog"><code class="sourceCode systemverilog"><a class="sourceLine" id="cb149-1" title="1"><span class="kw">module</span> event_trigger_ex;</a>
+<a class="sourceLine" id="cb149-2" title="2"><span class="kw">event</span> e;</a>
+<a class="sourceLine" id="cb149-3" title="3"></a>
+<a class="sourceLine" id="cb149-4" title="4"><span class="kw">initial</span> <span class="kw">begin</span></a>
+<a class="sourceLine" id="cb149-5" title="5">    <span class="kw">fork</span></a>
+<a class="sourceLine" id="cb149-6" title="6">        <span class="kw">begin</span></a>
+<a class="sourceLine" id="cb149-7" title="7">            <span class="bn">#10</span>;</a>
+<a class="sourceLine" id="cb149-8" title="8">            -&gt; e;</a>
+<a class="sourceLine" id="cb149-9" title="9">        <span class="kw">end</span></a>
+<a class="sourceLine" id="cb149-10" title="10">        <span class="kw">begin</span></a>
+<a class="sourceLine" id="cb149-11" title="11">            <span class="kw">wait</span>(e.triggered);</a>
+<a class="sourceLine" id="cb149-12" title="12">            <span class="kw">$display</span>(<span class="st">&quot;@(%0t) e is triggered&quot;</span>, <span class="kw">$time</span>);</a>
+<a class="sourceLine" id="cb149-13" title="13">        <span class="kw">end</span></a>
+<a class="sourceLine" id="cb149-14" title="14">    <span class="kw">join</span></a>
+<a class="sourceLine" id="cb149-15" title="15"><span class="kw">end</span></a>
+<a class="sourceLine" id="cb149-16" title="16"><span class="kw">endmodule</span></a></code></pre></div>
+<p>We should expect similar output as the <code>wait</code> example:</p>
+<pre><code>@(10) e is triggered</code></pre>
+<p>There are several advantages of using events compared to using normal signals</p>
+<ul>
+<li>Events can be passed into tasks and other hierarchy due to its aliasing semantics.</li>
+<li><p>Events avoid a common case of race condition. Considering the following example:</p>
+<div class="sourceCode" id="cb151"><pre class="sourceCode systemverilog"><code class="sourceCode systemverilog"><a class="sourceLine" id="cb151-1" title="1"><span class="kw">wait</span> (a);</a>
+<a class="sourceLine" id="cb151-2" title="2"><span class="kw">wait</span> (e.triggered)</a></code></pre></div>
+<p>If the simulator evaluates the <code>wait</code> statement and updating <code>a</code> value at the same time, the ordering of execution is undetermined since this is a race condition. Using <code>triggered</code> however, is guaranteed to be executed properly, regardless of the ordering of execution.</p></li>
+</ul>
+<h3 id="semaphore-how-to-avoid-race-conditions"><span class="header-section-number">6.4.1</span> Semaphore: How to Avoid Race Conditions</h3>
+<h3 id="mailboxes-thread-safe-messaging-passing"><span class="header-section-number">6.4.2</span> Mailboxes: Thread-safe Messaging Passing</h3>
+<h2 id="generator-driver-and-monitor-design-pattern"><span class="header-section-number">6.5</span> Generator, Driver, and Monitor Design Pattern</h2>
                 </div>
             </div>
         </div>
