@@ -311,7 +311,106 @@ Thread 3 finished at                   20</code></pre>
 <p>If the simulator evaluates the <code>wait</code> statement and updating <code>a</code> value at the same time, the ordering of execution is undetermined since this is a race condition. Using <code>triggered</code> however, is guaranteed to be executed properly, regardless of the ordering of execution.</p></li>
 </ul>
 <h3 id="semaphore-how-to-avoid-race-conditions"><span class="header-section-number">6.4.1</span> Semaphore: How to Avoid Race Conditions</h3>
+<p>A natural challenging in a concurrent software system is race condition. Since hardware simulation is done typically in software, race condition can happen if not taken care of. SystemVerilog offers a construct called <code>semaphore</code> to facilitate shared resource synchronization. In this chapter we assume readers have some basic knowledge in POSIX Threads (pthread). If not, we highly recommend reading over the Linux manual page of <code>pthreads(7)</code> and other related pages.</p>
+<p>To initialize the semaphore we can use the following syntax, where we declare and initialize a semaphore <code>s</code> with 10 initial resources:</p>
+<div class="sourceCode" id="cb152"><pre class="sourceCode systemverilog"><code class="sourceCode systemverilog"><a class="sourceLine" id="cb152-1" title="1"><span class="ot">semaphore</span> <span class="kw">s</span>;</a>
+<a class="sourceLine" id="cb152-2" title="2"><span class="kw">int</span> num_resources = <span class="dv">10</span>;</a>
+<a class="sourceLine" id="cb152-3" title="3"><span class="kw">s</span> = <span class="kw">new</span>(num_resources);</a></code></pre></div>
+<p>To get certain number of resource from the semaphore, we can use the <code>get()</code> method. Notice that this method is blocking, meaning the the next procedural statement will be evaluated only after the function returns, i.e. successfully obtaining the desired resources.</p>
+<div class="sourceCode" id="cb153"><pre class="sourceCode systemverilog"><code class="sourceCode systemverilog"><a class="sourceLine" id="cb153-1" title="1"><span class="kw">s</span>.<span class="ot">get</span>(<span class="dv">1</span>); <span class="co">// blocking</span></a></code></pre></div>
+<p>To release resources back to the semaphore, we can use <code>put</code> methods. This will unlock threads that’s waiting for resources:</p>
+<div class="sourceCode" id="cb154"><pre class="sourceCode systemverilog"><code class="sourceCode systemverilog"><a class="sourceLine" id="cb154-1" title="1"><span class="kw">s</span>.<span class="ot">put</span>(<span class="dv">1</span>);</a></code></pre></div>
+<p>A best-effort getting resource can be done via <code>try_get()</code>. Notice that this method is non-blocking and caller thread should check the return value to see how many resources actually get allocated.</p>
+<div class="sourceCode" id="cb155"><pre class="sourceCode systemverilog"><code class="sourceCode systemverilog"><a class="sourceLine" id="cb155-1" title="1"><span class="kw">int</span> <span class="ot">num</span> = <span class="kw">s</span>.<span class="ot">try_get</span>(<span class="dv">5</span>);</a></code></pre></div>
+<p>Here is an example (<code>code/06/semaphore_ex.sv</code>) of semaphore with <code>fork-join</code>:</p>
+<div class="sourceCode" id="cb156"><pre class="sourceCode systemverilog"><code class="sourceCode systemverilog"><a class="sourceLine" id="cb156-1" title="1"><span class="kw">module</span> semaphore_ex;</a>
+<a class="sourceLine" id="cb156-2" title="2"></a>
+<a class="sourceLine" id="cb156-3" title="3"><span class="ot">semaphore</span> <span class="kw">s</span>;</a>
+<a class="sourceLine" id="cb156-4" title="4"></a>
+<a class="sourceLine" id="cb156-5" title="5"><span class="kw">initial</span> <span class="kw">begin</span></a>
+<a class="sourceLine" id="cb156-6" title="6">    <span class="kw">s</span> = <span class="kw">new</span>(<span class="dv">10</span>);</a>
+<a class="sourceLine" id="cb156-7" title="7">    <span class="kw">fork</span></a>
+<a class="sourceLine" id="cb156-8" title="8">        <span class="kw">begin</span></a>
+<a class="sourceLine" id="cb156-9" title="9">            <span class="kw">s</span>.<span class="ot">get</span>(<span class="dv">5</span>);</a>
+<a class="sourceLine" id="cb156-10" title="10">            <span class="bn">#10</span> <span class="kw">s</span>.<span class="ot">put</span>(<span class="dv">5</span>);</a>
+<a class="sourceLine" id="cb156-11" title="11">            <span class="kw">$display</span>(<span class="st">&quot;Thread 1 finished @ %0t&quot;</span>, <span class="kw">$time</span>);</a>
+<a class="sourceLine" id="cb156-12" title="12">        <span class="kw">end</span></a>
+<a class="sourceLine" id="cb156-13" title="13">        <span class="kw">begin</span></a>
+<a class="sourceLine" id="cb156-14" title="14">            <span class="kw">s</span>.<span class="ot">get</span>(<span class="dv">5</span>);</a>
+<a class="sourceLine" id="cb156-15" title="15">            <span class="bn">#20</span> <span class="kw">s</span>.<span class="ot">put</span>(<span class="dv">5</span>);</a>
+<a class="sourceLine" id="cb156-16" title="16">            <span class="kw">$display</span>(<span class="st">&quot;Thread 2 finished @ %0t&quot;</span>, <span class="kw">$time</span>);</a>
+<a class="sourceLine" id="cb156-17" title="17">        <span class="kw">end</span></a>
+<a class="sourceLine" id="cb156-18" title="18">        <span class="kw">begin</span></a>
+<a class="sourceLine" id="cb156-19" title="19">            <span class="bn">#1</span>;</a>
+<a class="sourceLine" id="cb156-20" title="20">            <span class="kw">s</span>.<span class="ot">get</span>(<span class="dv">10</span>);</a>
+<a class="sourceLine" id="cb156-21" title="21">            <span class="kw">$display</span>(<span class="st">&quot;Thread 3 finished @ %0t&quot;</span>, <span class="kw">$time</span>);</a>
+<a class="sourceLine" id="cb156-22" title="22">        <span class="kw">end</span></a>
+<a class="sourceLine" id="cb156-23" title="23">    <span class="kw">join</span></a>
+<a class="sourceLine" id="cb156-24" title="24"><span class="kw">end</span></a>
+<a class="sourceLine" id="cb156-25" title="25"></a>
+<a class="sourceLine" id="cb156-26" title="26"><span class="kw">endmodule</span></a></code></pre></div>
+<p>We should expect the following output:</p>
+<pre><code>Thread 1 finished @ 10
+Thread 2 finished @ 20
+Thread 3 finished @ 20</code></pre>
+<p>Although SystemVerilog does not offer the <code>mutex</code> construct, it can easily been implemented by setting the initial resource to 1. Interested readers should try to implement a mutex in SystemVerilog.</p>
 <h3 id="mailboxes-thread-safe-messaging-passing"><span class="header-section-number">6.4.2</span> Mailboxes: Thread-safe Messaging Passing</h3>
+<p>Mailbox is an message passing construct that allows message exchanges between different processes. As the name suggested, its design follows the concept of “mailbox” in real life. That is, the mail box has a fixed capacity and mails will be rejected if the mail box is full: the delivery person need to come back later to make another deliver attempt. Similarly, <code>mailbox</code> in SystemVerilog is also a fixed capacity containers that is able to block a process’s deliver attempt if it is full.</p>
+<p>To create a <code>mailbox</code>, we can use the following constructor:</p>
+<div class="sourceCode" id="cb158"><pre class="sourceCode systemverilog"><code class="sourceCode systemverilog"><a class="sourceLine" id="cb158-1" title="1"><span class="ot">mailbox</span> box1 = <span class="kw">new</span>();</a>
+<a class="sourceLine" id="cb158-2" title="2"><span class="ot">mailbox</span> box2 = <span class="kw">new</span>(<span class="dv">10</span>);</a></code></pre></div>
+<p>Notice that the default constructor set the capacity to 0, which implies unlimited capacity. In this cases <code>mailbox</code> functions as a FIFO with unlimited capacity.</p>
+<p>To put a message into a <code>mailbox</code>, we can simply use <code>put(obj)</code>. <code>obj</code> can be any expression or object handles. To get a message from a <code>mailbox</code>, we can use <code>get()</code> method. Both <code>put()</code> and <code>get()</code> follows FIFO ordering, which can be a nice property for verification work. Notice that <code>put()</code> and <code>get()</code> are blocking, meaning if the <code>mailbox</code> is full, <code>put()</code> will block the current process until there is an empty space in the <code>mailbox</code>, and <code>get()</code> will block until the there is one message in the <code>mailbox</code>.</p>
+<p>If non-blocking functions call is required, we can use <code>try_put()</code> and <code>try_get()</code>. <code>try_put()</code> returns 0 if the mailbox is full and a positive integer if the action is successful. <code>try_get()</code> returns 0 if the mailbox is empty and positive number if the action is successful. Since we are trying to assigning to a variable with potentially incompatible type, a negative number will be returned if type error happens.</p>
+<p>To check the number of messages in the <code>mailbox</code>, we can use <code>num()</code> methods. Please notice that there will be a race condition if a process calls <code>num()</code> first and then use the result to decide whether to put/get messages. Since these two actions are not atomic, another process can perform an action such that by the time the a message is put into the target process, the previous result from <code>num()</code> is not accurate anymore! Designers should consider to use <code>try_get/try_put()</code> instead!</p>
+<p>Here is an example (<code>code/06/mailbox_ex.sv</code>) of using variable methods of the mailbox:</p>
+<div class="sourceCode" id="cb159"><pre class="sourceCode systemverilog"><code class="sourceCode systemverilog"><a class="sourceLine" id="cb159-1" title="1"><span class="kw">module</span> mailbox_ex;</a>
+<a class="sourceLine" id="cb159-2" title="2"></a>
+<a class="sourceLine" id="cb159-3" title="3"><span class="ot">mailbox</span> mb;</a>
+<a class="sourceLine" id="cb159-4" title="4"></a>
+<a class="sourceLine" id="cb159-5" title="5"><span class="kw">initial</span> <span class="kw">begin</span></a>
+<a class="sourceLine" id="cb159-6" title="6">    mb = <span class="kw">new</span>(<span class="dv">2</span>);</a>
+<a class="sourceLine" id="cb159-7" title="7"></a>
+<a class="sourceLine" id="cb159-8" title="8">    <span class="kw">fork</span></a>
+<a class="sourceLine" id="cb159-9" title="9">        <span class="kw">begin</span></a>
+<a class="sourceLine" id="cb159-10" title="10">            <span class="kw">for</span> (<span class="kw">int</span> i = <span class="dv">0</span>; i &lt; <span class="dv">4</span>; i++) <span class="kw">begin</span></a>
+<a class="sourceLine" id="cb159-11" title="11">                <span class="bn">#10</span> mb.<span class="ot">put</span>(i);</a>
+<a class="sourceLine" id="cb159-12" title="12">                <span class="kw">$display</span>(<span class="st">&quot;[0]: @(%0t) put in value: %0d&quot;</span>, <span class="kw">$time</span>, i);</a>
+<a class="sourceLine" id="cb159-13" title="13">            <span class="kw">end</span></a>
+<a class="sourceLine" id="cb159-14" title="14">        <span class="kw">end</span></a>
+<a class="sourceLine" id="cb159-15" title="15"></a>
+<a class="sourceLine" id="cb159-16" title="16">        <span class="kw">begin</span></a>
+<a class="sourceLine" id="cb159-17" title="17">            <span class="kw">for</span> (<span class="kw">int</span> i = <span class="dv">0</span>; i &lt; <span class="dv">2</span>; i++) <span class="kw">begin</span></a>
+<a class="sourceLine" id="cb159-18" title="18">                <span class="kw">int</span> value;</a>
+<a class="sourceLine" id="cb159-19" title="19">                mb.<span class="ot">get</span>(value);</a>
+<a class="sourceLine" id="cb159-20" title="20">                <span class="kw">$display</span>(<span class="st">&quot;[1]: @(%0t) get value: %0d&quot;</span>, <span class="kw">$time</span>, value);</a>
+<a class="sourceLine" id="cb159-21" title="21">            <span class="kw">end</span></a>
+<a class="sourceLine" id="cb159-22" title="22">        <span class="kw">end</span></a>
+<a class="sourceLine" id="cb159-23" title="23">        <span class="kw">begin</span></a>
+<a class="sourceLine" id="cb159-24" title="24">            <span class="kw">for</span> (<span class="kw">int</span> i = <span class="dv">0</span>; i &lt; <span class="dv">2</span>; i++) <span class="kw">begin</span></a>
+<a class="sourceLine" id="cb159-25" title="25">                <span class="kw">int</span> value;</a>
+<a class="sourceLine" id="cb159-26" title="26">                <span class="kw">automatic</span> <span class="kw">int</span> attempt = <span class="dv">0</span>;</a>
+<a class="sourceLine" id="cb159-27" title="27">                <span class="kw">while</span> (mb.<span class="ot">try_get</span>(value) &lt;= <span class="dv">0</span>) <span class="kw">begin</span></a>
+<a class="sourceLine" id="cb159-28" title="28">                    <span class="bn">#1</span>;</a>
+<a class="sourceLine" id="cb159-29" title="29">                    attempt++;</a>
+<a class="sourceLine" id="cb159-30" title="30">                <span class="kw">end</span></a>
+<a class="sourceLine" id="cb159-31" title="31">                <span class="kw">$display</span>(<span class="st">&quot;[2]: @(%0t) get value: %0d after %0d attempts&quot;</span>, <span class="kw">$time</span>, value, attempt);</a>
+<a class="sourceLine" id="cb159-32" title="32">            <span class="kw">end</span></a>
+<a class="sourceLine" id="cb159-33" title="33">        <span class="kw">end</span></a>
+<a class="sourceLine" id="cb159-34" title="34">    <span class="kw">join</span></a>
+<a class="sourceLine" id="cb159-35" title="35"><span class="kw">end</span></a>
+<a class="sourceLine" id="cb159-36" title="36"><span class="kw">endmodule</span></a></code></pre></div>
+<p>We will see the following output:</p>
+<pre><code>[0]: @(10) put in value: 0
+[1]: @(10) get value: 0
+[0]: @(20) put in value: 1
+[1]: @(20) get value: 1
+[0]: @(30) put in value: 2
+[2]: @(30) get value: 2 after 30 attempts
+[0]: @(40) put in value: 3
+[2]: @(40) get value: 3 after 10 attempts</code></pre>
+<p>Notice due to the simulator scheduling difference, you may see slightly different outputs as thread 1 and thread 2 might swap output values. This is because thread 1 and thread 2 are competing to get messages from the same mailbox.</p>
+<p>Keen readers may notice that one can implement a <code>semaphore</code> from a <code>mailbox</code>. Readers are encouraged to try it out!</p>
 <h2 id="generator-driver-and-monitor-design-pattern"><span class="header-section-number">6.5</span> Generator, Driver, and Monitor Design Pattern</h2>
                 </div>
             </div>
