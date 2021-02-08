@@ -1,3 +1,6 @@
+`ifndef MULT_MONITOR
+`define MULT_MONITOR
+
 class mult_monitor;
 
 mailbox monitor2score;
@@ -21,6 +24,7 @@ task main();
         // grab signals from the bus
         xact.a = monitor.a;
         xact.b = monitor.b;
+        @(posedge monitor.clk);
         // wait until valid out is high
         wait (monitor.valid_out);
         // grab the output from the bus
@@ -32,3 +36,5 @@ task main();
 endtask 
 
 endclass
+
+`endif // MULT_MONITOR

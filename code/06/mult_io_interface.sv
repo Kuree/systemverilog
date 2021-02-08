@@ -1,3 +1,6 @@
+`ifndef MULT_IO_INTERFACE
+`define MULT_IO_INTERFACE
+
 interface mult_io_interface #(
     parameter WIDTH=32
 ) (
@@ -53,3 +56,5 @@ class ScoreBoardXact #(
     logic[WIDTH-1:0] lo;
     logic[WIDTH-1:0] hi;
 endclass
+
+`endif // MULT_IO_INTERFACE

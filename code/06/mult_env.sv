@@ -1,4 +1,10 @@
-class environment;
+`include "mult_io_interface.sv"
+`include "mult_generator.sv"
+`include "mult_driver.sv"
+`include "mult_monitor.sv"
+`include "mult_scoreboard.sv"
+
+class mult_env;
 
 // instances
 mult_generator gen;
@@ -12,6 +18,9 @@ mailbox monitor2score;
 
 
 function new(int num_xact, virtual mult_io_interface io);
+    // initial mail box first
+    this.gen2driver = new();
+    this.monitor2score = new();
     this.gen = new(gen2driver, num_xact);
     this.driver = new(gen2driver, io.driver);
     this.monitor = new(monitor2score, io.monitor);

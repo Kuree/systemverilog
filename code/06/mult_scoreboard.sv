@@ -1,3 +1,6 @@
+`ifndef MULT_SCOREBOARD
+`define MULT_SCOREBOARD
+
 class mult_scoreboard;
 
 mailbox monitor2score;
@@ -25,3 +28,5 @@ task main();
 endtask 
 
 endclass
+
+`endif // MULT_SCOREBOARD

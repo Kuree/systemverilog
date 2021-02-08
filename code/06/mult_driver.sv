@@ -1,3 +1,6 @@
+`ifndef MULT_DRIVER
+`define MULT_DRIVER
+
 class mult_driver;
 
 mailbox gen2driver;
@@ -24,22 +27,28 @@ endtask
 // entry point
 task main();
     // loop forever
+    // we are always ready to receive data
+    driver.ready_in = 1'b1;
     forever begin
         this.gen2driver.get(xact);
         // drive the bus. need to make sure that the dut is ready
-        @(posedge driver.clk);
-        if (driver.ready_out) begin
-            // dut is ready
-            driver.a = xact.a;
-            driver.b = xact.b;
-            driver.valid_in = 1'b1;
-            // we are also ready to receive data
-            driver.ready_in = 1'b1;
-        end
-        else begin
-            driver.valid_in = 1'b0;
+        // block until we have successfully put one transaction in
+        while (1) begin
+            @(posedge driver.clk);
+            if (driver.ready_out) begin
+                // dut is ready
+                driver.a = xact.a;
+                driver.b = xact.b;
+                driver.valid_in = 1'b1;
+                break;
+            end
+            else begin
+                driver.valid_in = 1'b0;
+            end
         end
     end
 endtask
 
 endclass
+
+`endif // MULT_DRIVER

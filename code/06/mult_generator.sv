@@ -1,3 +1,6 @@
+`ifndef MULT_GENERATOR
+`define MULT_GENERATOR
+
 class mult_generator;
 
 // since we haven't discussed constrained random yet,
@@ -27,3 +30,5 @@ task main();
 endtask
 
 endclass
+
+`endif // MULT_GENERATOR
