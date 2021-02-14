@@ -416,8 +416,232 @@ Thread 3 finished @ 20</code></pre>
 <p>The four components servers the following purposes: - Generator: generates test stimulus on transaction-level. - Driver: takes test stimulus and drives the DUT. Performs transaction-level to signal-level conversion. - Monitor: monitors the the DUT interface and extract signals of interests. Performs signal-level to transaction-level conversion - Scoreboard: compares the transaction-level information to a gold model and reports if there is an error</p>
 <p>As long as the interface between each component is well-defined, we can either replace or reuse some components depends on the DUT. Each component typically communicates through thread-safe channels, such as mailbox where the content of the message is typically a transaction class or struct. We will first cover each components one by one, then show the complete example of test environment where all the components interacting with each other.</p>
 <h3 id="a-simple-ready-valid-design"><span class="header-section-number">6.5.1</span> A Simple Ready-Valid Design</h3>
-<p>Before we explain the test environment, lets take a brief look at our DUT, which is a simple multiplier with ready valid interface. Ideally the multiplier would be actually implemented in a multi-cycle fashion. Since this is not the focus of this chapter, we will substitute it with a combinational version of multiplier with several fake pipeline stages. Reader shall refers to the relevant section in the design if unfamiliar with ready-valid design pattern. Here is the code for our DUT (<code>code/06/mult_ex.sv</code>).</p>
-<div class="sourceCode" id="cb161"><pre class="sourceCode systemverilog"><code class="sourceCode systemverilog"><a class="sourceLine" id="cb161-1" title="1"></a></code></pre></div>
+<p>Before we explain the test environment, lets take a brief look at our DUT, which is a simple multiplier with ready valid interface. Ideally the multiplier would be actually implemented in a multi-cycle fashion. Since this is not the focus of this chapter, we will substitute it with a combinational version of multiplier with several fake pipeline stages. Reader shall refers to the relevant section in the design if unfamiliar with ready-valid design pattern. Here is the code for our DUT (<code>code/06/mult_ex.sv</code>). Notice that we mimic a pipelined multiplier for the sake of simplicity.</p>
+<div class="sourceCode" id="cb161"><pre class="sourceCode systemverilog"><code class="sourceCode systemverilog"><a class="sourceLine" id="cb161-1" title="1"><span class="kw">module</span> mult_ex #(</a>
+<a class="sourceLine" id="cb161-2" title="2">    <span class="kw">parameter</span> WIDTH = <span class="dv">32</span></a>
+<a class="sourceLine" id="cb161-3" title="3">) (</a>
+<a class="sourceLine" id="cb161-4" title="4">    <span class="kw">input</span>  <span class="kw">logic</span>            clk,</a>
+<a class="sourceLine" id="cb161-5" title="5">    <span class="kw">input</span>  <span class="kw">logic</span>            rst_n,</a>
+<a class="sourceLine" id="cb161-6" title="6">    <span class="kw">input</span>  <span class="kw">logic</span>[WIDTH<span class="dv">-1</span>:<span class="dv">0</span>] a,</a>
+<a class="sourceLine" id="cb161-7" title="7">    <span class="kw">input</span>  <span class="kw">logic</span>[WIDTH<span class="dv">-1</span>:<span class="dv">0</span>] b,</a>
+<a class="sourceLine" id="cb161-8" title="8">    <span class="kw">output</span> <span class="kw">logic</span>[WIDTH<span class="dv">-1</span>:<span class="dv">0</span>] lo,</a>
+<a class="sourceLine" id="cb161-9" title="9">    <span class="kw">output</span> <span class="kw">logic</span>[WIDTH<span class="dv">-1</span>:<span class="dv">0</span>] hi,</a>
+<a class="sourceLine" id="cb161-10" title="10"></a>
+<a class="sourceLine" id="cb161-11" title="11">    <span class="co">// ready-valid interface</span></a>
+<a class="sourceLine" id="cb161-12" title="12">    <span class="co">// input channel</span></a>
+<a class="sourceLine" id="cb161-13" title="13">    <span class="kw">input</span>  <span class="kw">logic</span>           valid_in,</a>
+<a class="sourceLine" id="cb161-14" title="14">    <span class="kw">output</span> <span class="kw">logic</span>           ready_out,</a>
+<a class="sourceLine" id="cb161-15" title="15">    <span class="co">// output channel</span></a>
+<a class="sourceLine" id="cb161-16" title="16">    <span class="kw">output</span> <span class="kw">logic</span>           valid_out,</a>
+<a class="sourceLine" id="cb161-17" title="17">    <span class="kw">input</span>  <span class="kw">logic</span>           ready_in</a>
+<a class="sourceLine" id="cb161-18" title="18">);</a>
+<a class="sourceLine" id="cb161-19" title="19"></a>
+<a class="sourceLine" id="cb161-20" title="20"></a>
+<a class="sourceLine" id="cb161-21" title="21"><span class="kw">logic</span>[WIDTH<span class="dv">-1</span>:<span class="dv">0</span>] data_lo;</a>
+<a class="sourceLine" id="cb161-22" title="22"><span class="kw">logic</span>[WIDTH<span class="dv">-1</span>:<span class="dv">0</span>] data_hi;</a>
+<a class="sourceLine" id="cb161-23" title="23"></a>
+<a class="sourceLine" id="cb161-24" title="24"><span class="co">// we will implement it in a simple FSM</span></a>
+<a class="sourceLine" id="cb161-25" title="25"><span class="kw">typedef</span> <span class="kw">enum</span> <span class="kw">logic</span>[<span class="dv">1</span>:<span class="dv">0</span>] {</a>
+<a class="sourceLine" id="cb161-26" title="26">    IDLE,</a>
+<a class="sourceLine" id="cb161-27" title="27">    WORKING1,</a>
+<a class="sourceLine" id="cb161-28" title="28">    WORKING2,</a>
+<a class="sourceLine" id="cb161-29" title="29">    FINISH</a>
+<a class="sourceLine" id="cb161-30" title="30">} state_e;</a>
+<a class="sourceLine" id="cb161-31" title="31">state_e <span class="ot">state</span>;</a>
+<a class="sourceLine" id="cb161-32" title="32"></a>
+<a class="sourceLine" id="cb161-33" title="33"></a>
+<a class="sourceLine" id="cb161-34" title="34"><span class="co">// set FSM state and values</span></a>
+<a class="sourceLine" id="cb161-35" title="35"><span class="kw">always_ff</span> @(<span class="kw">posedge</span> clk, <span class="kw">negedge</span> rst_n) <span class="kw">begin</span></a>
+<a class="sourceLine" id="cb161-36" title="36">    <span class="kw">if</span> (!rst_n) <span class="kw">begin</span></a>
+<a class="sourceLine" id="cb161-37" title="37">        data_lo &lt;= <span class="bn">&#39;d0</span>;</a>
+<a class="sourceLine" id="cb161-38" title="38">        data_hi &lt;= <span class="bn">&#39;d0</span>;</a>
+<a class="sourceLine" id="cb161-39" title="39">        <span class="ot">state</span> &lt;= IDLE;</a>
+<a class="sourceLine" id="cb161-40" title="40">    <span class="kw">end</span> </a>
+<a class="sourceLine" id="cb161-41" title="41">    <span class="kw">else</span> <span class="kw">begin</span></a>
+<a class="sourceLine" id="cb161-42" title="42">        <span class="kw">unique</span> <span class="kw">case</span> (<span class="ot">state</span>)</a>
+<a class="sourceLine" id="cb161-43" title="43">            IDLE: <span class="kw">begin</span></a>
+<a class="sourceLine" id="cb161-44" title="44">                <span class="co">// if the input is valid</span></a>
+<a class="sourceLine" id="cb161-45" title="45">                <span class="kw">if</span> (valid_in) <span class="kw">begin</span></a>
+<a class="sourceLine" id="cb161-46" title="46">                    <span class="co">// we do some work here since it&#39;s simple enough</span></a>
+<a class="sourceLine" id="cb161-47" title="47">                    {data_hi, data_lo} &lt;= a * b;</a>
+<a class="sourceLine" id="cb161-48" title="48">                    <span class="co">// switch to the next state</span></a>
+<a class="sourceLine" id="cb161-49" title="49">                    <span class="ot">state</span> &lt;= WORKING1;</a>
+<a class="sourceLine" id="cb161-50" title="50">                <span class="kw">end</span></a>
+<a class="sourceLine" id="cb161-51" title="51">            <span class="kw">end</span></a>
+<a class="sourceLine" id="cb161-52" title="52">            WORKING1: <span class="kw">begin</span></a>
+<a class="sourceLine" id="cb161-53" title="53">                <span class="ot">state</span> &lt;= WORKING2;</a>
+<a class="sourceLine" id="cb161-54" title="54">            <span class="kw">end</span></a>
+<a class="sourceLine" id="cb161-55" title="55">            WORKING2: <span class="kw">begin</span></a>
+<a class="sourceLine" id="cb161-56" title="56">                <span class="ot">state</span> &lt;= FINISH;</a>
+<a class="sourceLine" id="cb161-57" title="57">            <span class="kw">end</span></a>
+<a class="sourceLine" id="cb161-58" title="58">            FINISH: <span class="kw">begin</span></a>
+<a class="sourceLine" id="cb161-59" title="59">                <span class="co">// only if the ready in is hi, otherwise we hold the output</span></a>
+<a class="sourceLine" id="cb161-60" title="60">                <span class="co">// values</span></a>
+<a class="sourceLine" id="cb161-61" title="61">                <span class="kw">if</span> (ready_in)</a>
+<a class="sourceLine" id="cb161-62" title="62">                    <span class="ot">state</span> &lt;= IDLE;</a>
+<a class="sourceLine" id="cb161-63" title="63">            <span class="kw">end</span></a>
+<a class="sourceLine" id="cb161-64" title="64">            <span class="kw">default</span>:</a>
+<a class="sourceLine" id="cb161-65" title="65">                <span class="ot">state</span> &lt;= IDLE;</a>
+<a class="sourceLine" id="cb161-66" title="66">        <span class="kw">endcase</span></a>
+<a class="sourceLine" id="cb161-67" title="67">    <span class="kw">end</span></a>
+<a class="sourceLine" id="cb161-68" title="68"><span class="kw">end</span></a>
+<a class="sourceLine" id="cb161-69" title="69"></a>
+<a class="sourceLine" id="cb161-70" title="70"><span class="co">// set outputs based on internal state</span></a>
+<a class="sourceLine" id="cb161-71" title="71"><span class="kw">always_comb</span> <span class="kw">begin</span></a>
+<a class="sourceLine" id="cb161-72" title="72">    ready_out = <span class="bn">1&#39;b0</span>;</a>
+<a class="sourceLine" id="cb161-73" title="73">    valid_out = <span class="bn">1&#39;b0</span>;</a>
+<a class="sourceLine" id="cb161-74" title="74">    lo = <span class="dv">0</span>;</a>
+<a class="sourceLine" id="cb161-75" title="75">    hi = <span class="dv">0</span>;</a>
+<a class="sourceLine" id="cb161-76" title="76">    <span class="kw">unique</span> <span class="kw">case</span> (<span class="ot">state</span>)</a>
+<a class="sourceLine" id="cb161-77" title="77">        IDLE: <span class="kw">begin</span></a>
+<a class="sourceLine" id="cb161-78" title="78">            <span class="co">// we are ready</span></a>
+<a class="sourceLine" id="cb161-79" title="79">            ready_out = <span class="bn">1&#39;b1</span>;</a>
+<a class="sourceLine" id="cb161-80" title="80">        <span class="kw">end</span></a>
+<a class="sourceLine" id="cb161-81" title="81">        FINISH: <span class="kw">begin</span></a>
+<a class="sourceLine" id="cb161-82" title="82">            <span class="co">// the output is valid</span></a>
+<a class="sourceLine" id="cb161-83" title="83">            valid_out = <span class="bn">1&#39;b1</span>;</a>
+<a class="sourceLine" id="cb161-84" title="84">            lo = data_lo;</a>
+<a class="sourceLine" id="cb161-85" title="85">            hi = data_hi;</a>
+<a class="sourceLine" id="cb161-86" title="86">        <span class="kw">end</span></a>
+<a class="sourceLine" id="cb161-87" title="87">        <span class="kw">default</span>: <span class="kw">begin</span></a>
+<a class="sourceLine" id="cb161-88" title="88">            <span class="co">// nothing</span></a>
+<a class="sourceLine" id="cb161-89" title="89">        <span class="kw">end</span></a>
+<a class="sourceLine" id="cb161-90" title="90">    <span class="kw">endcase</span></a>
+<a class="sourceLine" id="cb161-91" title="91"><span class="kw">end</span></a>
+<a class="sourceLine" id="cb161-92" title="92"></a>
+<a class="sourceLine" id="cb161-93" title="93"><span class="kw">endmodule</span></a></code></pre></div>
+<p>Our <code>mult_ex</code> listens to the <code>ready_in</code> and use the operand <code>a</code> and <code>b</code> to produce <code>hi</code> and <code>lo</code>. Once the result is ready, we set the valid to high. Everything is controlled by a simple 2-block FSM.</p>
+<p>Another design aspect we need to take care of is the interface. We will connect each component directly using interface to make the code simpler and easier to maintain. Here is a simple interface design we will use (<code>code/06/mult_io_interface.sv</code>):</p>
+<div class="sourceCode" id="cb162"><pre class="sourceCode systemverilog"><code class="sourceCode systemverilog"><a class="sourceLine" id="cb162-1" title="1"><span class="kw">interface</span> mult_io_interface #(</a>
+<a class="sourceLine" id="cb162-2" title="2">    <span class="kw">parameter</span> WIDTH=<span class="dv">32</span></a>
+<a class="sourceLine" id="cb162-3" title="3">) (</a>
+<a class="sourceLine" id="cb162-4" title="4">    <span class="kw">input</span> <span class="kw">logic</span> clk,</a>
+<a class="sourceLine" id="cb162-5" title="5">    <span class="kw">input</span> <span class="kw">logic</span> rst_n</a>
+<a class="sourceLine" id="cb162-6" title="6">);</a>
+<a class="sourceLine" id="cb162-7" title="7"></a>
+<a class="sourceLine" id="cb162-8" title="8"><span class="kw">logic</span>[WIDTH<span class="dv">-1</span>:<span class="dv">0</span>] a, b, lo, hi;</a>
+<a class="sourceLine" id="cb162-9" title="9"><span class="kw">logic</span> ready_in, ready_out, valid_in, valid_out;</a>
+<a class="sourceLine" id="cb162-10" title="10"></a>
+<a class="sourceLine" id="cb162-11" title="11"><span class="co">// define driver and monitor modport interface</span></a>
+<a class="sourceLine" id="cb162-12" title="12"><span class="kw">modport</span> driver (</a>
+<a class="sourceLine" id="cb162-13" title="13">    <span class="kw">output</span> a,</a>
+<a class="sourceLine" id="cb162-14" title="14">    <span class="kw">output</span> b,</a>
+<a class="sourceLine" id="cb162-15" title="15">    <span class="kw">output</span> valid_in,</a>
+<a class="sourceLine" id="cb162-16" title="16">    <span class="kw">output</span> ready_in,</a>
+<a class="sourceLine" id="cb162-17" title="17"></a>
+<a class="sourceLine" id="cb162-18" title="18">    <span class="kw">input</span> clk,</a>
+<a class="sourceLine" id="cb162-19" title="19">    <span class="kw">input</span> rst_n,</a>
+<a class="sourceLine" id="cb162-20" title="20">    <span class="kw">input</span> ready_out,</a>
+<a class="sourceLine" id="cb162-21" title="21">    <span class="kw">input</span> valid_out</a>
+<a class="sourceLine" id="cb162-22" title="22">);</a>
+<a class="sourceLine" id="cb162-23" title="23"></a>
+<a class="sourceLine" id="cb162-24" title="24"><span class="co">// monitor just passively sample signals</span></a>
+<a class="sourceLine" id="cb162-25" title="25"><span class="kw">modport</span> monitor (</a>
+<a class="sourceLine" id="cb162-26" title="26">    <span class="kw">input</span> a,</a>
+<a class="sourceLine" id="cb162-27" title="27">    <span class="kw">input</span> b,</a>
+<a class="sourceLine" id="cb162-28" title="28">    <span class="kw">input</span> lo,</a>
+<a class="sourceLine" id="cb162-29" title="29">    <span class="kw">input</span> hi,</a>
+<a class="sourceLine" id="cb162-30" title="30"></a>
+<a class="sourceLine" id="cb162-31" title="31">    <span class="kw">input</span> clk,</a>
+<a class="sourceLine" id="cb162-32" title="32">    <span class="kw">input</span> rst_n,</a>
+<a class="sourceLine" id="cb162-33" title="33">    <span class="kw">input</span> ready_out,</a>
+<a class="sourceLine" id="cb162-34" title="34">    <span class="kw">input</span> ready_in,</a>
+<a class="sourceLine" id="cb162-35" title="35">    <span class="kw">input</span> valid_out,</a>
+<a class="sourceLine" id="cb162-36" title="36">    <span class="kw">input</span> valid_in</a>
+<a class="sourceLine" id="cb162-37" title="37">);</a>
+<a class="sourceLine" id="cb162-38" title="38"></a>
+<a class="sourceLine" id="cb162-39" title="39"><span class="kw">endinterface</span></a></code></pre></div>
+<p>Notice that we use <code>modport</code> to directly connect some outputs of the driver to the monitor. If needed, we can split the interface into two separated ones should the design gets complex, i.e. one interface for the driver and one for the monitor.</p>
+<h3 id="generator-design"><span class="header-section-number">6.5.2</span> Generator Design</h3>
+<p>The role of generator is to produce input stimulus to our dut. There are many ways to produce desired inputs; here is just a few commonly used ones: 1. Constrained random. This method utilizes simulator’s solver to produce large quantities of random yet valid inputs to test out the dut. We will discuss it later in the book 2. Trace replay. This is used to recreate realistic testing environment where the input are obtained from real-world usage. 3. Manually generated input sequence. For a small design, testing sequence can be directly coded by the designers. Although it is not scalable, it is often used as direct test to test out some corner cases that are difficult to cover using constrained random.</p>
+<p>To design a generator, we first need to write an input class that encapsulate all the input information for a transaction. In this case since we’re working with a multiplier, we can just put operand values in the class:</p>
+<div class="sourceCode" id="cb163"><pre class="sourceCode systemverilog"><code class="sourceCode systemverilog"><a class="sourceLine" id="cb163-1" title="1"><span class="kw">class</span> GeneratorXact #(</a>
+<a class="sourceLine" id="cb163-2" title="2">    <span class="kw">parameter</span> WIDTH=<span class="dv">32</span></a>
+<a class="sourceLine" id="cb163-3" title="3">);</a>
+<a class="sourceLine" id="cb163-4" title="4">    <span class="kw">logic</span>[WIDTH<span class="dv">-1</span>:<span class="dv">0</span>] a;</a>
+<a class="sourceLine" id="cb163-5" title="5">    <span class="kw">logic</span>[WIDTH<span class="dv">-1</span>:<span class="dv">0</span>] b;</a>
+<a class="sourceLine" id="cb163-6" title="6"><span class="kw">endclass</span></a></code></pre></div>
+<p>Notice that the <code>GeneratorXact</code> class is parametrized by operand width. In this case we can re-use the same class on multipliers with different widths.</p>
+<p>To communicate with the driver, we will use a mailbox inside the generator, which will be passed in during the constructor. We’ll use simple random number generator for the operands, and we will cover constrained random later in the book. Here is the</p>
+<div class="sourceCode" id="cb164"><pre class="sourceCode systemverilog"><code class="sourceCode systemverilog"><a class="sourceLine" id="cb164-1" title="1"><span class="kw">class</span> mult_generator;</a>
+<a class="sourceLine" id="cb164-2" title="2"></a>
+<a class="sourceLine" id="cb164-3" title="3"><span class="co">// communication channel to the driver</span></a>
+<a class="sourceLine" id="cb164-4" title="4"><span class="ot">mailbox</span> gen2driver;</a>
+<a class="sourceLine" id="cb164-5" title="5"><span class="co">// number of transaction to generate</span></a>
+<a class="sourceLine" id="cb164-6" title="6"><span class="kw">int</span> num_xact;</a>
+<a class="sourceLine" id="cb164-7" title="7"><span class="co">// the packet</span></a>
+<a class="sourceLine" id="cb164-8" title="8">GeneratorXact xact;</a>
+<a class="sourceLine" id="cb164-9" title="9"></a>
+<a class="sourceLine" id="cb164-10" title="10"><span class="kw">function</span> <span class="kw">new</span>(<span class="ot">mailbox</span> mb, <span class="kw">int</span> <span class="ot">num</span>);</a>
+<a class="sourceLine" id="cb164-11" title="11">    <span class="kw">this</span>.gen2driver = mb;</a>
+<a class="sourceLine" id="cb164-12" title="12">    <span class="kw">this</span>.num_xact = <span class="ot">num</span>;</a>
+<a class="sourceLine" id="cb164-13" title="13"><span class="kw">endfunction</span></a>
+<a class="sourceLine" id="cb164-14" title="14"></a>
+<a class="sourceLine" id="cb164-15" title="15"><span class="co">// entry point of this generator</span></a>
+<a class="sourceLine" id="cb164-16" title="16"><span class="kw">task</span> main();</a>
+<a class="sourceLine" id="cb164-17" title="17">    <span class="kw">repeat</span> (<span class="kw">this</span>.num_xact) <span class="kw">begin</span></a>
+<a class="sourceLine" id="cb164-18" title="18">        xact = <span class="kw">new</span>();</a>
+<a class="sourceLine" id="cb164-19" title="19">        xact.a = <span class="kw">$random</span>();</a>
+<a class="sourceLine" id="cb164-20" title="20">        xact.b = <span class="kw">$random</span>();</a>
+<a class="sourceLine" id="cb164-21" title="21">        <span class="kw">this</span>.gen2driver.<span class="ot">put</span>(xact);</a>
+<a class="sourceLine" id="cb164-22" title="22">    <span class="kw">end</span></a>
+<a class="sourceLine" id="cb164-23" title="23"><span class="kw">endtask</span></a>
+<a class="sourceLine" id="cb164-24" title="24"></a>
+<a class="sourceLine" id="cb164-25" title="25"><span class="kw">endclass</span></a></code></pre></div>
+<p>Notice that we have a public task <code>main()</code> that’s used to produce input transactions. This task will be called inside the test environment.</p>
+<h3 id="driver-design"><span class="header-section-number">6.5.3</span> Driver Design</h3>
+<p>The role of the driver is to serialize the input stimulus onto the interface bus. Unlike the generator, it needs to understand the interface protocol our dut is using, in this case, a simple ready-valid handshake. It pulls the transaction from the mailbox used by the generator, and then drives the net, as shown in the code below (<code>code/06/mult_driver.sv</code>):</p>
+<div class="sourceCode" id="cb165"><pre class="sourceCode systemverilog"><code class="sourceCode systemverilog"><a class="sourceLine" id="cb165-1" title="1"><span class="kw">class</span> mult_driver;</a>
+<a class="sourceLine" id="cb165-2" title="2"></a>
+<a class="sourceLine" id="cb165-3" title="3"><span class="ot">mailbox</span> gen2driver;</a>
+<a class="sourceLine" id="cb165-4" title="4"><span class="co">// virtual interface handle</span></a>
+<a class="sourceLine" id="cb165-5" title="5"><span class="kw">virtual</span> mult_io_interface.driver driver;</a>
+<a class="sourceLine" id="cb165-6" title="6"></a>
+<a class="sourceLine" id="cb165-7" title="7">GeneratorXact xact;</a>
+<a class="sourceLine" id="cb165-8" title="8"></a>
+<a class="sourceLine" id="cb165-9" title="9"><span class="kw">function</span> <span class="kw">new</span>(<span class="ot">mailbox</span> gen2driver, <span class="kw">virtual</span> mult_io_interface.driver driver);</a>
+<a class="sourceLine" id="cb165-10" title="10">    <span class="kw">this</span>.gen2driver = gen2driver;</a>
+<a class="sourceLine" id="cb165-11" title="11">    <span class="kw">this</span>.driver = driver;</a>
+<a class="sourceLine" id="cb165-12" title="12"><span class="kw">endfunction</span></a>
+<a class="sourceLine" id="cb165-13" title="13"></a>
+<a class="sourceLine" id="cb165-14" title="14"><span class="kw">task</span> reset();</a>
+<a class="sourceLine" id="cb165-15" title="15">    <span class="co">// reset the driver interface</span></a>
+<a class="sourceLine" id="cb165-16" title="16">    <span class="kw">wait</span> (!driver.rst_n);</a>
+<a class="sourceLine" id="cb165-17" title="17">    driver.a = <span class="dv">0</span>;</a>
+<a class="sourceLine" id="cb165-18" title="18">    driver.b = <span class="dv">0</span>;</a>
+<a class="sourceLine" id="cb165-19" title="19">    driver.valid_in = <span class="dv">0</span>;</a>
+<a class="sourceLine" id="cb165-20" title="20">    driver.ready_in = <span class="dv">0</span>;</a>
+<a class="sourceLine" id="cb165-21" title="21">    <span class="kw">wait</span>(driver.rst_n);</a>
+<a class="sourceLine" id="cb165-22" title="22"><span class="kw">endtask</span></a>
+<a class="sourceLine" id="cb165-23" title="23"></a>
+<a class="sourceLine" id="cb165-24" title="24"><span class="co">// entry point</span></a>
+<a class="sourceLine" id="cb165-25" title="25"><span class="kw">task</span> main();</a>
+<a class="sourceLine" id="cb165-26" title="26">    <span class="co">// loop forever</span></a>
+<a class="sourceLine" id="cb165-27" title="27">    <span class="co">// we are always ready to receive data</span></a>
+<a class="sourceLine" id="cb165-28" title="28">    driver.ready_in = <span class="bn">1&#39;b1</span>;</a>
+<a class="sourceLine" id="cb165-29" title="29">    <span class="kw">forever</span> <span class="kw">begin</span></a>
+<a class="sourceLine" id="cb165-30" title="30">        <span class="kw">this</span>.gen2driver.<span class="ot">get</span>(xact);</a>
+<a class="sourceLine" id="cb165-31" title="31">        <span class="co">// drive the bus. need to make sure that the dut is ready</span></a>
+<a class="sourceLine" id="cb165-32" title="32">        <span class="co">// block until we have successfully put one transaction in</span></a>
+<a class="sourceLine" id="cb165-33" title="33">        <span class="kw">while</span> (<span class="dv">1</span>) <span class="kw">begin</span></a>
+<a class="sourceLine" id="cb165-34" title="34">            @(<span class="kw">posedge</span> driver.clk);</a>
+<a class="sourceLine" id="cb165-35" title="35">            <span class="kw">if</span> (driver.ready_out) <span class="kw">begin</span></a>
+<a class="sourceLine" id="cb165-36" title="36">                <span class="co">// dut is ready</span></a>
+<a class="sourceLine" id="cb165-37" title="37">                driver.a = xact.a;</a>
+<a class="sourceLine" id="cb165-38" title="38">                driver.b = xact.b;</a>
+<a class="sourceLine" id="cb165-39" title="39">                driver.valid_in = <span class="bn">1&#39;b1</span>;</a>
+<a class="sourceLine" id="cb165-40" title="40">                <span class="kw">break</span>;</a>
+<a class="sourceLine" id="cb165-41" title="41">            <span class="kw">end</span></a>
+<a class="sourceLine" id="cb165-42" title="42">            <span class="kw">else</span> <span class="kw">begin</span></a>
+<a class="sourceLine" id="cb165-43" title="43">                driver.valid_in = <span class="bn">1&#39;b0</span>;</a>
+<a class="sourceLine" id="cb165-44" title="44">            <span class="kw">end</span></a>
+<a class="sourceLine" id="cb165-45" title="45">        <span class="kw">end</span></a>
+<a class="sourceLine" id="cb165-46" title="46">    <span class="kw">end</span></a>
+<a class="sourceLine" id="cb165-47" title="47"><span class="kw">endtask</span></a>
+<a class="sourceLine" id="cb165-48" title="48"></a>
+<a class="sourceLine" id="cb165-49" title="49"><span class="kw">endclass</span></a></code></pre></div>
+<p>Notice that in addition to the <code>main()</code> task, we have a <code>reset</code> task that’s responsible to initialize the dut. We also need to obey the ready-valid protocol, that is, we shall wait until the dut is ready, otherwise we will hold the pending transaction and wait. The driver does not need to know the details such as the total number of transactions. All it does is to take one transaction from the mailbox (if any), and then drive the interface.</p>
+<p>Notice that we use a new syntax using the keyword <code>virtual</code> to get the reference for interface. Doing so allows us to directly set values to the interface as if the interface is an object.</p>
                 </div>
             </div>
         </div>
