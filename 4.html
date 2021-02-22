@@ -619,7 +619,31 @@ reg1:     2 reg2:     1 reg3:     0</code></pre>
 <h2 id="axi-lite-protocol-a-case-study"><span class="header-section-number">4.4</span> AXI-Lite Protocol: A Case Study</h2>
 <p>A common place for bugs to occur is the interface between components, where each component may have different design assumptions. One approach to limit such bugs is to adhere to a well-specified protocol such that each component will follow and thus reduce the interface error. In this chapter we will take a look at a simple yet complete protocol, namely AXI-Lite, and how we can write RTL code based on the spec.</p>
 <p>AXI stands for Advanced eXtensible Interface, which is a parallel high-performance communication protocol. AXI-Lite is a subset of the AXI protocol and provides a “register-lite” structure. Although it is only a subset, AXI-Lite transactions are compatible with normal AXI devices. We will use AXI4-Lite in this book.</p>
-<h3 id="ready-valid-handshake"><span class="header-section-number">4.4.1</span> Ready-Valid Handshake</h3>
+<h3 id="readyvalid-handshake"><span class="header-section-number">4.4.1</span> Ready/Valid Handshake</h3>
+<p>Ready/valid handshake is one of the most used design pattern when transferring data in a latency-insensitive manner. It consists of two components, the source and the sink, where data flows from the former to the latter. The source uses <code>valid</code> signal to indicate whether the data is valid and the sink uses <code>ready</code> signal to indicate whether it is ready to receive data, as shown in the figure below.</p>
+<div id="fig:ready-valid-diagram" class="fignos">
+<figure>
+<img src="images/04/ready_valid_diagram.svg" alt="Figure 7: Ready/Valid block diagram" /><figcaption><span>Figure 7:</span> Ready/Valid block diagram</figcaption>
+</figure>
+</div>
+<p>Because ready/valid is latency-insensitive, each signal has precise semantics at the posedge of the clock (we assume we are dealing with synchronous circuit): - If the valid signal is high <code>@(posedge clk)</code>, we know that <code>data</code> is valid as well - If the ready signal is high <code>@posedge (clk)</code> <em>AND</em> the valid signal is high as well, we complete the data transfer. The size of transfer is often referred as one word. - If the system wishes to transfer more data, then we need to complete a series of one-word transfer, until the entire packet is transferred.</p>
+<p>The timing diagram below shows cases where a transfer should or should not occur.</p>
+<div id="fig:ready-valid-wave1" class="fignos">
+<figure>
+<img src="images/04/ready_valid_1.svg" alt="Figure 8: No data transfer" /><figcaption><span>Figure 8:</span> No data transfer</figcaption>
+</figure>
+</div>
+<div id="fig:ready-valid-wave2" class="fignos">
+<figure>
+<img src="images/04/ready_valid_2.svg" alt="Figure 9: No data transfer" /><figcaption><span>Figure 9:</span> No data transfer</figcaption>
+</figure>
+</div>
+<div id="fig:ready-valid-wave3" class="fignos">
+<figure>
+<img src="images/04/ready_valid_3.svg" alt="Figure 10: One successful ready/valid data transfer" /><figcaption><span>Figure 10:</span> One successful ready/valid data transfer</figcaption>
+</figure>
+</div>
+<p>Ready/valid handshake has several design pitfalls that needs to avoid: 1. If the source waits for the sink’s ready before asserting valid and vice versa, there will be chance of deadlock since both parties are waiting for each other. To avoid this, the control signal should be computed independently. 2. If the ready/valid signals are computed purely on combinational logic, there will be a combinational loop between the source and sink. To resolve this, either source or sink needs to register the control signals, or compute the signals based on some flopped states.</p>
 <h3 id="axi4-lite-protocol-specification"><span class="header-section-number">4.4.2</span> AXI4-Lite Protocol Specification</h3>
 <p>The complete protocol specification is freely accessible on ARM’s website. Readers are encouraged to check out the documentation even though the sheer amount of information may be intimidating at first. We will briefly cover the basic here.</p>
 <p>There are some global signals defined in AXI4-Lite and there are several naming convention to follow. We will use Xilinx’s naming convention since a lot of AXI protocol devices are based on FPGA.</p>

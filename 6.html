@@ -44,10 +44,10 @@
 <p>Before we delve into details of how to write a proper test bench, we need to establish a deep understanding of how simulator works and how it schedules events. This will help us troubleshoot bugs and errors in the future.</p>
 <p>A specification-compliant SystemVerilog simulator follows a discrete event execution model, where the simulation time advances with value updates. The hardware design is inherently parallel, where processes such as <code>always_comb</code> and <code>always_ff</code> are executed currently. Each time the value of a net/variable changes, we will have an <em>update event</em> and any processes that are sensitive to that event need to be evaluated as well, which is called <em>evaluation event</em>. At each “timestamp”, the simulator needs to first compute the update events, evaluate update events, and loop back to see if there is more update events triggered by previous update events.</p>
 <p>The term for “timestamp” in SystemVerilog is <em>simulation time</em>. It can be transformed back to real time using the <code>timescale</code> compiler directive introduced earlier in the book. We use simulation time, or simply time throughout the entire chapter to avoid confusion.</p>
-<p>Although the design and test bench is parallel by nature, most simulators are single-threaded and follows certain rules to evaluate the code to ensure it is conceptually correct. Typically the simulator divides the unit time slop into multiple regions where events can be scheduled in a pre-defined orders. In each region, the events can be scheduled arbitrarily, allowing simulator performs optimization when it sees fit. Figure <a href="#fig:sim_diagram">7</a> shows how the time slot is divided into different regions and the execution flow between different regions.</p>
+<p>Although the design and test bench is parallel by nature, most simulators are single-threaded and follows certain rules to evaluate the code to ensure it is conceptually correct. Typically the simulator divides the unit time slop into multiple regions where events can be scheduled in a pre-defined orders. In each region, the events can be scheduled arbitrarily, allowing simulator performs optimization when it sees fit. Figure <a href="#fig:sim_diagram">11</a> shows how the time slot is divided into different regions and the execution flow between different regions.</p>
 <div id="fig:sim_diagram" class="fignos">
 <figure>
-<img src="images/06/sim-diagram.svg" alt="Figure 7: Event scheduling regions. Image taken from SystemVerilog LRM Figure4-1" /><figcaption><span>Figure 7:</span> Event scheduling regions. Image taken from SystemVerilog LRM Figure4-1</figcaption>
+<img src="images/06/sim-diagram.svg" alt="Figure 11: Event scheduling regions. Image taken from SystemVerilog LRM Figure4-1" /><figcaption><span>Figure 11:</span> Event scheduling regions. Image taken from SystemVerilog LRM Figure4-1</figcaption>
 </figure>
 </div>
 <p>PLI regions will be discussed in much details later in the book. For now it is enough to know there are regions reserved for third-party libraries that can be loaded into the simulator and can have direct access to the simulator state.</p>
@@ -641,7 +641,171 @@ Thread 3 finished @ 20</code></pre>
 <a class="sourceLine" id="cb165-48" title="48"></a>
 <a class="sourceLine" id="cb165-49" title="49"><span class="kw">endclass</span></a></code></pre></div>
 <p>Notice that in addition to the <code>main()</code> task, we have a <code>reset</code> task that’s responsible to initialize the dut. We also need to obey the ready-valid protocol, that is, we shall wait until the dut is ready, otherwise we will hold the pending transaction and wait. The driver does not need to know the details such as the total number of transactions. All it does is to take one transaction from the mailbox (if any), and then drive the interface.</p>
-<p>Notice that we use a new syntax using the keyword <code>virtual</code> to get the reference for interface. Doing so allows us to directly set values to the interface as if the interface is an object.</p>
+<p>Also notice that we use a new syntax using the keyword <code>virtual</code> to get the reference for interface. Doing so allows us to directly set values to the interface as if the interface is an object.</p>
+<h3 id="monitor-design"><span class="header-section-number">6.5.4</span> Monitor Design</h3>
+<p>The monitor taps into the interface bus and de-serialize signals into the high-level transaction class. Similar to the driver, it needs to understand the interface protocol and then put the transaction object into a mailbox shared with the scoreboard. Because it usually takes multiple cycles to complete the data collection, monitor typically has internal state to store information.</p>
+<p>Below shows the monitor that listens to the interface ports and gather data when the dut is ready (<code>code/06/mult_monitor.sv</code>)</p>
+<div class="sourceCode" id="cb166"><pre class="sourceCode systemverilog"><code class="sourceCode systemverilog"><a class="sourceLine" id="cb166-1" title="1"><span class="kw">class</span> mult_monitor;</a>
+<a class="sourceLine" id="cb166-2" title="2"></a>
+<a class="sourceLine" id="cb166-3" title="3"><span class="ot">mailbox</span> monitor2score;</a>
+<a class="sourceLine" id="cb166-4" title="4">ScoreBoardXact xact;</a>
+<a class="sourceLine" id="cb166-5" title="5"><span class="co">// virtual interface handle</span></a>
+<a class="sourceLine" id="cb166-6" title="6"><span class="kw">virtual</span> mult_io_interface.monitor monitor;</a>
+<a class="sourceLine" id="cb166-7" title="7"></a>
+<a class="sourceLine" id="cb166-8" title="8"></a>
+<a class="sourceLine" id="cb166-9" title="9"><span class="kw">function</span> <span class="kw">new</span>(<span class="ot">mailbox</span> mb, <span class="kw">virtual</span> mult_io_interface.monitor monitor);</a>
+<a class="sourceLine" id="cb166-10" title="10">    <span class="kw">this</span>.monitor2score = mb;</a>
+<a class="sourceLine" id="cb166-11" title="11">    <span class="kw">this</span>.monitor = monitor;</a>
+<a class="sourceLine" id="cb166-12" title="12"><span class="kw">endfunction</span></a>
+<a class="sourceLine" id="cb166-13" title="13"></a>
+<a class="sourceLine" id="cb166-14" title="14"></a>
+<a class="sourceLine" id="cb166-15" title="15"><span class="co">// entry point</span></a>
+<a class="sourceLine" id="cb166-16" title="16"><span class="kw">task</span> main();</a>
+<a class="sourceLine" id="cb166-17" title="17">    <span class="kw">forever</span> <span class="kw">begin</span></a>
+<a class="sourceLine" id="cb166-18" title="18">        xact = <span class="kw">new</span>();</a>
+<a class="sourceLine" id="cb166-19" title="19">        @(<span class="kw">posedge</span> monitor.clk);</a>
+<a class="sourceLine" id="cb166-20" title="20">        <span class="kw">wait</span> (monitor.valid_in);</a>
+<a class="sourceLine" id="cb166-21" title="21">        <span class="co">// grab signals from the bus</span></a>
+<a class="sourceLine" id="cb166-22" title="22">        xact.a = monitor.a;</a>
+<a class="sourceLine" id="cb166-23" title="23">        xact.b = monitor.b;</a>
+<a class="sourceLine" id="cb166-24" title="24">        @(<span class="kw">posedge</span> monitor.clk);</a>
+<a class="sourceLine" id="cb166-25" title="25">        <span class="co">// wait until valid out is high</span></a>
+<a class="sourceLine" id="cb166-26" title="26">        <span class="kw">wait</span> (monitor.valid_out);</a>
+<a class="sourceLine" id="cb166-27" title="27">        <span class="co">// grab the output from the bus</span></a>
+<a class="sourceLine" id="cb166-28" title="28">        xact.lo = monitor.lo;</a>
+<a class="sourceLine" id="cb166-29" title="29">        xact.hi = monitor.hi;</a>
+<a class="sourceLine" id="cb166-30" title="30">        <span class="co">// put it into the mailbox</span></a>
+<a class="sourceLine" id="cb166-31" title="31">        monitor2score.<span class="ot">put</span>(xact);</a>
+<a class="sourceLine" id="cb166-32" title="32">    <span class="kw">end</span></a>
+<a class="sourceLine" id="cb166-33" title="33"><span class="kw">endtask</span> </a>
+<a class="sourceLine" id="cb166-34" title="34"></a>
+<a class="sourceLine" id="cb166-35" title="35"><span class="kw">endclass</span></a></code></pre></div>
+<p>Similar to driver, it uses a mailbox to interact with the scoreboard. It waits for the input valid signal goes high, then grab the input signals <code>a</code> and <code>b</code>. Then wait until the valid output goes high, i.e. dut has successfully computed the output, and then grab the output <code>lo</code> and <code>hi</code>. Once we have everything we need to for the packet, we assemble the packet and put it into the mailbox. Notice that monitor does not care about whether the output of the computation is correct or not!</p>
+<h3 id="scoreboard-design"><span class="header-section-number">6.5.5</span> Scoreboard Design</h3>
+<p>Once we have complete packet, we can compare the output against the model we have. We can also figure out if there is any packet missing or malformed. Scoreboard typically interface with a high-level function model that’s either written in C/C++ or SystemVerilog. We will cover how to interface with C/C++ model later. For now we will simply compute the gold output in SystemVerilog. Below shows the scoreboard for our multiplier (<code>code/06/mult_scoreboard.sv</code>) :</p>
+<div class="sourceCode" id="cb167"><pre class="sourceCode systemverilog"><code class="sourceCode systemverilog"><a class="sourceLine" id="cb167-1" title="1"><span class="kw">class</span> mult_scoreboard;</a>
+<a class="sourceLine" id="cb167-2" title="2"></a>
+<a class="sourceLine" id="cb167-3" title="3"><span class="ot">mailbox</span> monitor2score;</a>
+<a class="sourceLine" id="cb167-4" title="4"><span class="kw">int</span> num_xact;</a>
+<a class="sourceLine" id="cb167-5" title="5">ScoreBoardXact xact;</a>
+<a class="sourceLine" id="cb167-6" title="6"></a>
+<a class="sourceLine" id="cb167-7" title="7"><span class="kw">logic</span>[<span class="dv">31</span>:<span class="dv">0</span>] lo, hi;</a>
+<a class="sourceLine" id="cb167-8" title="8"></a>
+<a class="sourceLine" id="cb167-9" title="9"><span class="kw">function</span> <span class="kw">new</span>(<span class="ot">mailbox</span> mb);</a>
+<a class="sourceLine" id="cb167-10" title="10">    <span class="kw">this</span>.monitor2score = mb;</a>
+<a class="sourceLine" id="cb167-11" title="11">    <span class="kw">this</span>.num_xact = <span class="dv">0</span>;</a>
+<a class="sourceLine" id="cb167-12" title="12"><span class="kw">endfunction</span></a>
+<a class="sourceLine" id="cb167-13" title="13"></a>
+<a class="sourceLine" id="cb167-14" title="14"></a>
+<a class="sourceLine" id="cb167-15" title="15"><span class="kw">task</span> main();</a>
+<a class="sourceLine" id="cb167-16" title="16">    <span class="kw">forever</span> <span class="kw">begin</span></a>
+<a class="sourceLine" id="cb167-17" title="17">        monitor2score.<span class="ot">get</span>(xact);</a>
+<a class="sourceLine" id="cb167-18" title="18">        <span class="co">// assertion part</span></a>
+<a class="sourceLine" id="cb167-19" title="19">        <span class="co">// simplified</span></a>
+<a class="sourceLine" id="cb167-20" title="20">        <span class="kw">this</span>.num_xact++;</a>
+<a class="sourceLine" id="cb167-21" title="21">        {hi, lo} = xact.a * xact.b;</a>
+<a class="sourceLine" id="cb167-22" title="22">        <span class="kw">assert</span> (hi == xact.hi);</a>
+<a class="sourceLine" id="cb167-23" title="23">        <span class="kw">assert</span> (lo == xact.lo);</a>
+<a class="sourceLine" id="cb167-24" title="24">    <span class="kw">end</span></a>
+<a class="sourceLine" id="cb167-25" title="25"><span class="kw">endtask</span> </a>
+<a class="sourceLine" id="cb167-26" title="26"></a>
+<a class="sourceLine" id="cb167-27" title="27"><span class="kw">endclass</span></a></code></pre></div>
+<p>Notice that we also keep track of number of transactions, in case there is some protocol bug that drops transaction packets. Once we get the transaction from the mailbox, we simply compute the gold output and assert the result.</p>
+<h3 id="test-environment-setup"><span class="header-section-number">6.5.6</span> Test Environment Setup</h3>
+<p>Now we have all the major components written, the next step is to set up the test environment. The role of the environment is to instantiate and run the test suites. Below shows an example of test environment (`code/06/mult_env.sv):</p>
+<div class="sourceCode" id="cb168"><pre class="sourceCode systemverilog"><code class="sourceCode systemverilog"><a class="sourceLine" id="cb168-1" title="1"><span class="kw">class</span> mult_env;</a>
+<a class="sourceLine" id="cb168-2" title="2"></a>
+<a class="sourceLine" id="cb168-3" title="3"><span class="co">// instances</span></a>
+<a class="sourceLine" id="cb168-4" title="4">mult_generator gen;</a>
+<a class="sourceLine" id="cb168-5" title="5">mult_driver driver;</a>
+<a class="sourceLine" id="cb168-6" title="6">mult_monitor monitor;</a>
+<a class="sourceLine" id="cb168-7" title="7">mult_scoreboard scoreboard;</a>
+<a class="sourceLine" id="cb168-8" title="8"></a>
+<a class="sourceLine" id="cb168-9" title="9"><span class="co">// mailboxes</span></a>
+<a class="sourceLine" id="cb168-10" title="10"><span class="ot">mailbox</span> gen2driver;</a>
+<a class="sourceLine" id="cb168-11" title="11"><span class="ot">mailbox</span> monitor2score;</a>
+<a class="sourceLine" id="cb168-12" title="12"></a>
+<a class="sourceLine" id="cb168-13" title="13"></a>
+<a class="sourceLine" id="cb168-14" title="14"><span class="kw">function</span> <span class="kw">new</span>(<span class="kw">int</span> num_xact, <span class="kw">virtual</span> mult_io_interface io);</a>
+<a class="sourceLine" id="cb168-15" title="15">    <span class="co">// initial mail box first</span></a>
+<a class="sourceLine" id="cb168-16" title="16">    <span class="kw">this</span>.gen2driver = <span class="kw">new</span>();</a>
+<a class="sourceLine" id="cb168-17" title="17">    <span class="kw">this</span>.monitor2score = <span class="kw">new</span>();</a>
+<a class="sourceLine" id="cb168-18" title="18">    <span class="kw">this</span>.gen = <span class="kw">new</span>(gen2driver, num_xact);</a>
+<a class="sourceLine" id="cb168-19" title="19">    <span class="kw">this</span>.driver = <span class="kw">new</span>(gen2driver, io.driver);</a>
+<a class="sourceLine" id="cb168-20" title="20">    <span class="kw">this</span>.monitor = <span class="kw">new</span>(monitor2score, io.monitor);</a>
+<a class="sourceLine" id="cb168-21" title="21">    <span class="kw">this</span>.scoreboard = <span class="kw">new</span>(monitor2score);</a>
+<a class="sourceLine" id="cb168-22" title="22"><span class="kw">endfunction</span></a>
+<a class="sourceLine" id="cb168-23" title="23"></a>
+<a class="sourceLine" id="cb168-24" title="24"><span class="kw">task</span> reset();</a>
+<a class="sourceLine" id="cb168-25" title="25">    <span class="kw">this</span>.driver.reset();</a>
+<a class="sourceLine" id="cb168-26" title="26"><span class="kw">endtask</span></a>
+<a class="sourceLine" id="cb168-27" title="27"></a>
+<a class="sourceLine" id="cb168-28" title="28"><span class="kw">task</span> test();</a>
+<a class="sourceLine" id="cb168-29" title="29">    <span class="kw">fork</span></a>
+<a class="sourceLine" id="cb168-30" title="30">        gen.main();</a>
+<a class="sourceLine" id="cb168-31" title="31">        driver.main();</a>
+<a class="sourceLine" id="cb168-32" title="32">        monitor.main();</a>
+<a class="sourceLine" id="cb168-33" title="33">        scoreboard.main();</a>
+<a class="sourceLine" id="cb168-34" title="34">    <span class="kw">join_any</span></a>
+<a class="sourceLine" id="cb168-35" title="35"><span class="kw">endtask</span></a>
+<a class="sourceLine" id="cb168-36" title="36"></a>
+<a class="sourceLine" id="cb168-37" title="37"><span class="kw">task</span> <span class="ot">finish</span>();</a>
+<a class="sourceLine" id="cb168-38" title="38">    <span class="kw">wait</span>(gen.num_xact == scoreboard.num_xact);</a>
+<a class="sourceLine" id="cb168-39" title="39"><span class="kw">endtask</span></a>
+<a class="sourceLine" id="cb168-40" title="40"></a>
+<a class="sourceLine" id="cb168-41" title="41"><span class="kw">task</span> run();</a>
+<a class="sourceLine" id="cb168-42" title="42">    reset();</a>
+<a class="sourceLine" id="cb168-43" title="43">    test();</a>
+<a class="sourceLine" id="cb168-44" title="44">    <span class="ot">finish</span>();</a>
+<a class="sourceLine" id="cb168-45" title="45">    <span class="kw">$finish</span>();</a>
+<a class="sourceLine" id="cb168-46" title="46"><span class="kw">endtask</span></a></code></pre></div>
+<p>In the test environment, we instantiates the test components as well as the mailboxes. Notice that the constructor takes the full interface and use modport when instantiating test components. The main test task, <code>task()</code> uses fork so each component runs concurrently. We finish the test when the number of transaction received in the scoreboard equals to the number generated from the generator. The entry task is <code>run()</code>, which first resets the dut, then calls <code>test()</code>, and eventually <code>finish()</code>.</p>
+<p>To use the test environment, we need to following test bench code (<code>code/06/mult_top</code>):</p>
+<div class="sourceCode" id="cb169"><pre class="sourceCode systemverilog"><code class="sourceCode systemverilog"><a class="sourceLine" id="cb169-1" title="1"><span class="kw">module</span> mult_top;</a>
+<a class="sourceLine" id="cb169-2" title="2"></a>
+<a class="sourceLine" id="cb169-3" title="3"><span class="co">// env</span></a>
+<a class="sourceLine" id="cb169-4" title="4">mult_env env;</a>
+<a class="sourceLine" id="cb169-5" title="5"><span class="co">// interface</span></a>
+<a class="sourceLine" id="cb169-6" title="6"><span class="kw">logic</span> clk, rst_n;</a>
+<a class="sourceLine" id="cb169-7" title="7"><span class="co">// num of xacts</span></a>
+<a class="sourceLine" id="cb169-8" title="8"><span class="kw">localparam</span> num_xact = <span class="dv">42</span>;</a>
+<a class="sourceLine" id="cb169-9" title="9"></a>
+<a class="sourceLine" id="cb169-10" title="10">mult_io_interface io(.*);</a>
+<a class="sourceLine" id="cb169-11" title="11"><span class="co">// dut</span></a>
+<a class="sourceLine" id="cb169-12" title="12">mult_ex dut <span class="dt">(.clk</span>(io.clk),</a>
+<a class="sourceLine" id="cb169-13" title="13">             .rst_n(io.rst_n),</a>
+<a class="sourceLine" id="cb169-14" title="14">             .a(io.a),</a>
+<a class="sourceLine" id="cb169-15" title="15">             .b(io.b),</a>
+<a class="sourceLine" id="cb169-16" title="16">             .hi(io.hi),</a>
+<a class="sourceLine" id="cb169-17" title="17">             .lo(io.lo),</a>
+<a class="sourceLine" id="cb169-18" title="18">             .valid_in(io.valid_in),</a>
+<a class="sourceLine" id="cb169-19" title="19">             .valid_out(io.valid_out),</a>
+<a class="sourceLine" id="cb169-20" title="20">             .ready_in(io.ready_in),</a>
+<a class="sourceLine" id="cb169-21" title="21">             .ready_out(io.ready_out)</a>
+<a class="sourceLine" id="cb169-22" title="22">);</a>
+<a class="sourceLine" id="cb169-23" title="23"></a>
+<a class="sourceLine" id="cb169-24" title="24"><span class="co">// clocking</span></a>
+<a class="sourceLine" id="cb169-25" title="25"><span class="kw">initial</span> clk = <span class="dv">0</span>;</a>
+<a class="sourceLine" id="cb169-26" title="26"><span class="kw">always</span> clk = <span class="bn">#5</span> ~clk;</a>
+<a class="sourceLine" id="cb169-27" title="27"></a>
+<a class="sourceLine" id="cb169-28" title="28"><span class="co">// reset sequence</span></a>
+<a class="sourceLine" id="cb169-29" title="29"><span class="kw">initial</span> <span class="kw">begin</span></a>
+<a class="sourceLine" id="cb169-30" title="30">    rst_n = <span class="dv">1</span>;</a>
+<a class="sourceLine" id="cb169-31" title="31">    <span class="bn">#1</span>;</a>
+<a class="sourceLine" id="cb169-32" title="32">    rst_n = <span class="dv">0</span>;</a>
+<a class="sourceLine" id="cb169-33" title="33">    <span class="bn">#1</span>;</a>
+<a class="sourceLine" id="cb169-34" title="34">    rst_n = <span class="dv">1</span>;</a>
+<a class="sourceLine" id="cb169-35" title="35"><span class="kw">end</span></a>
+<a class="sourceLine" id="cb169-36" title="36"></a>
+<a class="sourceLine" id="cb169-37" title="37"><span class="co">// start the test</span></a>
+<a class="sourceLine" id="cb169-38" title="38"><span class="kw">initial</span> <span class="kw">begin</span></a>
+<a class="sourceLine" id="cb169-39" title="39">    env = <span class="kw">new</span>(num_xact, io);</a>
+<a class="sourceLine" id="cb169-40" title="40">    env.run();</a>
+<a class="sourceLine" id="cb169-41" title="41"><span class="kw">end</span></a>
+<a class="sourceLine" id="cb169-42" title="42"></a>
+<a class="sourceLine" id="cb169-43" title="43"><span class="co">// in case of bug, terminate after certain times</span></a>
+<a class="sourceLine" id="cb169-44" title="44"><span class="kw">initial</span> #(num_xact * <span class="dv">10</span> * <span class="dv">5</span>) <span class="kw">$finish</span>;</a></code></pre></div>
+<p>The test bench top drives the clock as well as the reset signal. Notice that in order to avoid infinite loop when we have a missing packet (the end condition will never trigger), we set a terminal condition based on the number of cycles run.</p>
                 </div>
             </div>
         </div>
