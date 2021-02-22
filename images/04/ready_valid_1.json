@@ -1,0 +1,6 @@
+{signal: [
+  {name: 'clk',   wave: 'P....'},
+  {name: 'ready', wave: '0.10.'},
+  {name: 'valid', wave: '010..'},
+  {name: 'data',  wave: 'x10..'}
+]}
