@@ -464,11 +464,36 @@ reg1:     2 reg2:     1 reg3:     0</code></pre>
 </ol>
 <p>The first step of FSM design involves with design exploration about how many states are needed, what coding style to use, what state encoding to use, and what’s the output logic. A common way to visualize the FSM is to represent it in a state transition diagram. Another way to represent the FSM is to use tables, where each row represents a state transition. After all states have been identified, we can further optimize the FSM throw methods such as state reduction, where states with exactly the same logic (same outputs and same transition) can be merged into one.</p>
 <p>Once the specification has been decided, translating it into FSM is very mechanical. Each transition arc can be expressed as a case item as we discussed earlier and so is the output logic. Once the implementation is done, we need to thoroughly test the it against common bugs such as dead lock or unreachable state. Some issues could be implementation related and some may be specification related. In any cases we need to fix the design/specification to meet the design requirements. We will discuss strategies about discovering deadlock and unreachable state when discussing formal verification later in the book.</p>
-<h2 id="commonly-used-design-building-blocks"><span class="header-section-number">4.3</span> Commonly Used Design Building Blocks</h2>
+<h2 id="readyvalid-handshake"><span class="header-section-number">4.3</span> Ready/Valid Handshake</h2>
+<p>Ready/valid handshake is one of the most used design pattern when transferring data in a latency-insensitive manner. It consists of two components, the source and the sink, where data flows from the former to the latter. The source uses <code>valid</code> signal to indicate whether the data is valid and the sink uses <code>ready</code> signal to indicate whether it is ready to receive data, as shown in the figure below.</p>
+<div id="fig:ready-valid-diagram" class="fignos">
+<figure>
+<img src="images/04/ready_valid_diagram.svg" alt="Figure 7: Ready/Valid block diagram" /><figcaption><span>Figure 7:</span> Ready/Valid block diagram</figcaption>
+</figure>
+</div>
+<p>Because ready/valid is latency-insensitive, each signal has precise semantics at the posedge of the clock (we assume we are dealing with synchronous circuit): - If the valid signal is high <code>@(posedge clk)</code>, we know that <code>data</code> is valid as well - If the ready signal is high <code>@posedge (clk)</code> <em>AND</em> the valid signal is high as well, we complete the data transfer. The size of transfer is often referred as one word. - If the system wishes to transfer more data, then we need to complete a series of one-word transfer, until the entire packet is transferred.</p>
+<p>The timing diagram below shows cases where a transfer should or should not occur.</p>
+<div id="fig:ready-valid-wave1" class="fignos">
+<figure>
+<img src="images/04/ready_valid_1.svg" alt="Figure 8: No data transfer" /><figcaption><span>Figure 8:</span> No data transfer</figcaption>
+</figure>
+</div>
+<div id="fig:ready-valid-wave2" class="fignos">
+<figure>
+<img src="images/04/ready_valid_2.svg" alt="Figure 9: No data transfer" /><figcaption><span>Figure 9:</span> No data transfer</figcaption>
+</figure>
+</div>
+<div id="fig:ready-valid-wave3" class="fignos">
+<figure>
+<img src="images/04/ready_valid_3.svg" alt="Figure 10: One successful ready/valid data transfer" /><figcaption><span>Figure 10:</span> One successful ready/valid data transfer</figcaption>
+</figure>
+</div>
+<p>Ready/valid handshake has several design pitfalls that needs to avoid: 1. If the source waits for the sink’s ready before asserting valid and vice versa, there will be chance of deadlock since both parties are waiting for each other. To avoid this, the control signal should be computed independently. 2. If the ready/valid signals are computed purely on combinational logic, there will be a combinational loop between the source and sink. To resolve this, either source or sink needs to register the control signals, or compute the signals based on some flopped states.</p>
+<h2 id="commonly-used-design-building-blocks"><span class="header-section-number">4.4</span> Commonly Used Design Building Blocks</h2>
 <p>In this section we lists some code examples of commonly used design building blocks. These circuits are commonly used in various circuit designs and are optimized for high synthesis quality.</p>
-<h3 id="registers"><span class="header-section-number">4.3.1</span> Registers</h3>
+<h3 id="registers"><span class="header-section-number">4.4.1</span> Registers</h3>
 <p>There are various types registers, such as synchronous and asynchronous registers. Each type has their own benefits. The design team should decide ahead of time what types of registers to use consistently throughout the design. All the code examples here use negative reset.</p>
-<h3 id="asynchronous-reset-registers"><span class="header-section-number">4.3.2</span> Asynchronous Reset Registers</h3>
+<h3 id="asynchronous-reset-registers"><span class="header-section-number">4.4.2</span> Asynchronous Reset Registers</h3>
 <p>Asynchronous reset register has reset on its sensitivity list.</p>
 <div class="sourceCode" id="cb94"><pre class="sourceCode systemverilog"><code class="sourceCode systemverilog"><a class="sourceLine" id="cb94-1" title="1"></a>
 <a class="sourceLine" id="cb94-2" title="2"><span class="kw">logic</span> r, value;</a>
@@ -481,7 +506,7 @@ reg1:     2 reg2:     1 reg3:     0</code></pre>
 <a class="sourceLine" id="cb94-9" title="9">        r &lt;= value;</a>
 <a class="sourceLine" id="cb94-10" title="10">    <span class="kw">end</span></a>
 <a class="sourceLine" id="cb94-11" title="11"><span class="kw">end</span></a></code></pre></div>
-<h4 id="synchronous-reset-registers"><span class="header-section-number">4.3.2.1</span> Synchronous Reset Registers</h4>
+<h4 id="synchronous-reset-registers"><span class="header-section-number">4.4.2.1</span> Synchronous Reset Registers</h4>
 <p>Unlike Asynchronous reset registers, synchronous reset register only resets the register on clock edge, hence the name “synchronous”.</p>
 <div class="sourceCode" id="cb95"><pre class="sourceCode systemverilog"><code class="sourceCode systemverilog"><a class="sourceLine" id="cb95-1" title="1"><span class="kw">logic</span> r, value;</a>
 <a class="sourceLine" id="cb95-2" title="2"></a>
@@ -493,7 +518,7 @@ reg1:     2 reg2:     1 reg3:     0</code></pre>
 <a class="sourceLine" id="cb95-8" title="8">        r &lt;= value;</a>
 <a class="sourceLine" id="cb95-9" title="9">    <span class="kw">end</span></a>
 <a class="sourceLine" id="cb95-10" title="10"><span class="kw">end</span></a></code></pre></div>
-<h4 id="chip-enable-registers"><span class="header-section-number">4.3.2.2</span> Chip-enable Registers</h4>
+<h4 id="chip-enable-registers"><span class="header-section-number">4.4.2.2</span> Chip-enable Registers</h4>
 <p>Chip-enable registers has additional single that enables or disables the value update (sometimes called clock-gating). On ASIC, there are usually specially design cells to handle such logic. As a result, if you follow the code example below you will get optimal synthesis result. We will use asynchronous reset register as an example.</p>
 <div class="sourceCode" id="cb96"><pre class="sourceCode systemverilog"><code class="sourceCode systemverilog"><a class="sourceLine" id="cb96-1" title="1"><span class="kw">logic</span> r, value;</a>
 <a class="sourceLine" id="cb96-2" title="2"></a>
@@ -506,7 +531,7 @@ reg1:     2 reg2:     1 reg3:     0</code></pre>
 <a class="sourceLine" id="cb96-9" title="9">    <span class="kw">end</span></a>
 <a class="sourceLine" id="cb96-10" title="10"><span class="kw">end</span></a></code></pre></div>
 <p>In generally we do not recommend using your own logic control the register update, for instance, multiplexing the update value instead of using the syntax above, or creating your own clock based on the enable logic. These kinds of modification are unlikely to be picked up by the synthesis tools, hence reduce synthesis quality.</p>
-<h4 id="power-up-values"><span class="header-section-number">4.3.2.3</span> Power-up Values</h4>
+<h4 id="power-up-values"><span class="header-section-number">4.4.2.3</span> Power-up Values</h4>
 <p>Some FPGA tool chains allows initial values to be set along with declaration, as shown below. Since this approach does not work for ASIC, we do not recommend such approach if you want your code to be portable.</p>
 <div class="sourceCode" id="cb97"><pre class="sourceCode systemverilog"><code class="sourceCode systemverilog"><a class="sourceLine" id="cb97-1" title="1"><span class="kw">logic</span> a = <span class="bn">1&#39;b0</span>;</a>
 <a class="sourceLine" id="cb97-2" title="2"><span class="kw">logic</span> value;</a>
@@ -514,9 +539,9 @@ reg1:     2 reg2:     1 reg3:     0</code></pre>
 <a class="sourceLine" id="cb97-4" title="4"><span class="kw">always_ff</span> @(<span class="kw">posedge</span> clk) <span class="kw">begin</span></a>
 <a class="sourceLine" id="cb97-5" title="5">    a &lt;= value;</a>
 <a class="sourceLine" id="cb97-6" title="6"><span class="kw">end</span></a></code></pre></div>
-<h3 id="multiplexer"><span class="header-section-number">4.3.3</span> Multiplexer</h3>
+<h3 id="multiplexer"><span class="header-section-number">4.4.3</span> Multiplexer</h3>
 <p>Multiplexer is a type of hardware circuit that selects output signals from a list of input signals. There are many ways to implement a multiplexer and we will cover two common implementation of multiplexers.</p>
-<h4 id="case-based-multiplexer"><span class="header-section-number">4.3.3.1</span> <code>case</code>-based Multiplexer</h4>
+<h4 id="case-based-multiplexer"><span class="header-section-number">4.4.3.1</span> <code>case</code>-based Multiplexer</h4>
 <p>The simplest way to implement a multiplexer is using <code>case</code> statement. It is straightforward to implement and also allows synthesis tools to recognize the multiplexer and optimize the netlist. Here is an example of multiplexer that takes 5 inputs. Notice that the number of inputs does not need to be 2’s power.</p>
 <div class="sourceCode" id="cb98"><pre class="sourceCode systemverilog"><code class="sourceCode systemverilog"><a class="sourceLine" id="cb98-1" title="1"><span class="kw">module</span> Mux5</a>
 <a class="sourceLine" id="cb98-2" title="2">  #(<span class="kw">parameter</span> <span class="kw">int</span> WIDTH = <span class="dv">1</span>) (</a>
@@ -561,7 +586,7 @@ reg1:     2 reg2:     1 reg3:     0</code></pre>
 <li>We let synthesis tool to do its job to optimize the design</li>
 <li>The module works with any arbitrary number inputs (<code>NUM_INPUT</code> has to be larger than 1), as well as outputs.</li>
 </ol>
-<h4 id="aoi-multiplexer"><span class="header-section-number">4.3.3.2</span> AOI Multiplexer</h4>
+<h4 id="aoi-multiplexer"><span class="header-section-number">4.4.3.2</span> AOI Multiplexer</h4>
 <p>In situations where hand-optimization is required, we can implement an AOI max. AOI stands for AND-OR-Invert, which implies the the basic logic operation we are going to do with the inputs. AOI gates are efficient with CMOS technology since we can use NAND and NOR logic gate to construct AOI gate.</p>
 <p>There are two components of AOI mux, namely a precoder and AOI logic. The precoder translate select signal into one-hot encoding, and AOI logic merge the inputs into output based on the one-hot-encoded select signal. Here is the complete implementation of the AOI mux with 5 inputs (<code>code/04/aoi_mux.sv</code>).</p>
 <div class="sourceCode" id="cb100"><pre class="sourceCode systemverilog"><code class="sourceCode systemverilog"><a class="sourceLine" id="cb100-1" title="1"><span class="kw">module</span> aoi_mux</a>
@@ -616,37 +641,128 @@ reg1:     2 reg2:     1 reg3:     0</code></pre>
 \]</span></p>
 <p>Notice that since <span class="math inline">\(S\)</span> only consists of one’s and zero’s, multiplication is effectively performing AND operation. Matrix <span class="math inline">\(O_{inter}\)</span> has similar characteristic as matrix <span class="math inline">\(S\)</span> due to the property of one-hot encoding. To obtain the result, we can do a row-wise OR reduction to obtain the final result. Since CMOS technology is more area efficient when we fuse AND and OR operation together, instead of computing one row at a time, we can compute two rows together, hence the variable <code>NUM_OPS</code> is computed based on <span class="math inline">\(\lceil \frac{NUM\_INPUT}{2} \rceil\)</span>. Readers are encouraged to work out the process with some simple examples.</p>
 <p>AOI mux is an example of how we can express the same logic in a clever way that is optimized for CMOS technology. This kind of optimization requires keen insight on the logic as well as deep understanding of logic synthesis. Unless required, we do not recommend to hand-optimize common logic such as adder or multiplexer since it may not achieve better result than synthesis tools and error prone. Use the syntax sugar offered by the SystemVerilog language and let synthesis tools do the heavy lifting. If the code follows the coding style, synthesis tools can pick up easily and perform automatic optimization.</p>
-<h2 id="axi-lite-protocol-a-case-study"><span class="header-section-number">4.4</span> AXI-Lite Protocol: A Case Study</h2>
-<p>A common place for bugs to occur is the interface between components, where each component may have different design assumptions. One approach to limit such bugs is to adhere to a well-specified protocol such that each component will follow and thus reduce the interface error. In this chapter we will take a look at a simple yet complete protocol, namely AXI-Lite, and how we can write RTL code based on the spec.</p>
-<p>AXI stands for Advanced eXtensible Interface, which is a parallel high-performance communication protocol. AXI-Lite is a subset of the AXI protocol and provides a “register-lite” structure. Although it is only a subset, AXI-Lite transactions are compatible with normal AXI devices. We will use AXI4-Lite in this book.</p>
-<h3 id="readyvalid-handshake"><span class="header-section-number">4.4.1</span> Ready/Valid Handshake</h3>
-<p>Ready/valid handshake is one of the most used design pattern when transferring data in a latency-insensitive manner. It consists of two components, the source and the sink, where data flows from the former to the latter. The source uses <code>valid</code> signal to indicate whether the data is valid and the sink uses <code>ready</code> signal to indicate whether it is ready to receive data, as shown in the figure below.</p>
-<div id="fig:ready-valid-diagram" class="fignos">
+<h2 id="wishbone-protocol-a-case-study"><span class="header-section-number">4.5</span> Wishbone Protocol: A Case Study</h2>
+<p>A common place for bugs to occur is the interface between components, where each component may have different design assumptions. One approach to limit such bugs is to adhere to a well-specified protocol such that each component will follow and thus reduce the interface error. In this chapter we will take a look at a simple yet complete protocol, namely WIshbone, and how we can write RTL code based on the spec.</p>
+<p>Unlike protocols such as AXI4, Wishbone is an open-source hardware bus interface, which allows engineers and hobbyists to share public domain designs.</p>
+<h3 id="wishbone-introduction"><span class="header-section-number">4.5.1</span> Wishbone Introduction</h3>
+<p>Wishbone bus consists of two channels: a request channel which can either be read or write, and an acknowledge (ACK) channel. These two channels connect the bus master and slave together, as shown in the figure below.</p>
+<div id="fig:wishbone-diagram" class="fignos">
 <figure>
-<img src="images/04/ready_valid_diagram.svg" alt="Figure 7: Ready/Valid block diagram" /><figcaption><span>Figure 7:</span> Ready/Valid block diagram</figcaption>
+<img src="images/04/wishbone_diagram.svg" alt="Figure 11: Wishbone channel diagram" /><figcaption><span>Figure 11:</span> Wishbone channel diagram</figcaption>
 </figure>
 </div>
-<p>Because ready/valid is latency-insensitive, each signal has precise semantics at the posedge of the clock (we assume we are dealing with synchronous circuit): - If the valid signal is high <code>@(posedge clk)</code>, we know that <code>data</code> is valid as well - If the ready signal is high <code>@posedge (clk)</code> <em>AND</em> the valid signal is high as well, we complete the data transfer. The size of transfer is often referred as one word. - If the system wishes to transfer more data, then we need to complete a series of one-word transfer, until the entire packet is transferred.</p>
-<p>The timing diagram below shows cases where a transfer should or should not occur.</p>
-<div id="fig:ready-valid-wave1" class="fignos">
-<figure>
-<img src="images/04/ready_valid_1.svg" alt="Figure 8: No data transfer" /><figcaption><span>Figure 8:</span> No data transfer</figcaption>
-</figure>
+<p>The master has a list of signals specified by the specification. Notice that it is explicitly stated that IPs can change the interface name (PERMISSION 2.0.0), we will use the names used in the specification to make it easier to compare with the document. Notice that the specification follows the naming convention that suffix <code>_O</code> indicates output port and <code>_I</code> indicates input port.</p>
+<p>There are a list of signals that’s shared between master and slave interfaces:</p>
+<div id="tbl:wishbone-shared-ports" class="tablenos">
+<table>
+<caption><span>Table 4:</span> Interface signals shared between Wishbone master and slave. </caption>
+<colgroup>
+<col style="width: 9%" />
+<col style="width: 90%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Signal Name</th>
+<th>Function</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>CLK_I</code></td>
+<td>All Wishbone output signals are registered at the rising edge of <code>CLK_I</code>. All Wishbone input signals are stable before the rising edge of <code>CLK_I</code></td>
+</tr>
+<tr class="even">
+<td><code>DAT_I</code></td>
+<td>The data input array to pass binary data. Maximum 64-bit</td>
+</tr>
+<tr class="odd">
+<td><code>DAT_O</code></td>
+<td>The data output array to pass binary data. Maximum 64-bit</td>
+</tr>
+<tr class="even">
+<td><code>RST_I</code></td>
+<td>Reset signal. This signal only resets the Wishbone interface, not required to reset the other part of the IP.</td>
+</tr>
+<tr class="odd">
+<td><code>TGD_I</code></td>
+<td>Data tag type, which contains additional information about the data. Must be specified in the IP datasheet.</td>
+</tr>
+<tr class="even">
+<td><code>TGD_O</code></td>
+<td>Data tag type, same as <code>TGD_I</code></td>
+</tr>
+</tbody>
+</table>
 </div>
-<div id="fig:ready-valid-wave2" class="fignos">
-<figure>
-<img src="images/04/ready_valid_2.svg" alt="Figure 9: No data transfer" /><figcaption><span>Figure 9:</span> No data transfer</figcaption>
-</figure>
+<p>We’ll ignore <code>TGD_I</code> and <code>TGD_O</code> in this section, but keep in mind that they can transfer very useful metadata information such as error checking code to protect data.</p>
+<p>Below shows the complete interface ports for the master (excluding the shared ports).</p>
+<div id="tbl:wishbone-master-ports" class="tablenos">
+<table>
+<caption><span>Table 5:</span> Wishbone master interface ports. </caption>
+<colgroup>
+<col style="width: 8%" />
+<col style="width: 91%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Signal Name</th>
+<th>Function</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>ACK_I</code></td>
+<td>The acknowledge indicates the normal termination of a bus cycle</td>
+</tr>
+<tr class="even">
+<td><code>ADR_O</code></td>
+<td>The address used for read/write request</td>
+</tr>
+<tr class="odd">
+<td><code>CYC_O</code></td>
+<td>The cycle output. When asserted, indicates a valid bus cycle in progress</td>
+</tr>
+<tr class="even">
+<td><code>STALL_I</code></td>
+<td>When asserted, indicates that the current slave is not able to accept the transfer</td>
+</tr>
+<tr class="odd">
+<td><code>ERR_I</code></td>
+<td>When asserted, indicates an abnormal cycle termination</td>
+</tr>
+<tr class="even">
+<td><code>LOCK_O</code></td>
+<td>When asserted, indicates the current bus cycle is uninterruptible</td>
+</tr>
+<tr class="odd">
+<td><code>RTY_I</code></td>
+<td>When asserted, indicates that the interface is not ready to accept/send data and the cycle should be retried</td>
+</tr>
+<tr class="even">
+<td><code>SEL_O</code></td>
+<td>Indicates where valid data is expected on the <code>DAT_I</code> signal array during read cycles, and where it is placed on the <code>DAT_O</code> signal array during write cycles</td>
+</tr>
+<tr class="odd">
+<td><code>STB_O</code></td>
+<td>The strobe output indicates a valid data transfer cycle. It is used to qualify other signals on the interface.</td>
+</tr>
+<tr class="even">
+<td><code>TGA_O</code></td>
+<td>Address tag type, which contains information associated with address lines, which can be qualified by <code>STR_O</code>.</td>
+</tr>
+<tr class="odd">
+<td><code>TGC_O</code></td>
+<td>Cycle tag type, which contains information associated with bus cycles, which can be qualified by signal <code>CYC_O</code>.</td>
+</tr>
+<tr class="even">
+<td><code>WE_O</code></td>
+<td>Write enable output, which indicates whether the current local bus cycle is a read or write cycle.</td>
+</tr>
+</tbody>
+</table>
 </div>
-<div id="fig:ready-valid-wave3" class="fignos">
-<figure>
-<img src="images/04/ready_valid_3.svg" alt="Figure 10: One successful ready/valid data transfer" /><figcaption><span>Figure 10:</span> One successful ready/valid data transfer</figcaption>
-</figure>
-</div>
-<p>Ready/valid handshake has several design pitfalls that needs to avoid: 1. If the source waits for the sink’s ready before asserting valid and vice versa, there will be chance of deadlock since both parties are waiting for each other. To avoid this, the control signal should be computed independently. 2. If the ready/valid signals are computed purely on combinational logic, there will be a combinational loop between the source and sink. To resolve this, either source or sink needs to register the control signals, or compute the signals based on some flopped states.</p>
-<h3 id="axi4-lite-protocol-specification"><span class="header-section-number">4.4.2</span> AXI4-Lite Protocol Specification</h3>
-<p>The complete protocol specification is freely accessible on ARM’s website. Readers are encouraged to check out the documentation even though the sheer amount of information may be intimidating at first. We will briefly cover the basic here.</p>
-<p>There are some global signals defined in AXI4-Lite and there are several naming convention to follow. We will use Xilinx’s naming convention since a lot of AXI protocol devices are based on FPGA.</p>
+<p>Again, we will ignore strobe and tag information. Interested readers should check out the specification.</p>
+<p>The slave interface is symmetric with the master slave: <code>XX_I</code> from master will have a correspondence port <code>XX_O</code> in the slave and vice versa. In general, Wishbone interface is simpler than other bus interface such as Advanced Microcontroller Bus Architecture (AMBA), which is the reason why we can explain the protocol without lengthy details.</p>
                 </div>
             </div>
         </div>
