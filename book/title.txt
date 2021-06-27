@@ -14,4 +14,5 @@ titlepage-text-color: "FFFFFF"
 titlepage-rule-color: "360049"
 titlepage-rule-height: 0
 titlepage-background: "../images/cover.pdf"
+float-placement-figure: htb
 ...
