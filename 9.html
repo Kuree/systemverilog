@@ -39,7 +39,497 @@
             <div id="main">
                 <div class="content">
                     <h1>VPI and DPI</h1>
-<p>Working in progress.</p>
+<p>Although SystemVerilog offers a set of powerful language primitives to satisfy normal usages, in many cases people wish to opt for more direct control over the simulation, retrospection on the design hierarchy at runtime, or even have finer granularity of assertion. As a result, in 2005 IEEE standardize the interface between the simulator and the C programming interface and name it Verilog Procedural Interface (VPI), originally known as PLI 2.0. VPI allows C functions to be invoked in behavioral RTL code and provides a set of events to which C code can register callback. Notice that VPI is part of Verilog standard and by virtually inheriting Verilog, SystemVerilog also supports VPI.</p>
+<p>Although a powerful tool to use, VPI has couple limitations and SystemVerilog introduces Direct Programming INterface (DPI), which allows foreign languages such as C and C++ to directly interface with the simulator. Unlike VPI, DPI ensures compatibility and efficiency by providing an two separated layers (SystemVerilog layer and foreign language layer). We will discuss the similarity and differences in this chapter.</p>
+<h2 id="verilog-procedural-interface"><span class="header-section-number">9.1</span> Verilog Procedural Interface</h2>
+<p>VPI offers a set of C functions that can be used to interact with the simulator:</p>
+<ol type="1">
+<li>Introspect the entire design hierarchy</li>
+<li>Set callbacks to a set of simulation events such as when the simulation starts or when a signal value changes</li>
+<li>Wrap a C function as used-defined system task called by test bench code.</li>
+</ol>
+<p>In this chapter we will mainly focus on the first two features of VPI, since the last feature can be done in DPI most of the time.</p>
+<h3 id="design-introspection"><span class="header-section-number">9.1.1</span> Design Introspection</h3>
+<p>In VPI, every object is referred as a <code>handle</code>, which has the data type of <code>vpiHandle</code> defined in the header file. This is essentially a pointer to an object whose implementation is vendor-dependent. Therefore, we cannot make any assumptions about how the handle is created or managed except following the LRM rules, if we want our code to be portable to various simulators.</p>
+<p>The data model for VPI is centered around the actual design hierarchy, originated from the very top module. As a result, there are essentially two kinds of relationship for VPI handles:</p>
+<ol type="1">
+<li>One-to-one. For instance, the module instance handle has one-to-one relationship to its module definition handle.</li>
+<li>One-to-many. This is more common, for instance, a module instance typically has many port instances.</li>
+</ol>
+<p>Depends on the relationship, the API call to query related objects is different. Although in most cases the relationship is intuitive, we highly recommend to check the LRM for correctness. Figure <a href="#fig:instance-diagram">13</a> shows an example of the data model for the instance and how you can traverse the object handles with different relationships and obtain other information.</p>
+<div id="fig:instance-diagram" class="fignos">
+<figure>
+<img src="images/09/instance-diagram.svg" alt="Figure 13: Instance model diagram. Copied from LRM 37.10" /><figcaption><span>Figure 13:</span> Instance model diagram. Copied from LRM 37.10</figcaption>
+</figure>
+</div>
+<p>The diagram packs a dense information and we need to read it in several aspects. First, we can take a look at how to obtain object handle information. There are three VPI functions that allows us introspect properties of an object handle, namely <code>vpi_get</code>, <code>vpi_get64</code>, and <code>vpi_get_str</code>. Their function definitions are shown below:</p>
+<div class="sourceCode" id="cb174"><pre class="sourceCode c"><code class="sourceCode c"><a class="sourceLine" id="cb174-1" title="1">XXTERN PLI_INT32  vpi_get             PROTO_PARAMS((PLI_INT32 property,</a>
+<a class="sourceLine" id="cb174-2" title="2">                                                    vpiHandle object));</a>
+<a class="sourceLine" id="cb174-3" title="3">XXTERN PLI_INT64  vpi_get64           PROTO_PARAMS((PLI_INT32 property,</a>
+<a class="sourceLine" id="cb174-4" title="4">                                                    vpiHandle object));</a>
+<a class="sourceLine" id="cb174-5" title="5">XXTERN PLI_BYTE8 *vpi_get_str         PROTO_PARAMS((PLI_INT32 property,</a>
+<a class="sourceLine" id="cb174-6" title="6">                                                    vpiHandle object));</a></code></pre></div>
+<p><code>PLI_INT32</code> is a <code>typedef</code> defined in the header file, which implies that value has to be predefined as well. As a result, you should call <code>vpi_get</code> with a predefined property and you will result back with a predefined value as well. <code>vpi_get_str</code> is used to get string properties from the object handle, such as names. Figure <a href="#fig:vpi-get-diagram">14</a> below shows a more detailed example of how they can be used with respect to the relation diagram.</p>
+<div id="fig:vpi-get-diagram" class="fignos">
+<figure>
+<img src="images/09/vpi-get-diagram.svg" alt="Figure 14: Diagram key for accessing properties. Copied from LRM 37.4.2" /><figcaption><span>Figure 14:</span> Diagram key for accessing properties. Copied from LRM 37.4.2</figcaption>
+</figure>
+</div>
+<p>Now let’s look at how to traverse the hierarchy based on different relations. If it is an one-to-one relationship, use <code>vpi_handle</code>, and if it’s one-to-many relationship, use <code>vpi_iterate</code> followed by <code>vpi_scan</code>. Figure <a href="#fig:relationship-diagram">15</a> below shows how one should interpret the relationship arrows in the diagram. Notice that in the figure, the LRM distinguish between object and tag. This is because the VPI has a set of predefined object types and tags are not object types.</p>
+<div id="fig:relationship-diagram" class="fignos">
+<figure>
+<img src="images/09/relationship-diagram.svg" alt="Figure 15: Diagram key for traversing relationships. Copied from LRM 37.4.3" /><figcaption><span>Figure 15:</span> Diagram key for traversing relationships. Copied from LRM 37.4.3</figcaption>
+</figure>
+</div>
+<p>Now let’s take a look at the instance diagram again now that we have covered the properties and relationship. The bottom left section describes properties associated with the instance object and their corresponding types, categorized by their functionalities. For instance, suppose we have a handle <code>vh</code> for a module instance, we can use <code>vpi_get_str(vpiName, vh)</code> to get the instance name, or <code>vpi_get_str(vpiFullName, vh)</code> for its full name.</p>
+<p>To query its internal variable, we can use <code>vpiReg</code> as shown below:</p>
+<div class="sourceCode" id="cb175"><pre class="sourceCode c"><code class="sourceCode c"><a class="sourceLine" id="cb175-1" title="1">vpiHandle iter, obj;</a>
+<a class="sourceLine" id="cb175-2" title="2">iter = vpi_iterate(vpiReg, vh);</a>
+<a class="sourceLine" id="cb175-3" title="3"><span class="cf">while</span> (obj = vpi_scan(iter)) {</a>
+<a class="sourceLine" id="cb175-4" title="4">    <span class="co">// do something with obj</span></a>
+<a class="sourceLine" id="cb175-5" title="5">}</a></code></pre></div>
+<p>Notice the backward arrow from the right to left, it means that we can query the parent with one-to-one relation using <code>vpiInstance</code> and <code>vpiModule</code> respectively.</p>
+<p>Below is a more detailed example how we can print out the entire design hierarchy using VPI with breadth-first search. Notice that we’re using C++ instead of C since it is much easier to write high-level code with C++. Notice that by convention, if we query <code>vpiModule</code> with an <code>nullptr</code>, we will get the top module instance.</p>
+<div class="sourceCode" id="cb176"><pre class="sourceCode c++"><code class="sourceCode cpp"><a class="sourceLine" id="cb176-1" title="1"><span class="bu">std::</span>queue&lt;vpiHandle&gt; handle_queues;</a>
+<a class="sourceLine" id="cb176-2" title="2">handle_queues.emplace(<span class="kw">nullptr</span>);</a>
+<a class="sourceLine" id="cb176-3" title="3"></a>
+<a class="sourceLine" id="cb176-4" title="4"><span class="cf">while</span> (!handle_queues.empty()) {</a>
+<a class="sourceLine" id="cb176-5" title="5">    <span class="kw">auto</span> *mod_handle = handle_queues.front();</a>
+<a class="sourceLine" id="cb176-6" title="6">    handle_queues.pop();</a>
+<a class="sourceLine" id="cb176-7" title="7">    <span class="kw">auto</span> *handle_iter = <span class="va">vpi_</span>-&gt;vpi_iterate(vpiModule, mod_handle);</a>
+<a class="sourceLine" id="cb176-8" title="8">    <span class="co">// if the instance doesn&#39;t have any child instances, this will be nullptr</span></a>
+<a class="sourceLine" id="cb176-9" title="9">    <span class="cf">if</span> (!handle_iter) <span class="cf">continue</span>;</a>
+<a class="sourceLine" id="cb176-10" title="10">    vpiHandle child_handle;</a>
+<a class="sourceLine" id="cb176-11" title="11"></a>
+<a class="sourceLine" id="cb176-12" title="12">    <span class="cf">while</span> ((child_handle = <span class="va">vpi_</span>-&gt;vpi_scan(handle_iter)) != <span class="kw">nullptr</span>) {</a>
+<a class="sourceLine" id="cb176-13" title="13">        <span class="co">// get the definition name</span></a>
+<a class="sourceLine" id="cb176-14" title="14">        <span class="at">const</span> <span class="kw">auto</span> *def_name = <span class="va">vpi_</span>-&gt;vpi_get_str(vpiDefName, child_handle);</a>
+<a class="sourceLine" id="cb176-15" title="15">        <span class="co">// get the child instance handle&#39;s name</span></a>
+<a class="sourceLine" id="cb176-16" title="16">        <span class="kw">auto</span> <span class="at">const</span> *hierarchy_name = <span class="va">vpi_</span>-&gt;vpi_get_str(vpiFullName, child_handle);</a>
+<a class="sourceLine" id="cb176-17" title="17">        <span class="co">// print out the information</span></a>
+<a class="sourceLine" id="cb176-18" title="18">        printf(<span class="st">&quot;Instance name: </span><span class="sc">%s</span><span class="st"> (</span><span class="sc">%s</span><span class="st">)</span><span class="sc">\n</span><span class="st">&quot;</span>, hierarchy_name, def_name);</a>
+<a class="sourceLine" id="cb176-19" title="19">        </a>
+<a class="sourceLine" id="cb176-20" title="20">        handle_queues.emplace(child_handle);</a>
+<a class="sourceLine" id="cb176-21" title="21">    }</a>
+<a class="sourceLine" id="cb176-22" title="22">}</a></code></pre></div>
+<p>VPI also provides a simple way to query object if we know its full/partial hierarchical name. To do so, simply do:</p>
+<div class="sourceCode" id="cb177"><pre class="sourceCode c++"><code class="sourceCode cpp"><a class="sourceLine" id="cb177-1" title="1"><span class="kw">auto</span> <span class="at">const</span> *handle_full = vpi_handle(full_name, <span class="kw">nullptr</span>);</a>
+<a class="sourceLine" id="cb177-2" title="2"><span class="kw">auto</span> <span class="at">const</span> *handle_scoped = vpi_handle(full_name, scope_handle);</a></code></pre></div>
+<p>By default, it the <code>scope_handle</code> is <code>nullptr</code>, we need to use the full hierarchy name. If the object is not found given the name and scope, <code>nullptr</code> will be returned.</p>
+<p>To read out a signal values with the given handle as an integer, we can simply use <code>vpi_get_value</code> as follows:</p>
+<div class="sourceCode" id="cb178"><pre class="sourceCode c++"><code class="sourceCode cpp"><a class="sourceLine" id="cb178-1" title="1"><span class="va">s_vpi_value</span> v;</a>
+<a class="sourceLine" id="cb178-2" title="2">v.format = vpiIntVal;</a>
+<a class="sourceLine" id="cb178-3" title="3">vpi_get_value(handle, &amp;v);</a>
+<a class="sourceLine" id="cb178-4" title="4"><span class="dt">int64_t</span> result = v.value.integer;</a></code></pre></div>
+<p>Notice that <code>s_vpi_value.value</code> is a union and we need to access it based on how we specify the format when calling the function.</p>
+<p>Notice that for many simulators, reading hierarchy or reading signal values require to turn on read access during compilation. This is typically done via providing <code>-r</code> switch in the command line arguments. Setting values, however, requires additional write permission, which is typically done via <code>-w</code> flag.</p>
+<h3 id="callbacks"><span class="header-section-number">9.1.2</span> Callbacks</h3>
+<p>Callbacks are the most common way to interact with the simulator and inject custom logic to various places. As shown in Figure <a href="#fig:sim_diagram">12</a>, there are various places we can insert callbacks, called PLI region for legacy reasons.</p>
+<p>To add a call back, simply define the following <code>struct</code>:</p>
+<div class="sourceCode" id="cb179"><pre class="sourceCode c++"><code class="sourceCode cpp"><a class="sourceLine" id="cb179-1" title="1"><span class="at">static</span> <span class="va">s_vpi_time</span> time{vpiSimTime};</a>
+<a class="sourceLine" id="cb179-2" title="2"><span class="at">static</span> <span class="va">s_vpi_value</span> value{vpiIntVal};</a>
+<a class="sourceLine" id="cb179-3" title="3"><span class="co">// handle to place callback on</span></a>
+<a class="sourceLine" id="cb179-4" title="4">vpiHandle obj;</a>
+<a class="sourceLine" id="cb179-5" title="5"><span class="co">// callback types (called reason)</span></a>
+<a class="sourceLine" id="cb179-6" title="6"><span class="dt">int</span> reason;</a>
+<a class="sourceLine" id="cb179-7" title="7"><span class="co">// call back function</span></a>
+<a class="sourceLine" id="cb179-8" title="8"><span class="dt">int</span> (*cb_rtn)(p_cb_data);</a>
+<a class="sourceLine" id="cb179-9" title="9"></a>
+<a class="sourceLine" id="cb179-10" title="10"><span class="va">s_cb_data</span> cb_data{.reason = reason,</a>
+<a class="sourceLine" id="cb179-11" title="11">                  .cb_rtn = cb_rtn,</a>
+<a class="sourceLine" id="cb179-12" title="12">                  .obj = obj,</a>
+<a class="sourceLine" id="cb179-13" title="13">                  .time = &amp;time,</a>
+<a class="sourceLine" id="cb179-14" title="14">                  .value = &amp;value,</a>
+<a class="sourceLine" id="cb179-15" title="15">                  .user_data = user_data;</a></code></pre></div>
+<p>Notice that there are several fields we need to fill in. <code>reason</code> is redefined in <code>vpi_user.h</code>, such as <code>cbValueChange</code> and <code>cbStartOfSimulation</code>. Readers are encourage to check out <code>vpi_user.h</code>.</p>
+<p><code>cb_rtn</code> is the raw function pointer that takes a pointer to the callback object (<code>s_sb_data</code>) and returns an integer (typically 0). The callback can be used to identify the triggering object, allowing sharing the same callback function among different objects.</p>
+<p>Some callbacks require a handle for triggering, such as <code>cbValueChange</code>, which triggers the callback when the value of the corresponding handle changes. These callbacks are typically related to simulation event and <code>obj</code> field are required to be filled in. In addition to <code>obj</code>, <code>time.time</code> and <code>value.format</code> should also be filled out, as shown in the example. This is because the simulator will fill out the value in the callback <code>struct</code> when invoking the callback function. Other types of callback should leave these fields as <code>nullptr</code>. Readers should check out Section 38.36.1 for more details.</p>
+<p><code>user_data</code> is a <code>char*</code> pointer that points to arbitrary memory location. Users are responsible to manage the life cycle and ensure that it is valid throughout the simulations.</p>
+<p>Callbacks can be registered by calling <code>vpi_register_cb</code>, which returns a handle that can be used to un-register the callback. Once the callback is removed via <code>vpi_remove_cb</code>, the handle is no longer valid.</p>
+<p>Below shows two examples of adding callbacks using <code>vpi_register_cb</code></p>
+<div class="sourceCode" id="cb180"><pre class="sourceCode c++"><code class="sourceCode cpp"><a class="sourceLine" id="cb180-1" title="1"><span class="co">// callback function to print out signal&#39;s name and value</span></a>
+<a class="sourceLine" id="cb180-2" title="2">PLI_INT32 on_value_change_callback(p_cb_data cb_data) {</a>
+<a class="sourceLine" id="cb180-3" title="3">    <span class="co">// get current value</span></a>
+<a class="sourceLine" id="cb180-4" title="4">    <span class="kw">auto</span> value = cb_data-&gt;value-&gt;value.integer;</a>
+<a class="sourceLine" id="cb180-5" title="5">    <span class="co">// get signal&#39;s full name</span></a>
+<a class="sourceLine" id="cb180-6" title="6">    <span class="kw">auto</span> <span class="at">const</span> *handle = cb_data-&gt;obj;</a>
+<a class="sourceLine" id="cb180-7" title="7">    <span class="kw">auto</span> <span class="at">const</span> *name = vpi_get_str(vpiFullName, handle);</a>
+<a class="sourceLine" id="cb180-8" title="8">    printf(<span class="st">&quot;signal name: </span><span class="sc">%s</span><span class="st"> value: </span><span class="sc">%lld\n</span><span class="st">&quot;</span>, name, value);</a>
+<a class="sourceLine" id="cb180-9" title="9"></a>
+<a class="sourceLine" id="cb180-10" title="10">    <span class="cf">return</span> <span class="dv">0</span>;</a>
+<a class="sourceLine" id="cb180-11" title="11">}</a>
+<a class="sourceLine" id="cb180-12" title="12"></a>
+<a class="sourceLine" id="cb180-13" title="13"><span class="co">// helper function to add callback to any given handle</span></a>
+<a class="sourceLine" id="cb180-14" title="14">vpiHandle add_on_value_change_callback(vpiHandle handle) {</a>
+<a class="sourceLine" id="cb180-15" title="15">    <span class="va">s_vpi_time</span> time{vpiSimTime};</a>
+<a class="sourceLine" id="cb180-16" title="16">    <span class="va">s_vpi_value</span> value{vpiIntVal};</a>
+<a class="sourceLine" id="cb180-17" title="17">    <span class="va">s_cb_data</span> cb_data{.reason = cbValueChange,</a>
+<a class="sourceLine" id="cb180-18" title="18">                      .cb_rtn = &amp;on_value_change_callback,</a>
+<a class="sourceLine" id="cb180-19" title="19">                      .obj = handle,</a>
+<a class="sourceLine" id="cb180-20" title="20">                      .time = &amp;time,</a>
+<a class="sourceLine" id="cb180-21" title="21">                      .value = &amp;value,</a>
+<a class="sourceLine" id="cb180-22" title="22">                      .user_data = <span class="kw">nullptr</span>;</a>
+<a class="sourceLine" id="cb180-23" title="23">    <span class="kw">auto</span> *r = vpi_register_cb(&amp;cb_data);</a>
+<a class="sourceLine" id="cb180-24" title="24">    <span class="cf">return</span> r;</a>
+<a class="sourceLine" id="cb180-25" title="25">}</a>
+<a class="sourceLine" id="cb180-26" title="26"></a>
+<a class="sourceLine" id="cb180-27" title="27"><span class="co">// callback function to add monitors on clock</span></a>
+<a class="sourceLine" id="cb180-28" title="28">PLI_INT32 on_sim_start_callback(p_cb_data cb_data) {</a>
+<a class="sourceLine" id="cb180-29" title="29">    <span class="co">// get clock signal. assume it&#39;s called</span></a>
+<a class="sourceLine" id="cb180-30" title="30">    <span class="co">// &quot;clk&quot; at the top</span></a>
+<a class="sourceLine" id="cb180-31" title="31">    printf(<span class="st">&quot;Simulation started&quot;</span>\n);</a>
+<a class="sourceLine" id="cb180-32" title="32"></a>
+<a class="sourceLine" id="cb180-33" title="33">    <span class="kw">auto</span> *handle = vpi_handle_by_name(<span class="st">&quot;clk&quot;</span>);</a>
+<a class="sourceLine" id="cb180-34" title="34">    <span class="co">// call our helper function to add callbacks</span></a>
+<a class="sourceLine" id="cb180-35" title="35">    <span class="co">// for simplicity we don&#39;t track the return handle</span></a>
+<a class="sourceLine" id="cb180-36" title="36">    <span class="co">// but in practice we need to keep it somewhere,</span></a>
+<a class="sourceLine" id="cb180-37" title="37">    <span class="co">// and remove it when not in use anymore</span></a>
+<a class="sourceLine" id="cb180-38" title="38">    add_on_value_change_callback(handle);</a>
+<a class="sourceLine" id="cb180-39" title="39"></a>
+<a class="sourceLine" id="cb180-40" title="40">    <span class="cf">return</span> <span class="dv">0</span>;</a>
+<a class="sourceLine" id="cb180-41" title="41">}</a>
+<a class="sourceLine" id="cb180-42" title="42"></a>
+<a class="sourceLine" id="cb180-43" title="43"></a>
+<a class="sourceLine" id="cb180-44" title="44"><span class="co">// helper function to add callback when simulation starts</span></a>
+<a class="sourceLine" id="cb180-45" title="45">vpiHandle add_on_sim_start_callback() {</a>
+<a class="sourceLine" id="cb180-46" title="46">    <span class="va">s_cb_data</span> cb_data{.reason = cbStartOfSimulation,</a>
+<a class="sourceLine" id="cb180-47" title="47">                      .cb_rtn = &amp;on_sim_start_callback,</a>
+<a class="sourceLine" id="cb180-48" title="48">                      .obj = <span class="kw">nullptr</span>,</a>
+<a class="sourceLine" id="cb180-49" title="49">                      .time = <span class="kw">nullptr</span>,</a>
+<a class="sourceLine" id="cb180-50" title="50">                      .value = <span class="kw">nullptr</span>,</a>
+<a class="sourceLine" id="cb180-51" title="51">                      .user_data = <span class="kw">nullptr</span>;</a>
+<a class="sourceLine" id="cb180-52" title="52">    <span class="kw">auto</span> *r = vpi_register_cb(&amp;cb_data);</a>
+<a class="sourceLine" id="cb180-53" title="53">    <span class="cf">return</span> r;</a>
+<a class="sourceLine" id="cb180-54" title="54">}</a></code></pre></div>
+<p>In the example, we add a callback to the start of simulation (<code>cbStartOfSimulation</code>), which adds another callback that monitor the value the clock (<code>cbValueChange</code>). The monitor callback is generic and can print out any signal’s name and value, using the function argument.</p>
+<p>Now that we have covered how to create callbacks, we need to know how to have the simulator actually call our helper functions. In VPI, it is done via a specific function table called <code>vlog_startup_routines</code>. It is essentially a null-terminated function pointer array, and must be defined with the exact name. If the implementation is done in C++, which is very likely, the array has to be wrapped inside the <code>extern "C"</code> block to avoid C++’s name mangling. The code below shows how to define the callback using the function we just covered.</p>
+<div class="sourceCode" id="cb181"><pre class="sourceCode c++"><code class="sourceCode cpp"><a class="sourceLine" id="cb181-1" title="1"><span class="at">extern</span> <span class="st">&quot;C&quot;</span> {</a>
+<a class="sourceLine" id="cb181-2" title="2"><span class="dt">void</span> (*vlog_startup_routines[])() = {add_on_sim_start_callback, <span class="kw">nullptr</span>};</a>
+<a class="sourceLine" id="cb181-3" title="3">}</a></code></pre></div>
+<p>In addition to that, there are very limited VPI functionality allowed in any function presented inside <code>vlog_startup_routines</code>. For our purpose, the only VPI function allowed to call is <code>vpi_register_cb</code>, and the only reasons we can use are the following:</p>
+<ul>
+<li><code>cbEndOfCompile</code></li>
+<li><code>cbStartOfSimulation</code></li>
+<li><code>cbEndOfSimulation</code></li>
+<li><code>cbUnresolvedSystf</code></li>
+<li><code>cbError</code></li>
+<li><code>cbPLIError</code></li>
+</ul>
+<p>Users are required to put any other VPI functions in callbacks using <code>cbStartOfSimulation</code>, as we have done in the example.</p>
+<h3 id="compile-and-usage"><span class="header-section-number">9.1.3</span> Compile and Usage</h3>
+<p>To compile any VPI code, we can use any build tools and compiler, as long as we build a shared library with position-independent code flag on(<code>-fPIC</code>). Once we have the shared library, say <code>libvpi.so</code>, we need to provide it to the simulator. Different vendors have different set of flags to do so, and we will only cover usage for VCS and Xcelium.</p>
+<ul>
+<li>VCS: <code>-load libvpi.so</code>. Typically you also need <code>-debug_acc+all</code> to allow VPI functions to introspect or change the design.</li>
+<li>Xcelium: <code>-loadvpi libsvi.so:add_on_sim_start_callback</code>. Xcelium does not rely on <code>vlog_startup_routines</code>, so we need to provide the function name in the command line. <code>-access +rw</code> are recommend if you need to introspect or change the design.</li>
+</ul>
+<h2 id="direct-programming-interface"><span class="header-section-number">9.2</span> Direct Programming Interface</h2>
+<p>Direct Programming Interface (DPI) is introduced in SystemVerilog to help bring the powerful C/C++ development environment to the simulation. It allows SystemVerilog code calls arbitrary C functions and invoke SystemVerilog functions from C, with some caveats of course. In addition, DPI ensures ABI compatibility and thus libraries compiled for one platform should work on any system under that particular platform. Since DPI is much easier to understand and program than VPI-based system tasks, we will focus it here.</p>
+<h3 id="data-types-in-dpi"><span class="header-section-number">9.2.1</span> Data types in DPI</h3>
+<p>Since DPI functions as a translation layer between standard C/C++ libraries and vendor-specific simulators, DPI specifies a type translation between native types in C/C++ and SystemVerilog. Table <a href="#tbl:sv-dpi-c">6</a> shows the data type mapping.</p>
+<div id="tbl:sv-dpi-c" class="tablenos">
+<table>
+<caption><span>Table 6:</span> SystemVerilog and C data type conversion </caption>
+<thead>
+<tr class="header">
+<th>SystemVerilog Type</th>
+<th>C Type</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>byte</code></td>
+<td><code>char</code></td>
+</tr>
+<tr class="even">
+<td><code>shortint</code></td>
+<td><code>short int</code></td>
+</tr>
+<tr class="odd">
+<td><code>int</code></td>
+<td><code>int</code></td>
+</tr>
+<tr class="even">
+<td><code>longint</code></td>
+<td><code>long</code> <code>long</code></td>
+</tr>
+<tr class="odd">
+<td><code>real</code></td>
+<td><code>double</code></td>
+</tr>
+<tr class="even">
+<td><code>shortreal</code></td>
+<td><code>float</code></td>
+</tr>
+<tr class="odd">
+<td><code>chandle</code></td>
+<td><code>void *</code></td>
+</tr>
+<tr class="even">
+<td><code>string</code></td>
+<td><code>const char *</code></td>
+</tr>
+<tr class="odd">
+<td><code>bit</code></td>
+<td><code>unsigned char</code></td>
+</tr>
+<tr class="even">
+<td><code>logic</code>/<code>reg</code></td>
+<td><code>unsigned char</code></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>There are several things we need to pay extra attention. Notice that most of the SystemVerilog types are 2-state values. If 4-state value is provided, e.g. <code>logic[3:0]</code>, simulator typically does type coercions to the type specified by the DPI function signature. For single bit value such as <code>bit</code>, by C convention is it treated as binary value in <code>char</code>.</p>
+<p>SystemVerilog also allows open array as input type, which requires extra attention since it converts to custom C struct not defined by standard C/C++. C/C++ libraries that support open array has to be linked with the simulator. A mock array implementation is required if users want to link the library without a simulator. We will see examples of how to interact with open array later.</p>
+<h3 id="context-and-pure-functions"><span class="header-section-number">9.2.2</span> Context and Pure Functions</h3>
+<p>For performance reasons, SystemVerilog defines two additional keyword modifier to define DPI functions, i.e. <code>context</code> and <code>pure</code>. Keyword <code>context</code> is recommended if the function requires access to the DPI context, e.g. calling <code>svSetScope</code>. Prior to the DPI call marked with <code>context</code>, the simulator needs to set up the caller context scope properly, significantly slow down the simulation. As a result, we will not cover it in details here since most of the functionality can be achieved via C++ object-oriented programming exposed as DPI.</p>
+<p>Keyword <code>pure</code> indicates that the function does not have any side-effects. Therefore, the compiler is free to rearrange the function call as it sees fit, which will slightly improve the simulation performance. Side-effects includes</p>
+<ul>
+<li>Modifying global state, e.g. static values</li>
+<li>Interacting with filesystem or networks</li>
+<li>Modifying shared objects using multi-threading</li>
+</ul>
+<p>If a function doesn’t have <code>pure</code> modifier, the execution order would be the same as normal SystemVerilog functions. This is the most command case.</p>
+<h3 id="import-functions-from-cc"><span class="header-section-number">9.2.3</span> Import functions from C/C++</h3>
+<p>To call a function from C/C++, we need to finish the following two tasks:</p>
+<ol type="1">
+<li>Define the function prototype in SystemVerilog</li>
+<li>Make sure to export the function in C/C++ by using <code>extern C</code> (if C++) to avoid name mangling.</li>
+</ol>
+<p>The syntax for DPI function is very similar to that of normal functions in SystemVerilog: we need to define the type of arguments and return type. The only difference is the keyword <code>import</code> followed by <code>"DPI-C"</code>. Here are some examples for the DPI function definition.</p>
+<div class="sourceCode" id="cb182"><pre class="sourceCode systemverilog"><code class="sourceCode systemverilog"><a class="sourceLine" id="cb182-1" title="1"><span class="co">// pure function that does a + b</span></a>
+<a class="sourceLine" id="cb182-2" title="2"><span class="kw">import</span> &quot;DPI-C&quot; <span class="kw">pure</span> <span class="kw">function</span> <span class="kw">int</span> add(<span class="kw">input</span> <span class="kw">int</span> a, <span class="kw">input</span> <span class="kw">int</span> b);</a>
+<a class="sourceLine" id="cb182-3" title="3"><span class="co">// sending a packet, with an open array of data</span></a>
+<a class="sourceLine" id="cb182-4" title="4"><span class="kw">import</span> &quot;DPI-C&quot; <span class="kw">function</span> <span class="kw">int</span> send_udp_packet(<span class="kw">input</span> <span class="kw">string</span> ip_address, <span class="kw">input</span> <span class="kw">shortint</span> <span class="kw">unsigned</span> port, <span class="kw">input</span> <span class="kw">byte</span> <span class="ot">data</span>[]);</a>
+<a class="sourceLine" id="cb182-5" title="5"><span class="co">// add but with output as argument</span></a>
+<a class="sourceLine" id="cb182-6" title="6"><span class="kw">import</span> &quot;DPI-C&quot; <span class="kw">function</span> <span class="kw">void</span> add_output(<span class="kw">input</span> <span class="kw">int</span> a, <span class="kw">input</span> <span class="kw">int</span> b, <span class="kw">output</span> <span class="kw">int</span> c);</a></code></pre></div>
+<p>Calling these functions are the same way as calling normal functions. As a result, we will focus on how to implement these functions from C/C++.</p>
+<p>For the <code>add</code> function, we need the following C/C++ code. We use C++ here since it’s more commonly used and offers better object-oriented programming with <code>chandle</code>. If you want to use C instead, you can remove <code>extern "C"</code> and use a C compiler instead.</p>
+<div class="sourceCode" id="cb183"><pre class="sourceCode c++"><code class="sourceCode cpp"><a class="sourceLine" id="cb183-1" title="1"><span class="co">// add.cc</span></a>
+<a class="sourceLine" id="cb183-2" title="2"><span class="at">extern</span> <span class="st">&quot;C&quot;</span> {</a>
+<a class="sourceLine" id="cb183-3" title="3"><span class="co">// SystemVerilog definition</span></a>
+<a class="sourceLine" id="cb183-4" title="4"><span class="co">// import &quot;DPI-C&quot; pure function int add(input int a, input int b);</span></a>
+<a class="sourceLine" id="cb183-5" title="5"><span class="dt">int</span> add(<span class="dt">int</span> a, <span class="dt">int</span> b) {</a>
+<a class="sourceLine" id="cb183-6" title="6">    <span class="cf">return</span> a + b;</a>
+<a class="sourceLine" id="cb183-7" title="7">}</a>
+<a class="sourceLine" id="cb183-8" title="8">}</a></code></pre></div>
+<p>First we need to compile the code into a shared object, you can simply do <code>g++ add.cc -shared -o add.so</code>. Once we have the shared library, we can try to use it in our SystemVerilog code. Below shows an simple example of calling the add function.</p>
+<div class="sourceCode" id="cb184"><pre class="sourceCode systemverilog"><code class="sourceCode systemverilog"><a class="sourceLine" id="cb184-1" title="1"><span class="co">// test.sv</span></a>
+<a class="sourceLine" id="cb184-2" title="2"><span class="kw">import</span> &quot;DPI-C&quot; <span class="kw">pure</span> <span class="kw">function</span> <span class="kw">int</span> add(<span class="kw">input</span> <span class="kw">int</span> a, <span class="kw">input</span> <span class="kw">int</span> b);</a>
+<a class="sourceLine" id="cb184-3" title="3"></a>
+<a class="sourceLine" id="cb184-4" title="4"><span class="kw">module</span> top;</a>
+<a class="sourceLine" id="cb184-5" title="5"><span class="kw">initial</span> <span class="kw">begin</span></a>
+<a class="sourceLine" id="cb184-6" title="6">    <span class="kw">int</span> a, b, c;</a>
+<a class="sourceLine" id="cb184-7" title="7">    a = <span class="dv">2</span>;</a>
+<a class="sourceLine" id="cb184-8" title="8">    b = <span class="dv">4</span>;</a>
+<a class="sourceLine" id="cb184-9" title="9">    c = add(a, b);</a>
+<a class="sourceLine" id="cb184-10" title="10">    <span class="kw">$display</span>(<span class="st">&quot;c is&quot;</span>, c);</a>
+<a class="sourceLine" id="cb184-11" title="11"><span class="kw">end</span></a>
+<a class="sourceLine" id="cb184-12" title="12"><span class="kw">endmodule</span></a></code></pre></div>
+<p>We can run the example by invoking the Xcelium: <code>xrun test.sv -sv_lib add.so</code>, which will print out correct result.</p>
+<p>For the second DPI function, we need to use the array structure defined in the SystemVerilog LRM. Readers can either copy the file directly from the LRM, or use the ones that shipped with the simulator. We will use the later, which is located at <code>${XCELIUM_HOME}/tools/include/</code>.</p>
+<p>Here is the code structure to read out a <code>char</code> array in C++ and corresponding function implementation for the DPI function.</p>
+<div class="sourceCode" id="cb185"><pre class="sourceCode c++"><code class="sourceCode cpp"><a class="sourceLine" id="cb185-1" title="1"><span class="co">// send_udp_packet.cc</span></a>
+<a class="sourceLine" id="cb185-2" title="2"><span class="co">// don&#39;t forget to include the header file since we&#39;re using array</span></a>
+<a class="sourceLine" id="cb185-3" title="3"><span class="pp">#include </span><span class="im">&quot;svdpi.h&quot;</span></a>
+<a class="sourceLine" id="cb185-4" title="4"><span class="pp">#include </span><span class="im">&lt;vector&gt;</span></a>
+<a class="sourceLine" id="cb185-5" title="5"></a>
+<a class="sourceLine" id="cb185-6" title="6"><span class="bu">std::</span>vector&lt;<span class="dt">char</span>&gt; read_data(svOpenArrayHandle array) {</a>
+<a class="sourceLine" id="cb185-7" title="7">    <span class="co">// notice the argument type is svOpenArrayHandle</span></a>
+<a class="sourceLine" id="cb185-8" title="8">    <span class="bu">std::</span>vector&lt;<span class="dt">char</span>&gt;  result;</a>
+<a class="sourceLine" id="cb185-9" title="9">    <span class="co">// get loop bound</span></a>
+<a class="sourceLine" id="cb185-10" title="10">    <span class="kw">auto</span> low = svLeft(array, <span class="dv">1</span>);</a>
+<a class="sourceLine" id="cb185-11" title="11">    <span class="kw">auto</span> high = svRight(array, <span class="dv">1</span>);</a>
+<a class="sourceLine" id="cb185-12" title="12">    <span class="co">// get size and reserve the vector</span></a>
+<a class="sourceLine" id="cb185-13" title="13">    <span class="kw">auto</span> size = svSize(array, <span class="dv">1</span>);</a>
+<a class="sourceLine" id="cb185-14" title="14">    result.reserve(size);</a>
+<a class="sourceLine" id="cb185-15" title="15"></a>
+<a class="sourceLine" id="cb185-16" title="16">    <span class="cf">for</span> (<span class="kw">auto</span> i = low; i &lt;= high; i++) {</a>
+<a class="sourceLine" id="cb185-17" title="17">        <span class="kw">auto</span> *value = <span class="kw">reinterpret_cast</span>&lt;<span class="dt">char</span>*&gt;(svGetArrElemPtr1(array, i));</a>
+<a class="sourceLine" id="cb185-18" title="18">        result.emplace_back(*value);</a>
+<a class="sourceLine" id="cb185-19" title="19">    }</a>
+<a class="sourceLine" id="cb185-20" title="20"></a>
+<a class="sourceLine" id="cb185-21" title="21">    <span class="cf">return</span> result;</a>
+<a class="sourceLine" id="cb185-22" title="22">}</a>
+<a class="sourceLine" id="cb185-23" title="23"></a>
+<a class="sourceLine" id="cb185-24" title="24"></a>
+<a class="sourceLine" id="cb185-25" title="25"><span class="at">extern</span> <span class="st">&quot;C&quot;</span> {</a>
+<a class="sourceLine" id="cb185-26" title="26"><span class="co">// SYstemVerilog definition</span></a>
+<a class="sourceLine" id="cb185-27" title="27"><span class="co">// import &quot;DPI-C&quot; function int send_udp_packet(input string ip_address, input shortint unsigned port, input byte data[]);</span></a>
+<a class="sourceLine" id="cb185-28" title="28"><span class="dt">int</span> send_udp_packet(<span class="at">const</span> <span class="dt">char</span> *ip_address, <span class="dt">uint16_t</span> <span class="dt">unsigned</span> port, svOpenArrayHandle data) {</a>
+<a class="sourceLine" id="cb185-29" title="29">    <span class="kw">auto</span> byte_data = read_data(data);</a>
+<a class="sourceLine" id="cb185-30" title="30"></a>
+<a class="sourceLine" id="cb185-31" title="31">    <span class="co">// do something with the data, ip address, and port</span></a>
+<a class="sourceLine" id="cb185-32" title="32">    <span class="cf">return</span> <span class="dv">0</span>;</a>
+<a class="sourceLine" id="cb185-33" title="33">}</a>
+<a class="sourceLine" id="cb185-34" title="34">}</a></code></pre></div>
+<p>Notice that <code>svLeft</code>, <code>svRight</code>, and <code>svSize</code> need dimension to compute the result. We use <code>1</code> here to indicate the first dimension. If it is a multi-dimension array, we can use higher numbers. By convention, lower and upper bound of the array is obtained via <code>svLeft</code> and <code>svRight</code> respectively. <code>svGetArrElemPtr1</code> is used to get first dimension data. If the array is multi-dimension, <code>svGetArrElemPtr#</code> is used, where <code>#</code> corresponds to the dimension.</p>
+<p>To compile, we need to tell the compiler to include DPI header files. Here is the example command</p>
+<pre><code>g++ send_udp_packet.cc -shared -o send_udp_packet.so -I${XCELIUM_HOME}/tools/include/</code></pre>
+<p>Below is the example of SystemVerilog that use array to call our function.</p>
+<div class="sourceCode" id="cb187"><pre class="sourceCode systemverilog"><code class="sourceCode systemverilog"><a class="sourceLine" id="cb187-1" title="1"><span class="co">// test_send_udp_packet.sv</span></a>
+<a class="sourceLine" id="cb187-2" title="2"><span class="kw">import</span> &quot;DPI-C&quot; <span class="kw">function</span> <span class="kw">int</span> send_udp_packet(<span class="kw">input</span> <span class="kw">string</span> ip_address, <span class="kw">input</span> <span class="kw">shortint</span> <span class="kw">unsigned</span> port, <span class="kw">input</span> <span class="kw">byte</span> <span class="ot">data</span>[]);</a>
+<a class="sourceLine" id="cb187-3" title="3"></a>
+<a class="sourceLine" id="cb187-4" title="4"><span class="kw">module</span> test_send_udp_packet;</a>
+<a class="sourceLine" id="cb187-5" title="5"></a>
+<a class="sourceLine" id="cb187-6" title="6"><span class="kw">initial</span> <span class="kw">begin</span></a>
+<a class="sourceLine" id="cb187-7" title="7">    <span class="kw">byte</span> array[];</a>
+<a class="sourceLine" id="cb187-8" title="8">    <span class="kw">int</span> res;</a>
+<a class="sourceLine" id="cb187-9" title="9"></a>
+<a class="sourceLine" id="cb187-10" title="10">    array = <span class="kw">new</span>[<span class="dv">4</span>];</a>
+<a class="sourceLine" id="cb187-11" title="11">    <span class="kw">for</span> (<span class="kw">int</span> i = <span class="dv">0</span>; i &lt; array.<span class="ot">size</span>(); i++) <span class="kw">begin</span></a>
+<a class="sourceLine" id="cb187-12" title="12">        array[i] = <span class="dv">42</span> + i;</a>
+<a class="sourceLine" id="cb187-13" title="13">    <span class="kw">end</span></a>
+<a class="sourceLine" id="cb187-14" title="14"></a>
+<a class="sourceLine" id="cb187-15" title="15">    res = send_udp_packet(<span class="st">&quot;127.0.0.1&quot;</span>, <span class="dv">8888</span>, array);    </a>
+<a class="sourceLine" id="cb187-16" title="16"></a>
+<a class="sourceLine" id="cb187-17" title="17"><span class="kw">end</span></a>
+<a class="sourceLine" id="cb187-18" title="18"></a>
+<a class="sourceLine" id="cb187-19" title="19"><span class="kw">endmodule</span></a></code></pre></div>
+<p>Notice that we pass in an open array which can be dynamically-sized. If we have a fixed size array, we can directly pass in the array variable thanks to automatic type conversion.</p>
+<p>If the function has output arguments, we need to use pointers as the C/C++ function argument:</p>
+<div class="sourceCode" id="cb188"><pre class="sourceCode c++"><code class="sourceCode cpp"><a class="sourceLine" id="cb188-1" title="1"><span class="co">// SystemVerilog DPI definition</span></a>
+<a class="sourceLine" id="cb188-2" title="2"><span class="co">// import &quot;DPI-C&quot; function void add_output(input int a, input int b, output int c);</span></a>
+<a class="sourceLine" id="cb188-3" title="3"><span class="at">extern</span> <span class="st">&quot;C&quot;</span> {</a>
+<a class="sourceLine" id="cb188-4" title="4"><span class="dt">void</span> add_output(<span class="dt">int</span> a, <span class="dt">int</span> b, <span class="dt">int</span> *c) {</a>
+<a class="sourceLine" id="cb188-5" title="5">    *c = a + b;</a>
+<a class="sourceLine" id="cb188-6" title="6">}</a>
+<a class="sourceLine" id="cb188-7" title="7">}</a></code></pre></div>
+<p>We can simply call the function as usual, as shown below, which will print out <code>c is 42</code>.</p>
+<div class="sourceCode" id="cb189"><pre class="sourceCode systemverilog"><code class="sourceCode systemverilog"><a class="sourceLine" id="cb189-1" title="1"><span class="kw">import</span> &quot;DPI-C&quot; <span class="kw">function</span> <span class="kw">void</span> add_output(<span class="kw">input</span> <span class="kw">int</span> a, <span class="kw">input</span> <span class="kw">int</span> b, <span class="kw">output</span> <span class="kw">int</span> c);</a>
+<a class="sourceLine" id="cb189-2" title="2"></a>
+<a class="sourceLine" id="cb189-3" title="3"><span class="kw">module</span> top;</a>
+<a class="sourceLine" id="cb189-4" title="4"></a>
+<a class="sourceLine" id="cb189-5" title="5"><span class="kw">initial</span> <span class="kw">begin</span></a>
+<a class="sourceLine" id="cb189-6" title="6">    <span class="kw">int</span> a, b, c;</a>
+<a class="sourceLine" id="cb189-7" title="7">    a = <span class="dv">40</span>;</a>
+<a class="sourceLine" id="cb189-8" title="8">    b = <span class="dv">2</span>;</a>
+<a class="sourceLine" id="cb189-9" title="9">    add_output(a, b, c);</a>
+<a class="sourceLine" id="cb189-10" title="10">    <span class="kw">$display</span>(<span class="st">&quot;c is %0d</span><span class="ch">\n</span><span class="st">&quot;</span>, c);</a>
+<a class="sourceLine" id="cb189-11" title="11"><span class="kw">end</span></a>
+<a class="sourceLine" id="cb189-12" title="12"></a>
+<a class="sourceLine" id="cb189-13" title="13"><span class="kw">endmodule</span></a></code></pre></div>
+<h3 id="output-systemverilog-functions-to-cc"><span class="header-section-number">9.2.4</span> Output SystemVerilog Functions to C/C++</h3>
+<p>Although uncommonly used, SystemVerilog allows users to call SystemVerilog functions inside C/C++ as well. Most of the restrictions and rules for imported functions apply for exported functions as well. Below shows an example how to call a function defined in SystemVerilog.</p>
+<div class="sourceCode" id="cb190"><pre class="sourceCode c++"><code class="sourceCode cpp"><a class="sourceLine" id="cb190-1" title="1"><span class="at">extern</span> <span class="st">&quot;C&quot;</span> {</a>
+<a class="sourceLine" id="cb190-2" title="2"><span class="dt">int</span> add(<span class="dt">int</span> a, <span class="dt">int</span> b);</a>
+<a class="sourceLine" id="cb190-3" title="3"></a>
+<a class="sourceLine" id="cb190-4" title="4"><span class="dt">int</span> get_value() {</a>
+<a class="sourceLine" id="cb190-5" title="5">    <span class="dt">int</span> a = <span class="dv">40</span>, b = <span class="dv">2</span>, c;</a>
+<a class="sourceLine" id="cb190-6" title="6">    c = add(a, b);</a>
+<a class="sourceLine" id="cb190-7" title="7">    <span class="cf">return</span> c;</a>
+<a class="sourceLine" id="cb190-8" title="8">}</a>
+<a class="sourceLine" id="cb190-9" title="9">}</a></code></pre></div>
+<div class="sourceCode" id="cb191"><pre class="sourceCode systemverilog"><code class="sourceCode systemverilog"><a class="sourceLine" id="cb191-1" title="1"><span class="kw">export</span> <span class="st">&quot;DPI-C&quot;</span> <span class="kw">function</span> add;</a>
+<a class="sourceLine" id="cb191-2" title="2"><span class="kw">import</span> &quot;DPI-C&quot; <span class="kw">context</span> <span class="kw">function</span> <span class="kw">int</span> get_value();</a>
+<a class="sourceLine" id="cb191-3" title="3"></a>
+<a class="sourceLine" id="cb191-4" title="4"><span class="kw">function</span> <span class="kw">int</span> add(<span class="kw">input</span> <span class="kw">int</span> a, <span class="kw">input</span> <span class="kw">int</span> b);</a>
+<a class="sourceLine" id="cb191-5" title="5">    <span class="kw">return</span> a + b;</a>
+<a class="sourceLine" id="cb191-6" title="6"><span class="kw">endfunction</span></a>
+<a class="sourceLine" id="cb191-7" title="7"></a>
+<a class="sourceLine" id="cb191-8" title="8"><span class="kw">module</span> top;</a>
+<a class="sourceLine" id="cb191-9" title="9"></a>
+<a class="sourceLine" id="cb191-10" title="10"><span class="kw">initial</span> <span class="kw">begin</span></a>
+<a class="sourceLine" id="cb191-11" title="11">    <span class="kw">int</span> c = get_value();</a>
+<a class="sourceLine" id="cb191-12" title="12"><span class="kw">end</span></a>
+<a class="sourceLine" id="cb191-13" title="13"></a>
+<a class="sourceLine" id="cb191-14" title="14"><span class="kw">endmodule</span></a></code></pre></div>
+<p>Notice that exported has several differences from imported function:</p>
+<ol type="1">
+<li>The declaration syntax for exported function does not contain function prototype. It only needs a function identifier/name.</li>
+<li>All exported functions are context function. As a result, if any imported function needs to call them, the imported function needs to be marked as <code>context</code>.</li>
+</ol>
+<p>Because of the restriction of context function and the poor performance associated with the context functions, exported functions are rarely used unless necessary.</p>
+<h3 id="object-oriented-programming-with-dpi"><span class="header-section-number">9.2.5</span> Object-Oriented Programming with DPI</h3>
+<p>With DPI, we can port most of the C++ code into SystemVerilog while maintaining the object-oriented interface (with some caveats which we will discuss later). The key is to use raw pointer type <code>chandle</code>, which holds our object pointer. We also need to create C bindings that convert C++ object interface to C interface, similar how old-fashion Python-binding is done. Below shows an example of how to port C++ object codes to SystemVerilog.</p>
+<div class="sourceCode" id="cb192"><pre class="sourceCode c++"><code class="sourceCode cpp"><a class="sourceLine" id="cb192-1" title="1"><span class="kw">class</span> Dog {</a>
+<a class="sourceLine" id="cb192-2" title="2"><span class="kw">public</span>:</a>
+<a class="sourceLine" id="cb192-3" title="3">    Dog(): <span class="va">distance_</span>(<span class="dv">0</span>) {}</a>
+<a class="sourceLine" id="cb192-4" title="4">    <span class="dt">void</span> run(<span class="dt">int</span> distance) {</a>
+<a class="sourceLine" id="cb192-5" title="5">        <span class="va">distance_</span> += distance;</a>
+<a class="sourceLine" id="cb192-6" title="6">    }</a>
+<a class="sourceLine" id="cb192-7" title="7"></a>
+<a class="sourceLine" id="cb192-8" title="8">    <span class="dt">int</span> distance() <span class="at">const</span> { <span class="cf">return</span> <span class="va">distance_</span>; }</a>
+<a class="sourceLine" id="cb192-9" title="9"></a>
+<a class="sourceLine" id="cb192-10" title="10"><span class="kw">private</span>:</a>
+<a class="sourceLine" id="cb192-11" title="11">    <span class="dt">int</span> <span class="va">distance_</span>;</a>
+<a class="sourceLine" id="cb192-12" title="12">};</a>
+<a class="sourceLine" id="cb192-13" title="13"></a>
+<a class="sourceLine" id="cb192-14" title="14"><span class="co">// export function to C</span></a>
+<a class="sourceLine" id="cb192-15" title="15"><span class="at">extern</span> <span class="st">&quot;C&quot;</span> {</a>
+<a class="sourceLine" id="cb192-16" title="16"><span class="dt">void</span> *dog_ctor() {</a>
+<a class="sourceLine" id="cb192-17" title="17">    <span class="cf">return</span> <span class="kw">new</span> Dog();</a>
+<a class="sourceLine" id="cb192-18" title="18">}</a>
+<a class="sourceLine" id="cb192-19" title="19"></a>
+<a class="sourceLine" id="cb192-20" title="20"><span class="dt">void</span> dog_dctor(<span class="dt">void</span> *dog) {</a>
+<a class="sourceLine" id="cb192-21" title="21">    <span class="kw">auto</span> *ptr = <span class="kw">reinterpret_cast</span>&lt;Dog*&gt;(dog);</a>
+<a class="sourceLine" id="cb192-22" title="22">    <span class="kw">delete</span> ptr;</a>
+<a class="sourceLine" id="cb192-23" title="23">}</a>
+<a class="sourceLine" id="cb192-24" title="24"></a>
+<a class="sourceLine" id="cb192-25" title="25"><span class="dt">void</span> dog_run(<span class="dt">void</span> *dog, <span class="dt">int</span> distance) {</a>
+<a class="sourceLine" id="cb192-26" title="26">    <span class="kw">auto</span> *ptr = <span class="kw">reinterpret_cast</span>&lt;Dog*&gt;(dog);</a>
+<a class="sourceLine" id="cb192-27" title="27">    ptr-&gt;run(distance);</a>
+<a class="sourceLine" id="cb192-28" title="28">}</a>
+<a class="sourceLine" id="cb192-29" title="29"></a>
+<a class="sourceLine" id="cb192-30" title="30"><span class="dt">int</span> dog_distance(<span class="dt">void</span> *dog) {</a>
+<a class="sourceLine" id="cb192-31" title="31">    <span class="kw">auto</span> *ptr = <span class="kw">reinterpret_cast</span>&lt;Dog*&gt;(dog);</a>
+<a class="sourceLine" id="cb192-32" title="32">    <span class="cf">return</span> ptr-&gt;distance();</a>
+<a class="sourceLine" id="cb192-33" title="33">}</a>
+<a class="sourceLine" id="cb192-34" title="34">}</a></code></pre></div>
+<p>Here is the DPI declaration and SystemVerilog Bindings</p>
+<div class="sourceCode" id="cb193"><pre class="sourceCode systemverilog"><code class="sourceCode systemverilog"><a class="sourceLine" id="cb193-1" title="1"><span class="kw">package</span> dog;</a>
+<a class="sourceLine" id="cb193-2" title="2"><span class="kw">import</span> &quot;DPI-C&quot; <span class="kw">function</span> <span class="kw">chandle</span> dog_ctor();</a>
+<a class="sourceLine" id="cb193-3" title="3"><span class="kw">import</span> &quot;DPI-C&quot; <span class="kw">function</span> <span class="kw">void</span> dog_dctor(<span class="kw">chandle</span> dog); </a>
+<a class="sourceLine" id="cb193-4" title="4"><span class="kw">import</span> &quot;DPI-C&quot; <span class="kw">function</span> <span class="kw">void</span> dog_run(<span class="kw">chandle</span> dog, <span class="kw">int</span> distance);</a>
+<a class="sourceLine" id="cb193-5" title="5"><span class="kw">import</span> &quot;DPI-C&quot; <span class="kw">function</span> <span class="kw">int</span> dog_distance(<span class="kw">chandle</span> dog);</a>
+<a class="sourceLine" id="cb193-6" title="6"></a>
+<a class="sourceLine" id="cb193-7" title="7"></a>
+<a class="sourceLine" id="cb193-8" title="8"><span class="kw">class</span> Dog;</a>
+<a class="sourceLine" id="cb193-9" title="9">    <span class="kw">local</span> <span class="kw">static</span> <span class="kw">chandle</span> handles[$];</a>
+<a class="sourceLine" id="cb193-10" title="10">    <span class="kw">local</span> <span class="kw">chandle</span> handle;</a>
+<a class="sourceLine" id="cb193-11" title="11"></a>
+<a class="sourceLine" id="cb193-12" title="12">    <span class="kw">function</span> <span class="kw">new</span>();</a>
+<a class="sourceLine" id="cb193-13" title="13">        handle = dog_ctor();</a>
+<a class="sourceLine" id="cb193-14" title="14">        handles.<span class="ot">push_back</span>(handle);</a>
+<a class="sourceLine" id="cb193-15" title="15">    <span class="kw">endfunction</span></a>
+<a class="sourceLine" id="cb193-16" title="16"></a>
+<a class="sourceLine" id="cb193-17" title="17">    <span class="kw">function</span> <span class="kw">void</span> run(<span class="kw">int</span> distance);</a>
+<a class="sourceLine" id="cb193-18" title="18">        dog_run(handle, distance);</a>
+<a class="sourceLine" id="cb193-19" title="19">    <span class="kw">endfunction</span></a>
+<a class="sourceLine" id="cb193-20" title="20"></a>
+<a class="sourceLine" id="cb193-21" title="21"></a>
+<a class="sourceLine" id="cb193-22" title="22">    <span class="kw">function</span> <span class="kw">int</span> distance();</a>
+<a class="sourceLine" id="cb193-23" title="23">        <span class="kw">return</span> dog_distance(handle);</a>
+<a class="sourceLine" id="cb193-24" title="24">    <span class="kw">endfunction</span></a>
+<a class="sourceLine" id="cb193-25" title="25"></a>
+<a class="sourceLine" id="cb193-26" title="26">    <span class="kw">static</span> <span class="kw">function</span> final_();</a>
+<a class="sourceLine" id="cb193-27" title="27">        <span class="kw">foreach</span>(handles[i]) <span class="kw">begin</span></a>
+<a class="sourceLine" id="cb193-28" title="28">            dog_dctor(handles[i]);</a>
+<a class="sourceLine" id="cb193-29" title="29">        <span class="kw">end</span></a>
+<a class="sourceLine" id="cb193-30" title="30">    <span class="kw">endfunction</span></a>
+<a class="sourceLine" id="cb193-31" title="31"></a>
+<a class="sourceLine" id="cb193-32" title="32"><span class="kw">endclass</span></a>
+<a class="sourceLine" id="cb193-33" title="33"><span class="kw">endpackage</span></a></code></pre></div>
+<p>We can test out our binding using the following test bench code:</p>
+<div class="sourceCode" id="cb194"><pre class="sourceCode systemverilog"><code class="sourceCode systemverilog"><a class="sourceLine" id="cb194-1" title="1"><span class="kw">module</span> top;</a>
+<a class="sourceLine" id="cb194-2" title="2"></a>
+<a class="sourceLine" id="cb194-3" title="3"><span class="kw">import</span> dog::*;</a>
+<a class="sourceLine" id="cb194-4" title="4"></a>
+<a class="sourceLine" id="cb194-5" title="5">Dog dog;</a>
+<a class="sourceLine" id="cb194-6" title="6"></a>
+<a class="sourceLine" id="cb194-7" title="7"><span class="kw">initial</span> <span class="kw">begin</span></a>
+<a class="sourceLine" id="cb194-8" title="8">    dog = <span class="kw">new</span>();</a>
+<a class="sourceLine" id="cb194-9" title="9">    dog.run(<span class="dv">2</span>);</a>
+<a class="sourceLine" id="cb194-10" title="10">    dog.run(<span class="dv">40</span>);</a>
+<a class="sourceLine" id="cb194-11" title="11">    <span class="kw">$display</span>(<span class="st">&quot;distance: %d&quot;</span>, dog.distance());</a>
+<a class="sourceLine" id="cb194-12" title="12"><span class="kw">end</span></a>
+<a class="sourceLine" id="cb194-13" title="13"></a>
+<a class="sourceLine" id="cb194-14" title="14"><span class="kw">final</span> <span class="kw">begin</span></a>
+<a class="sourceLine" id="cb194-15" title="15">    Dog::final_();</a>
+<a class="sourceLine" id="cb194-16" title="16"><span class="kw">end</span></a>
+<a class="sourceLine" id="cb194-17" title="17"></a>
+<a class="sourceLine" id="cb194-18" title="18"><span class="kw">endmodule</span></a></code></pre></div>
+<p>We should see <code>42</code> printed out. Notice that although SystemVerilog is objected-oriented language like C++, it has garbage collection. The simulator needs to clean up unused objects, instead of programmers. As a result, we need to manually call clean up methods to delete any object created from C++. There are several ways to do it, and the example above shows an approach that only clean up at the end of simulation. In this case we hold every objects created in SystemVerilog into an queue. Once we’re done with the simulation, we call the destructor to clean up the memory.</p>
                 </div>
             </div>
         </div>

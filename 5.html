@@ -43,307 +43,307 @@
 <p>In addition to the normal OOP, SystemVerilog also allows type parametrization for the class (similar to templates in C++)</p>
 <h2 id="class-definition-and-syntax"><span class="header-section-number">5.1</span> Class Definition and Syntax</h2>
 <p>The syntax of class is similar to that of C++. The constructor is called <code>new</code> and unfortunately there is no function overloading. However, similar to Python, users can provide default arguments to allow different usage. Here is a simple example of <code>class</code>:</p>
-<div class="sourceCode" id="cb101"><pre class="sourceCode systemverilog"><code class="sourceCode systemverilog"><a class="sourceLine" id="cb101-1" title="1"><span class="kw">class</span> Node;</a>
-<a class="sourceLine" id="cb101-2" title="2">    Node <span class="ot">next</span>;</a>
-<a class="sourceLine" id="cb101-3" title="3"></a>
-<a class="sourceLine" id="cb101-4" title="4">    <span class="co">// constructor</span></a>
-<a class="sourceLine" id="cb101-5" title="5">    <span class="kw">function</span> <span class="kw">new</span>();</a>
-<a class="sourceLine" id="cb101-6" title="6">        <span class="ot">next</span> = <span class="kw">null</span>;</a>
-<a class="sourceLine" id="cb101-7" title="7">    <span class="kw">endfunction</span></a>
-<a class="sourceLine" id="cb101-8" title="8"></a>
-<a class="sourceLine" id="cb101-9" title="9"><span class="kw">endclass</span></a></code></pre></div>
+<div class="sourceCode" id="cb105"><pre class="sourceCode systemverilog"><code class="sourceCode systemverilog"><a class="sourceLine" id="cb105-1" title="1"><span class="kw">class</span> Node;</a>
+<a class="sourceLine" id="cb105-2" title="2">    Node <span class="ot">next</span>;</a>
+<a class="sourceLine" id="cb105-3" title="3"></a>
+<a class="sourceLine" id="cb105-4" title="4">    <span class="co">// constructor</span></a>
+<a class="sourceLine" id="cb105-5" title="5">    <span class="kw">function</span> <span class="kw">new</span>();</a>
+<a class="sourceLine" id="cb105-6" title="6">        <span class="ot">next</span> = <span class="kw">null</span>;</a>
+<a class="sourceLine" id="cb105-7" title="7">    <span class="kw">endfunction</span></a>
+<a class="sourceLine" id="cb105-8" title="8"></a>
+<a class="sourceLine" id="cb105-9" title="9"><span class="kw">endclass</span></a></code></pre></div>
 <p>Notice that like Java/Python, each instance of the object in SystemVerilog is a “reference” and there is no pointer type. Keyword <code>null</code> is used to denoted null reference. You will get null exceptions when you try to access members of a null object. We can enhance the <code>Node</code> constructor with default argument in such way that users can also pass in the next reference while constructing the object:</p>
-<div class="sourceCode" id="cb102"><pre class="sourceCode systemverilog"><code class="sourceCode systemverilog"><a class="sourceLine" id="cb102-1" title="1"><span class="kw">function</span> <span class="kw">new</span>(Node next_node=<span class="kw">null</span>);</a>
-<a class="sourceLine" id="cb102-2" title="2">    <span class="ot">next</span> = next_node;</a>
-<a class="sourceLine" id="cb102-3" title="3"><span class="kw">endfunction</span></a></code></pre></div>
+<div class="sourceCode" id="cb106"><pre class="sourceCode systemverilog"><code class="sourceCode systemverilog"><a class="sourceLine" id="cb106-1" title="1"><span class="kw">function</span> <span class="kw">new</span>(Node next_node=<span class="kw">null</span>);</a>
+<a class="sourceLine" id="cb106-2" title="2">    <span class="ot">next</span> = next_node;</a>
+<a class="sourceLine" id="cb106-3" title="3"><span class="kw">endfunction</span></a></code></pre></div>
 <p>By default, every member declared in the class is public, meaning any code can modify the attributes or call the functions regardless of the scope. To add private access modifier, we can use <code>local</code> keyword. For instance, we can have:</p>
-<div class="sourceCode" id="cb103"><pre class="sourceCode systemverilog"><code class="sourceCode systemverilog"><a class="sourceLine" id="cb103-1" title="1"><span class="kw">class</span> Node;</a>
-<a class="sourceLine" id="cb103-2" title="2">    <span class="kw">local</span> Node <span class="ot">next</span>;</a>
-<a class="sourceLine" id="cb103-3" title="3"></a>
-<a class="sourceLine" id="cb103-4" title="4">    <span class="kw">function</span> <span class="kw">new</span>(Node next_node=<span class="kw">null</span>);</a>
-<a class="sourceLine" id="cb103-5" title="5">        <span class="ot">next</span> = next_node;</a>
-<a class="sourceLine" id="cb103-6" title="6">    <span class="kw">endfunction</span></a>
-<a class="sourceLine" id="cb103-7" title="7"></a>
-<a class="sourceLine" id="cb103-8" title="8">    <span class="co">// local function</span></a>
-<a class="sourceLine" id="cb103-9" title="9">    <span class="kw">local</span> <span class="kw">function</span> foo();</a>
-<a class="sourceLine" id="cb103-10" title="10">    <span class="kw">endfunction</span></a>
-<a class="sourceLine" id="cb103-11" title="11"><span class="kw">endclass</span></a></code></pre></div>
+<div class="sourceCode" id="cb107"><pre class="sourceCode systemverilog"><code class="sourceCode systemverilog"><a class="sourceLine" id="cb107-1" title="1"><span class="kw">class</span> Node;</a>
+<a class="sourceLine" id="cb107-2" title="2">    <span class="kw">local</span> Node <span class="ot">next</span>;</a>
+<a class="sourceLine" id="cb107-3" title="3"></a>
+<a class="sourceLine" id="cb107-4" title="4">    <span class="kw">function</span> <span class="kw">new</span>(Node next_node=<span class="kw">null</span>);</a>
+<a class="sourceLine" id="cb107-5" title="5">        <span class="ot">next</span> = next_node;</a>
+<a class="sourceLine" id="cb107-6" title="6">    <span class="kw">endfunction</span></a>
+<a class="sourceLine" id="cb107-7" title="7"></a>
+<a class="sourceLine" id="cb107-8" title="8">    <span class="co">// local function</span></a>
+<a class="sourceLine" id="cb107-9" title="9">    <span class="kw">local</span> <span class="kw">function</span> foo();</a>
+<a class="sourceLine" id="cb107-10" title="10">    <span class="kw">endfunction</span></a>
+<a class="sourceLine" id="cb107-11" title="11"><span class="kw">endclass</span></a></code></pre></div>
 <p>To instantiate the object, we can use <code>new</code> keyword, similar to Java/C#. To access member attributes or function, we can either use their identifiers directly or use <code>this</code> keyword to avoid naming conflicts, similar to that of C++. Here is a complete example of single-linked-list that has proper access modifier:</p>
-<div class="sourceCode" id="cb104"><pre class="sourceCode systemverilog"><code class="sourceCode systemverilog"><a class="sourceLine" id="cb104-1" title="1"><span class="kw">class</span> Node;</a>
-<a class="sourceLine" id="cb104-2" title="2">    <span class="kw">local</span> Node <span class="ot">next</span>;</a>
-<a class="sourceLine" id="cb104-3" title="3"></a>
-<a class="sourceLine" id="cb104-4" title="4">    <span class="kw">function</span> <span class="kw">new</span>(Node next_node=<span class="kw">null</span>);</a>
-<a class="sourceLine" id="cb104-5" title="5">        <span class="ot">next</span> = next_node;</a>
-<a class="sourceLine" id="cb104-6" title="6">    <span class="kw">endfunction</span></a>
-<a class="sourceLine" id="cb104-7" title="7"></a>
-<a class="sourceLine" id="cb104-8" title="8">    <span class="co">// local function</span></a>
-<a class="sourceLine" id="cb104-9" title="9">    <span class="kw">local</span> <span class="kw">function</span> foo();</a>
-<a class="sourceLine" id="cb104-10" title="10">    <span class="kw">endfunction</span></a>
-<a class="sourceLine" id="cb104-11" title="11"><span class="kw">endclass</span></a>
-<a class="sourceLine" id="cb104-12" title="12"></a>
-<a class="sourceLine" id="cb104-13" title="13"><span class="kw">class</span> <span class="ot">List</span>;</a>
-<a class="sourceLine" id="cb104-14" title="14">    <span class="kw">local</span> Node head_;</a>
-<a class="sourceLine" id="cb104-15" title="15"></a>
-<a class="sourceLine" id="cb104-16" title="16">    <span class="kw">function</span> <span class="kw">new</span>();</a>
-<a class="sourceLine" id="cb104-17" title="17">        head_ = <span class="kw">null</span>;</a>
-<a class="sourceLine" id="cb104-18" title="18">    <span class="kw">endfunction</span></a>
-<a class="sourceLine" id="cb104-19" title="19"></a>
-<a class="sourceLine" id="cb104-20" title="20">    <span class="kw">function</span> Node head();</a>
-<a class="sourceLine" id="cb104-21" title="21">        <span class="kw">return</span> head_;</a>
-<a class="sourceLine" id="cb104-22" title="22">    <span class="kw">endfunction</span></a>
-<a class="sourceLine" id="cb104-23" title="23"></a>
-<a class="sourceLine" id="cb104-24" title="24">    <span class="kw">function</span> <span class="kw">void</span> add_node();</a>
-<a class="sourceLine" id="cb104-25" title="25">        <span class="kw">automatic</span> Node new_node;</a>
-<a class="sourceLine" id="cb104-26" title="26">        new_node = <span class="kw">new</span>(head_);</a>
-<a class="sourceLine" id="cb104-27" title="27">        <span class="co">// use &quot;this&quot; to access member attributes</span></a>
-<a class="sourceLine" id="cb104-28" title="28">        <span class="kw">this</span>.head_ = new_node;</a>
-<a class="sourceLine" id="cb104-29" title="29">    <span class="kw">endfunction</span></a>
-<a class="sourceLine" id="cb104-30" title="30"></a>
-<a class="sourceLine" id="cb104-31" title="31"><span class="kw">endclass</span></a></code></pre></div>
+<div class="sourceCode" id="cb108"><pre class="sourceCode systemverilog"><code class="sourceCode systemverilog"><a class="sourceLine" id="cb108-1" title="1"><span class="kw">class</span> Node;</a>
+<a class="sourceLine" id="cb108-2" title="2">    <span class="kw">local</span> Node <span class="ot">next</span>;</a>
+<a class="sourceLine" id="cb108-3" title="3"></a>
+<a class="sourceLine" id="cb108-4" title="4">    <span class="kw">function</span> <span class="kw">new</span>(Node next_node=<span class="kw">null</span>);</a>
+<a class="sourceLine" id="cb108-5" title="5">        <span class="ot">next</span> = next_node;</a>
+<a class="sourceLine" id="cb108-6" title="6">    <span class="kw">endfunction</span></a>
+<a class="sourceLine" id="cb108-7" title="7"></a>
+<a class="sourceLine" id="cb108-8" title="8">    <span class="co">// local function</span></a>
+<a class="sourceLine" id="cb108-9" title="9">    <span class="kw">local</span> <span class="kw">function</span> foo();</a>
+<a class="sourceLine" id="cb108-10" title="10">    <span class="kw">endfunction</span></a>
+<a class="sourceLine" id="cb108-11" title="11"><span class="kw">endclass</span></a>
+<a class="sourceLine" id="cb108-12" title="12"></a>
+<a class="sourceLine" id="cb108-13" title="13"><span class="kw">class</span> <span class="ot">List</span>;</a>
+<a class="sourceLine" id="cb108-14" title="14">    <span class="kw">local</span> Node head_;</a>
+<a class="sourceLine" id="cb108-15" title="15"></a>
+<a class="sourceLine" id="cb108-16" title="16">    <span class="kw">function</span> <span class="kw">new</span>();</a>
+<a class="sourceLine" id="cb108-17" title="17">        head_ = <span class="kw">null</span>;</a>
+<a class="sourceLine" id="cb108-18" title="18">    <span class="kw">endfunction</span></a>
+<a class="sourceLine" id="cb108-19" title="19"></a>
+<a class="sourceLine" id="cb108-20" title="20">    <span class="kw">function</span> Node head();</a>
+<a class="sourceLine" id="cb108-21" title="21">        <span class="kw">return</span> head_;</a>
+<a class="sourceLine" id="cb108-22" title="22">    <span class="kw">endfunction</span></a>
+<a class="sourceLine" id="cb108-23" title="23"></a>
+<a class="sourceLine" id="cb108-24" title="24">    <span class="kw">function</span> <span class="kw">void</span> add_node();</a>
+<a class="sourceLine" id="cb108-25" title="25">        <span class="kw">automatic</span> Node new_node;</a>
+<a class="sourceLine" id="cb108-26" title="26">        new_node = <span class="kw">new</span>(head_);</a>
+<a class="sourceLine" id="cb108-27" title="27">        <span class="co">// use &quot;this&quot; to access member attributes</span></a>
+<a class="sourceLine" id="cb108-28" title="28">        <span class="kw">this</span>.head_ = new_node;</a>
+<a class="sourceLine" id="cb108-29" title="29">    <span class="kw">endfunction</span></a>
+<a class="sourceLine" id="cb108-30" title="30"></a>
+<a class="sourceLine" id="cb108-31" title="31"><span class="kw">endclass</span></a></code></pre></div>
 <p>Object in SystemVerilog is managed by the simulator runtime and thus garbage-collected, similar to Java/C#. As a result of that, we may also see performance downgrade when garbage collection hurts our simulation flow. As premature optimization is the root of all evil, we should be careful about optimization on memory allocation during verification.</p>
 <p>You can also have static methods in the class, using the keyword <code>static</code>, e.g. <code>static function string name();</code>. <code>static</code> function follows the same semantics as normal function, e.g. their scope and lifetime. As a result, <code>automatic</code> keyword is required in some cases.</p>
 <h3 id="out-of-block-declarations"><span class="header-section-number">5.1.1</span> Out-of-Block Declarations</h3>
 <p>Similar to other OOP languages, SystemVerilog allows you to move the method implementation our of the body of the class declaration. Todo so, the method inside of the class declaration has to be marked as <code>extern</code>. Then, in the same scope, we can add the implementation following the class declaration, as shown below:</p>
-<div class="sourceCode" id="cb105"><pre class="sourceCode systemverilog"><code class="sourceCode systemverilog"><a class="sourceLine" id="cb105-1" title="1"><span class="kw">class</span> <span class="ot">List</span>;</a>
-<a class="sourceLine" id="cb105-2" title="2">    <span class="kw">local</span> Node head_;</a>
-<a class="sourceLine" id="cb105-3" title="3"></a>
-<a class="sourceLine" id="cb105-4" title="4">    <span class="kw">extern</span> <span class="kw">function</span> <span class="kw">void</span> add_node();</a>
-<a class="sourceLine" id="cb105-5" title="5"></a>
-<a class="sourceLine" id="cb105-6" title="6"><span class="kw">endclass</span></a>
-<a class="sourceLine" id="cb105-7" title="7"></a>
-<a class="sourceLine" id="cb105-8" title="8"><span class="kw">function</span> <span class="kw">void</span> <span class="ot">List</span>::add_node();</a>
-<a class="sourceLine" id="cb105-9" title="9">    <span class="co">// actual implementation of the function</span></a>
-<a class="sourceLine" id="cb105-10" title="10"><span class="kw">endfunction</span></a></code></pre></div>
+<div class="sourceCode" id="cb109"><pre class="sourceCode systemverilog"><code class="sourceCode systemverilog"><a class="sourceLine" id="cb109-1" title="1"><span class="kw">class</span> <span class="ot">List</span>;</a>
+<a class="sourceLine" id="cb109-2" title="2">    <span class="kw">local</span> Node head_;</a>
+<a class="sourceLine" id="cb109-3" title="3"></a>
+<a class="sourceLine" id="cb109-4" title="4">    <span class="kw">extern</span> <span class="kw">function</span> <span class="kw">void</span> add_node();</a>
+<a class="sourceLine" id="cb109-5" title="5"></a>
+<a class="sourceLine" id="cb109-6" title="6"><span class="kw">endclass</span></a>
+<a class="sourceLine" id="cb109-7" title="7"></a>
+<a class="sourceLine" id="cb109-8" title="8"><span class="kw">function</span> <span class="kw">void</span> <span class="ot">List</span>::add_node();</a>
+<a class="sourceLine" id="cb109-9" title="9">    <span class="co">// actual implementation of the function</span></a>
+<a class="sourceLine" id="cb109-10" title="10"><span class="kw">endfunction</span></a></code></pre></div>
 <p>Notice that in the out-of-block declaration, we have to specify the full namespace of the function, i.e. prefixing it with class name and scope resolution operator <code>::</code>. Similar to C++, we don’t need to specify function modifier such as <code>extern</code> or <code>virtual</code> in the out-of-block declaration.</p>
 <p>Although the language allows default argument in the out-of-block declaration, it is confusing and difficult to maintain. We recommend default argument in C++ style, where default arguments are only specified in the function prototype, as shown below:</p>
-<div class="sourceCode" id="cb106"><pre class="sourceCode systemverilog"><code class="sourceCode systemverilog"><a class="sourceLine" id="cb106-1" title="1"><span class="kw">class</span> ClassA;</a>
-<a class="sourceLine" id="cb106-2" title="2">    <span class="kw">extern</span> <span class="kw">function</span> <span class="kw">int</span> func(<span class="kw">int</span> a = <span class="dv">0</span>, <span class="kw">int</span> b = <span class="dv">1</span>);</a>
-<a class="sourceLine" id="cb106-3" title="3">    <span class="kw">endfunction</span></a>
-<a class="sourceLine" id="cb106-4" title="4"><span class="kw">endclass</span></a>
-<a class="sourceLine" id="cb106-5" title="5"></a>
-<a class="sourceLine" id="cb106-6" title="6"><span class="kw">function</span> <span class="kw">int</span> ClassA::func(<span class="kw">int</span> a, <span class="kw">int</span> b);</a>
-<a class="sourceLine" id="cb106-7" title="7"><span class="kw">endfunction</span></a></code></pre></div>
+<div class="sourceCode" id="cb110"><pre class="sourceCode systemverilog"><code class="sourceCode systemverilog"><a class="sourceLine" id="cb110-1" title="1"><span class="kw">class</span> ClassA;</a>
+<a class="sourceLine" id="cb110-2" title="2">    <span class="kw">extern</span> <span class="kw">function</span> <span class="kw">int</span> func(<span class="kw">int</span> a = <span class="dv">0</span>, <span class="kw">int</span> b = <span class="dv">1</span>);</a>
+<a class="sourceLine" id="cb110-3" title="3">    <span class="kw">endfunction</span></a>
+<a class="sourceLine" id="cb110-4" title="4"><span class="kw">endclass</span></a>
+<a class="sourceLine" id="cb110-5" title="5"></a>
+<a class="sourceLine" id="cb110-6" title="6"><span class="kw">function</span> <span class="kw">int</span> ClassA::func(<span class="kw">int</span> a, <span class="kw">int</span> b);</a>
+<a class="sourceLine" id="cb110-7" title="7"><span class="kw">endfunction</span></a></code></pre></div>
 <h3 id="forward-declaration"><span class="header-section-number">5.1.2</span> Forward Declaration</h3>
 <p>Similar to C++, if the class declaration needs to refer to another class declared later or else where, we can use keyword <code>typedef</code> for forward declaration as shown below:</p>
-<div class="sourceCode" id="cb107"><pre class="sourceCode systemverilog"><code class="sourceCode systemverilog"><a class="sourceLine" id="cb107-1" title="1"><span class="kw">typedef</span> <span class="kw">class</span> B;</a>
-<a class="sourceLine" id="cb107-2" title="2"></a>
-<a class="sourceLine" id="cb107-3" title="3"><span class="kw">class</span> A;</a>
-<a class="sourceLine" id="cb107-4" title="4">   B b;</a>
-<a class="sourceLine" id="cb107-5" title="5"><span class="kw">endclass</span></a>
-<a class="sourceLine" id="cb107-6" title="6"></a>
-<a class="sourceLine" id="cb107-7" title="7"><span class="kw">class</span> B;</a>
-<a class="sourceLine" id="cb107-8" title="8"><span class="kw">endclass</span></a></code></pre></div>
+<div class="sourceCode" id="cb111"><pre class="sourceCode systemverilog"><code class="sourceCode systemverilog"><a class="sourceLine" id="cb111-1" title="1"><span class="kw">typedef</span> <span class="kw">class</span> B;</a>
+<a class="sourceLine" id="cb111-2" title="2"></a>
+<a class="sourceLine" id="cb111-3" title="3"><span class="kw">class</span> A;</a>
+<a class="sourceLine" id="cb111-4" title="4">   B b;</a>
+<a class="sourceLine" id="cb111-5" title="5"><span class="kw">endclass</span></a>
+<a class="sourceLine" id="cb111-6" title="6"></a>
+<a class="sourceLine" id="cb111-7" title="7"><span class="kw">class</span> B;</a>
+<a class="sourceLine" id="cb111-8" title="8"><span class="kw">endclass</span></a></code></pre></div>
 <h2 id="class-inheritance"><span class="header-section-number">5.2</span> Class Inheritance</h2>
 <p>SystemVerilog allows class inheritance and polymorphism via inheritance. Although the semantics are similar to other software programming languages, there are some nuance difference that creates somme gotcha moments and thus is one of the popular source of bugs.</p>
 <p>To inherit from the base class, we can use the keyword <code>extend</code> and we can override any methods marked as <code>virtual</code>, as shown in the example below:</p>
-<div class="sourceCode" id="cb108"><pre class="sourceCode systemverilog"><code class="sourceCode systemverilog"><a class="sourceLine" id="cb108-1" title="1"><span class="kw">class</span> Vehicle;</a>
-<a class="sourceLine" id="cb108-2" title="2">    <span class="kw">function</span> <span class="kw">int</span> num_wheels();</a>
-<a class="sourceLine" id="cb108-3" title="3">        <span class="kw">return</span> <span class="dv">4</span>;</a>
-<a class="sourceLine" id="cb108-4" title="4">    <span class="kw">endfunction</span></a>
-<a class="sourceLine" id="cb108-5" title="5"></a>
-<a class="sourceLine" id="cb108-6" title="6">    <span class="kw">virtual</span> <span class="kw">function</span> <span class="kw">int</span> num_seats();</a>
-<a class="sourceLine" id="cb108-7" title="7">        <span class="kw">return</span> <span class="dv">2</span>;</a>
-<a class="sourceLine" id="cb108-8" title="8">    <span class="kw">endfunction</span></a>
-<a class="sourceLine" id="cb108-9" title="9"></a>
-<a class="sourceLine" id="cb108-10" title="10"><span class="kw">endclass</span></a>
-<a class="sourceLine" id="cb108-11" title="11"></a>
-<a class="sourceLine" id="cb108-12" title="12"><span class="kw">class</span> Car <span class="kw">extends</span> Vehicle;</a>
-<a class="sourceLine" id="cb108-13" title="13">    <span class="kw">function</span> <span class="kw">int</span> num_seats();</a>
-<a class="sourceLine" id="cb108-14" title="14">        <span class="kw">return</span> <span class="dv">4</span>;</a>
-<a class="sourceLine" id="cb108-15" title="15">    <span class="kw">endfunction</span></a>
-<a class="sourceLine" id="cb108-16" title="16"><span class="kw">endclass</span></a>
-<a class="sourceLine" id="cb108-17" title="17"></a>
-<a class="sourceLine" id="cb108-18" title="18"><span class="kw">module</span> top;</a>
-<a class="sourceLine" id="cb108-19" title="19"></a>
-<a class="sourceLine" id="cb108-20" title="20"><span class="kw">initial</span> <span class="kw">begin</span></a>
-<a class="sourceLine" id="cb108-21" title="21">    Car car;</a>
-<a class="sourceLine" id="cb108-22" title="22">    car = <span class="kw">new</span>();</a>
-<a class="sourceLine" id="cb108-23" title="23">    <span class="co">// we will get</span></a>
-<a class="sourceLine" id="cb108-24" title="24">    <span class="co">// num of seats: 4</span></a>
-<a class="sourceLine" id="cb108-25" title="25">    <span class="kw">$display</span>(<span class="st">&quot;num of seats: %0d&quot;</span>, car.num_seats());</a>
-<a class="sourceLine" id="cb108-26" title="26"><span class="kw">end</span></a>
-<a class="sourceLine" id="cb108-27" title="27"></a>
-<a class="sourceLine" id="cb108-28" title="28"><span class="kw">endmodule</span></a></code></pre></div>
+<div class="sourceCode" id="cb112"><pre class="sourceCode systemverilog"><code class="sourceCode systemverilog"><a class="sourceLine" id="cb112-1" title="1"><span class="kw">class</span> Vehicle;</a>
+<a class="sourceLine" id="cb112-2" title="2">    <span class="kw">function</span> <span class="kw">int</span> num_wheels();</a>
+<a class="sourceLine" id="cb112-3" title="3">        <span class="kw">return</span> <span class="dv">4</span>;</a>
+<a class="sourceLine" id="cb112-4" title="4">    <span class="kw">endfunction</span></a>
+<a class="sourceLine" id="cb112-5" title="5"></a>
+<a class="sourceLine" id="cb112-6" title="6">    <span class="kw">virtual</span> <span class="kw">function</span> <span class="kw">int</span> num_seats();</a>
+<a class="sourceLine" id="cb112-7" title="7">        <span class="kw">return</span> <span class="dv">2</span>;</a>
+<a class="sourceLine" id="cb112-8" title="8">    <span class="kw">endfunction</span></a>
+<a class="sourceLine" id="cb112-9" title="9"></a>
+<a class="sourceLine" id="cb112-10" title="10"><span class="kw">endclass</span></a>
+<a class="sourceLine" id="cb112-11" title="11"></a>
+<a class="sourceLine" id="cb112-12" title="12"><span class="kw">class</span> Car <span class="kw">extends</span> Vehicle;</a>
+<a class="sourceLine" id="cb112-13" title="13">    <span class="kw">function</span> <span class="kw">int</span> num_seats();</a>
+<a class="sourceLine" id="cb112-14" title="14">        <span class="kw">return</span> <span class="dv">4</span>;</a>
+<a class="sourceLine" id="cb112-15" title="15">    <span class="kw">endfunction</span></a>
+<a class="sourceLine" id="cb112-16" title="16"><span class="kw">endclass</span></a>
+<a class="sourceLine" id="cb112-17" title="17"></a>
+<a class="sourceLine" id="cb112-18" title="18"><span class="kw">module</span> top;</a>
+<a class="sourceLine" id="cb112-19" title="19"></a>
+<a class="sourceLine" id="cb112-20" title="20"><span class="kw">initial</span> <span class="kw">begin</span></a>
+<a class="sourceLine" id="cb112-21" title="21">    Car car;</a>
+<a class="sourceLine" id="cb112-22" title="22">    car = <span class="kw">new</span>();</a>
+<a class="sourceLine" id="cb112-23" title="23">    <span class="co">// we will get</span></a>
+<a class="sourceLine" id="cb112-24" title="24">    <span class="co">// num of seats: 4</span></a>
+<a class="sourceLine" id="cb112-25" title="25">    <span class="kw">$display</span>(<span class="st">&quot;num of seats: %0d&quot;</span>, car.num_seats());</a>
+<a class="sourceLine" id="cb112-26" title="26"><span class="kw">end</span></a>
+<a class="sourceLine" id="cb112-27" title="27"></a>
+<a class="sourceLine" id="cb112-28" title="28"><span class="kw">endmodule</span></a></code></pre></div>
 <p>In the code example, we first declare the base class <code>Vehicle</code>, and then inherit it with <code>Car</code> class. Notice that <code>num_seats</code> is marked as <code>virtual</code>, allowing it to be overridden by child classes.</p>
 <p>If the base class has a constructor function, the child class must call the base class constructor using the keyword <code>super</code>:</p>
-<div class="sourceCode" id="cb109"><pre class="sourceCode systemverilog"><code class="sourceCode systemverilog"><a class="sourceLine" id="cb109-1" title="1"><span class="kw">function</span> <span class="kw">new</span>();</a>
-<a class="sourceLine" id="cb109-2" title="2">    <span class="kw">super</span>.<span class="kw">new</span>();</a>
-<a class="sourceLine" id="cb109-3" title="3"><span class="kw">endfunction</span></a></code></pre></div>
+<div class="sourceCode" id="cb113"><pre class="sourceCode systemverilog"><code class="sourceCode systemverilog"><a class="sourceLine" id="cb113-1" title="1"><span class="kw">function</span> <span class="kw">new</span>();</a>
+<a class="sourceLine" id="cb113-2" title="2">    <span class="kw">super</span>.<span class="kw">new</span>();</a>
+<a class="sourceLine" id="cb113-3" title="3"><span class="kw">endfunction</span></a></code></pre></div>
 <p>We can also specify constant values that cannot be modified. Any attempt to modify constant values will result in compiler error:</p>
-<div class="sourceCode" id="cb110"><pre class="sourceCode systemverilog"><code class="sourceCode systemverilog"><a class="sourceLine" id="cb110-1" title="1"><span class="kw">class</span> classA;</a>
-<a class="sourceLine" id="cb110-2" title="2">    <span class="kw">const</span> <span class="kw">int</span> value = <span class="dv">5</span>;</a>
-<a class="sourceLine" id="cb110-3" title="3"><span class="kw">endclass</span></a></code></pre></div>
+<div class="sourceCode" id="cb114"><pre class="sourceCode systemverilog"><code class="sourceCode systemverilog"><a class="sourceLine" id="cb114-1" title="1"><span class="kw">class</span> classA;</a>
+<a class="sourceLine" id="cb114-2" title="2">    <span class="kw">const</span> <span class="kw">int</span> value = <span class="dv">5</span>;</a>
+<a class="sourceLine" id="cb114-3" title="3"><span class="kw">endclass</span></a></code></pre></div>
 <p>Abstract class and abstract methods are also supported in SystemVerilog and their semantics is identical to most OOP languages: 1. Users cannot directly instantiate an abstract class - a compiler error will be issued. 2. Users cannot inherit an abstract class without fully implement abstract methods.</p>
 <p>To declare the class as an abstract class, we can declare the class as <code>virtual class</code> using the keyword <code>virtual</code>. To indicate an abstract method, we can use a new keyword <code>pure</code> in addition to <code>virtual</code>, e.g. <code>pure virtual function</code>. Here is an example reusing the vehicle class.</p>
-<div class="sourceCode" id="cb111"><pre class="sourceCode systemverilog"><code class="sourceCode systemverilog"><a class="sourceLine" id="cb111-1" title="1"><span class="kw">virtual</span> <span class="kw">class</span> Vehicle;</a>
-<a class="sourceLine" id="cb111-2" title="2">    <span class="co">// abstract class can still offer implementations</span></a>
-<a class="sourceLine" id="cb111-3" title="3">    <span class="kw">function</span> <span class="kw">int</span> num_wheels();</a>
-<a class="sourceLine" id="cb111-4" title="4">        <span class="kw">return</span> <span class="dv">4</span>;</a>
-<a class="sourceLine" id="cb111-5" title="5">    <span class="kw">endfunction</span></a>
-<a class="sourceLine" id="cb111-6" title="6"></a>
-<a class="sourceLine" id="cb111-7" title="7">    <span class="kw">pure</span> <span class="kw">virtual</span> <span class="kw">function</span> <span class="kw">int</span> num_seats();</a>
-<a class="sourceLine" id="cb111-8" title="8"><span class="kw">endclass</span></a>
-<a class="sourceLine" id="cb111-9" title="9"></a>
-<a class="sourceLine" id="cb111-10" title="10"><span class="kw">class</span> Car <span class="kw">extends</span> Vehicle;</a>
-<a class="sourceLine" id="cb111-11" title="11">    <span class="kw">function</span> <span class="kw">int</span> num_seats();</a>
-<a class="sourceLine" id="cb111-12" title="12">        <span class="kw">return</span> <span class="dv">4</span>;</a>
-<a class="sourceLine" id="cb111-13" title="13">    <span class="kw">endfunction</span></a>
-<a class="sourceLine" id="cb111-14" title="14"><span class="kw">endclass</span></a>
-<a class="sourceLine" id="cb111-15" title="15"></a>
-<a class="sourceLine" id="cb111-16" title="16"><span class="kw">module</span> top;</a>
-<a class="sourceLine" id="cb111-17" title="17"></a>
-<a class="sourceLine" id="cb111-18" title="18"><span class="kw">initial</span> <span class="kw">begin</span></a>
-<a class="sourceLine" id="cb111-19" title="19">    Vehicle v;</a>
-<a class="sourceLine" id="cb111-20" title="20">    Car car;</a>
-<a class="sourceLine" id="cb111-21" title="21">    <span class="co">// the line before will trigger an error</span></a>
-<a class="sourceLine" id="cb111-22" title="22">    <span class="co">// v = new();</span></a>
-<a class="sourceLine" id="cb111-23" title="23">    car = <span class="kw">new</span>();</a>
-<a class="sourceLine" id="cb111-24" title="24">    <span class="co">// we will get</span></a>
-<a class="sourceLine" id="cb111-25" title="25">    <span class="co">// num of seats: 4</span></a>
-<a class="sourceLine" id="cb111-26" title="26">    <span class="kw">$display</span>(<span class="st">&quot;num of seats: %0d&quot;</span>, car.num_seats());</a>
-<a class="sourceLine" id="cb111-27" title="27"><span class="kw">end</span></a>
-<a class="sourceLine" id="cb111-28" title="28"></a>
-<a class="sourceLine" id="cb111-29" title="29"><span class="kw">endmodule</span></a></code></pre></div>
+<div class="sourceCode" id="cb115"><pre class="sourceCode systemverilog"><code class="sourceCode systemverilog"><a class="sourceLine" id="cb115-1" title="1"><span class="kw">virtual</span> <span class="kw">class</span> Vehicle;</a>
+<a class="sourceLine" id="cb115-2" title="2">    <span class="co">// abstract class can still offer implementations</span></a>
+<a class="sourceLine" id="cb115-3" title="3">    <span class="kw">function</span> <span class="kw">int</span> num_wheels();</a>
+<a class="sourceLine" id="cb115-4" title="4">        <span class="kw">return</span> <span class="dv">4</span>;</a>
+<a class="sourceLine" id="cb115-5" title="5">    <span class="kw">endfunction</span></a>
+<a class="sourceLine" id="cb115-6" title="6"></a>
+<a class="sourceLine" id="cb115-7" title="7">    <span class="kw">pure</span> <span class="kw">virtual</span> <span class="kw">function</span> <span class="kw">int</span> num_seats();</a>
+<a class="sourceLine" id="cb115-8" title="8"><span class="kw">endclass</span></a>
+<a class="sourceLine" id="cb115-9" title="9"></a>
+<a class="sourceLine" id="cb115-10" title="10"><span class="kw">class</span> Car <span class="kw">extends</span> Vehicle;</a>
+<a class="sourceLine" id="cb115-11" title="11">    <span class="kw">function</span> <span class="kw">int</span> num_seats();</a>
+<a class="sourceLine" id="cb115-12" title="12">        <span class="kw">return</span> <span class="dv">4</span>;</a>
+<a class="sourceLine" id="cb115-13" title="13">    <span class="kw">endfunction</span></a>
+<a class="sourceLine" id="cb115-14" title="14"><span class="kw">endclass</span></a>
+<a class="sourceLine" id="cb115-15" title="15"></a>
+<a class="sourceLine" id="cb115-16" title="16"><span class="kw">module</span> top;</a>
+<a class="sourceLine" id="cb115-17" title="17"></a>
+<a class="sourceLine" id="cb115-18" title="18"><span class="kw">initial</span> <span class="kw">begin</span></a>
+<a class="sourceLine" id="cb115-19" title="19">    Vehicle v;</a>
+<a class="sourceLine" id="cb115-20" title="20">    Car car;</a>
+<a class="sourceLine" id="cb115-21" title="21">    <span class="co">// the line before will trigger an error</span></a>
+<a class="sourceLine" id="cb115-22" title="22">    <span class="co">// v = new();</span></a>
+<a class="sourceLine" id="cb115-23" title="23">    car = <span class="kw">new</span>();</a>
+<a class="sourceLine" id="cb115-24" title="24">    <span class="co">// we will get</span></a>
+<a class="sourceLine" id="cb115-25" title="25">    <span class="co">// num of seats: 4</span></a>
+<a class="sourceLine" id="cb115-26" title="26">    <span class="kw">$display</span>(<span class="st">&quot;num of seats: %0d&quot;</span>, car.num_seats());</a>
+<a class="sourceLine" id="cb115-27" title="27"><span class="kw">end</span></a>
+<a class="sourceLine" id="cb115-28" title="28"></a>
+<a class="sourceLine" id="cb115-29" title="29"><span class="kw">endmodule</span></a></code></pre></div>
 <p>To allow child class access parent attributes and function, we can use the keyword modifier <code>protected</code>. Similar to C++, attributes and functions marked as <code>protected</code> are private outside the class scope, but are visible to child class. Users shall use <code>protected</code> properly for best OOP practice.</p>
 <h2 id="polymorphism"><span class="header-section-number">5.3</span> Polymorphism</h2>
 <p>SystemVerilog supports Polymorphism via inheritance. Similar to other OOP languages, parent class variable can hold references to child class instances, as shown below:</p>
-<div class="sourceCode" id="cb112"><pre class="sourceCode systemverilog"><code class="sourceCode systemverilog"><a class="sourceLine" id="cb112-1" title="1"><span class="kw">class</span> BaseClass;</a>
-<a class="sourceLine" id="cb112-2" title="2">    <span class="kw">virtual</span> <span class="kw">function</span> <span class="kw">string</span> name();</a>
-<a class="sourceLine" id="cb112-3" title="3">        <span class="kw">return</span> <span class="st">&quot;BaseClass&quot;</span>;</a>
-<a class="sourceLine" id="cb112-4" title="4">    <span class="kw">endfunction</span></a>
-<a class="sourceLine" id="cb112-5" title="5"><span class="kw">endclass</span></a>
-<a class="sourceLine" id="cb112-6" title="6"></a>
-<a class="sourceLine" id="cb112-7" title="7"><span class="kw">class</span> ClassA <span class="kw">extends</span> BaseClass;</a>
-<a class="sourceLine" id="cb112-8" title="8">    <span class="kw">function</span> <span class="kw">string</span> name();</a>
-<a class="sourceLine" id="cb112-9" title="9">        <span class="kw">return</span> <span class="st">&quot;ClassA&quot;</span>;</a>
-<a class="sourceLine" id="cb112-10" title="10">    <span class="kw">endfunction</span></a>
-<a class="sourceLine" id="cb112-11" title="11"><span class="kw">endclass</span></a>
-<a class="sourceLine" id="cb112-12" title="12"></a>
-<a class="sourceLine" id="cb112-13" title="13"><span class="kw">class</span> ClassB <span class="kw">extends</span> BaseClass;</a>
-<a class="sourceLine" id="cb112-14" title="14">    <span class="kw">function</span> <span class="kw">string</span> name();</a>
-<a class="sourceLine" id="cb112-15" title="15">        <span class="kw">return</span> <span class="st">&quot;ClassB&quot;</span>;</a>
-<a class="sourceLine" id="cb112-16" title="16">    <span class="kw">endfunction</span></a>
-<a class="sourceLine" id="cb112-17" title="17"><span class="kw">endclass</span></a>
-<a class="sourceLine" id="cb112-18" title="18"></a>
-<a class="sourceLine" id="cb112-19" title="19"><span class="kw">module</span> top;</a>
-<a class="sourceLine" id="cb112-20" title="20"></a>
-<a class="sourceLine" id="cb112-21" title="21"><span class="kw">initial</span> <span class="kw">begin</span></a>
-<a class="sourceLine" id="cb112-22" title="22">    BaseClass c[<span class="dv">2</span>];</a>
-<a class="sourceLine" id="cb112-23" title="23">    ClassA c_a;</a>
-<a class="sourceLine" id="cb112-24" title="24">    ClassB c_b;</a>
-<a class="sourceLine" id="cb112-25" title="25"></a>
-<a class="sourceLine" id="cb112-26" title="26">    <span class="co">// initialize child class instances</span></a>
-<a class="sourceLine" id="cb112-27" title="27">    c_a = <span class="kw">new</span>();</a>
-<a class="sourceLine" id="cb112-28" title="28">    c_b = <span class="kw">new</span>();</a>
-<a class="sourceLine" id="cb112-29" title="29"></a>
-<a class="sourceLine" id="cb112-30" title="30">    <span class="co">// polymorphism</span></a>
-<a class="sourceLine" id="cb112-31" title="31">    <span class="co">// we get</span></a>
-<a class="sourceLine" id="cb112-32" title="32">    <span class="co">// name is ClassA</span></a>
-<a class="sourceLine" id="cb112-33" title="33">    <span class="co">// name is ClassB</span></a>
-<a class="sourceLine" id="cb112-34" title="34">    c[<span class="dv">0</span>] = c_a;</a>
-<a class="sourceLine" id="cb112-35" title="35">    c[<span class="dv">1</span>] = c_b;</a>
-<a class="sourceLine" id="cb112-36" title="36">    <span class="kw">for</span> (<span class="kw">int</span> i = <span class="dv">0</span>; i &lt; <span class="dv">2</span>; i++) <span class="kw">begin</span></a>
-<a class="sourceLine" id="cb112-37" title="37">        <span class="kw">$display</span>(<span class="st">&quot;name is %s&quot;</span>, c[i<span class="dt">].name</span>());</a>
-<a class="sourceLine" id="cb112-38" title="38">    <span class="kw">end</span></a>
-<a class="sourceLine" id="cb112-39" title="39"><span class="kw">end</span></a>
-<a class="sourceLine" id="cb112-40" title="40"></a>
-<a class="sourceLine" id="cb112-41" title="41"><span class="kw">endmodule</span></a></code></pre></div>
+<div class="sourceCode" id="cb116"><pre class="sourceCode systemverilog"><code class="sourceCode systemverilog"><a class="sourceLine" id="cb116-1" title="1"><span class="kw">class</span> BaseClass;</a>
+<a class="sourceLine" id="cb116-2" title="2">    <span class="kw">virtual</span> <span class="kw">function</span> <span class="kw">string</span> name();</a>
+<a class="sourceLine" id="cb116-3" title="3">        <span class="kw">return</span> <span class="st">&quot;BaseClass&quot;</span>;</a>
+<a class="sourceLine" id="cb116-4" title="4">    <span class="kw">endfunction</span></a>
+<a class="sourceLine" id="cb116-5" title="5"><span class="kw">endclass</span></a>
+<a class="sourceLine" id="cb116-6" title="6"></a>
+<a class="sourceLine" id="cb116-7" title="7"><span class="kw">class</span> ClassA <span class="kw">extends</span> BaseClass;</a>
+<a class="sourceLine" id="cb116-8" title="8">    <span class="kw">function</span> <span class="kw">string</span> name();</a>
+<a class="sourceLine" id="cb116-9" title="9">        <span class="kw">return</span> <span class="st">&quot;ClassA&quot;</span>;</a>
+<a class="sourceLine" id="cb116-10" title="10">    <span class="kw">endfunction</span></a>
+<a class="sourceLine" id="cb116-11" title="11"><span class="kw">endclass</span></a>
+<a class="sourceLine" id="cb116-12" title="12"></a>
+<a class="sourceLine" id="cb116-13" title="13"><span class="kw">class</span> ClassB <span class="kw">extends</span> BaseClass;</a>
+<a class="sourceLine" id="cb116-14" title="14">    <span class="kw">function</span> <span class="kw">string</span> name();</a>
+<a class="sourceLine" id="cb116-15" title="15">        <span class="kw">return</span> <span class="st">&quot;ClassB&quot;</span>;</a>
+<a class="sourceLine" id="cb116-16" title="16">    <span class="kw">endfunction</span></a>
+<a class="sourceLine" id="cb116-17" title="17"><span class="kw">endclass</span></a>
+<a class="sourceLine" id="cb116-18" title="18"></a>
+<a class="sourceLine" id="cb116-19" title="19"><span class="kw">module</span> top;</a>
+<a class="sourceLine" id="cb116-20" title="20"></a>
+<a class="sourceLine" id="cb116-21" title="21"><span class="kw">initial</span> <span class="kw">begin</span></a>
+<a class="sourceLine" id="cb116-22" title="22">    BaseClass c[<span class="dv">2</span>];</a>
+<a class="sourceLine" id="cb116-23" title="23">    ClassA c_a;</a>
+<a class="sourceLine" id="cb116-24" title="24">    ClassB c_b;</a>
+<a class="sourceLine" id="cb116-25" title="25"></a>
+<a class="sourceLine" id="cb116-26" title="26">    <span class="co">// initialize child class instances</span></a>
+<a class="sourceLine" id="cb116-27" title="27">    c_a = <span class="kw">new</span>();</a>
+<a class="sourceLine" id="cb116-28" title="28">    c_b = <span class="kw">new</span>();</a>
+<a class="sourceLine" id="cb116-29" title="29"></a>
+<a class="sourceLine" id="cb116-30" title="30">    <span class="co">// polymorphism</span></a>
+<a class="sourceLine" id="cb116-31" title="31">    <span class="co">// we get</span></a>
+<a class="sourceLine" id="cb116-32" title="32">    <span class="co">// name is ClassA</span></a>
+<a class="sourceLine" id="cb116-33" title="33">    <span class="co">// name is ClassB</span></a>
+<a class="sourceLine" id="cb116-34" title="34">    c[<span class="dv">0</span>] = c_a;</a>
+<a class="sourceLine" id="cb116-35" title="35">    c[<span class="dv">1</span>] = c_b;</a>
+<a class="sourceLine" id="cb116-36" title="36">    <span class="kw">for</span> (<span class="kw">int</span> i = <span class="dv">0</span>; i &lt; <span class="dv">2</span>; i++) <span class="kw">begin</span></a>
+<a class="sourceLine" id="cb116-37" title="37">        <span class="kw">$display</span>(<span class="st">&quot;name is %s&quot;</span>, c[i<span class="dt">].name</span>());</a>
+<a class="sourceLine" id="cb116-38" title="38">    <span class="kw">end</span></a>
+<a class="sourceLine" id="cb116-39" title="39"><span class="kw">end</span></a>
+<a class="sourceLine" id="cb116-40" title="40"></a>
+<a class="sourceLine" id="cb116-41" title="41"><span class="kw">endmodule</span></a></code></pre></div>
 <p>One common gotcha is that if the base class method is <em>not</em> marked as <code>virtual</code> yet is still overridden in the child class, the base class’s method will be called when used as base class, as shown below:</p>
-<div class="sourceCode" id="cb113"><pre class="sourceCode systemverilog"><code class="sourceCode systemverilog"><a class="sourceLine" id="cb113-1" title="1"><span class="kw">class</span> Vehicle;</a>
-<a class="sourceLine" id="cb113-2" title="2">    <span class="kw">function</span> <span class="kw">int</span> num_wheels();</a>
-<a class="sourceLine" id="cb113-3" title="3">        <span class="kw">return</span> <span class="dv">4</span>;</a>
-<a class="sourceLine" id="cb113-4" title="4">    <span class="kw">endfunction</span></a>
-<a class="sourceLine" id="cb113-5" title="5"><span class="kw">endclass</span></a>
-<a class="sourceLine" id="cb113-6" title="6"></a>
-<a class="sourceLine" id="cb113-7" title="7"><span class="kw">class</span> Bicycle <span class="kw">extends</span> Vehicle;</a>
-<a class="sourceLine" id="cb113-8" title="8">    <span class="kw">function</span> <span class="kw">int</span> num_wheels();</a>
-<a class="sourceLine" id="cb113-9" title="9">        <span class="kw">return</span> <span class="dv">2</span>;</a>
-<a class="sourceLine" id="cb113-10" title="10">    <span class="kw">endfunction</span></a>
-<a class="sourceLine" id="cb113-11" title="11"><span class="kw">endclass</span></a>
-<a class="sourceLine" id="cb113-12" title="12"></a>
-<a class="sourceLine" id="cb113-13" title="13"><span class="kw">module</span> top;</a>
-<a class="sourceLine" id="cb113-14" title="14"></a>
-<a class="sourceLine" id="cb113-15" title="15"><span class="kw">initial</span> <span class="kw">begin</span></a>
-<a class="sourceLine" id="cb113-16" title="16">    Bicycle bike;</a>
-<a class="sourceLine" id="cb113-17" title="17">    Vehicle v;</a>
-<a class="sourceLine" id="cb113-18" title="18">    bike = <span class="kw">new</span>();</a>
-<a class="sourceLine" id="cb113-19" title="19">    v = bike;</a>
-<a class="sourceLine" id="cb113-20" title="20">    <span class="co">// we will get</span></a>
-<a class="sourceLine" id="cb113-21" title="21">    <span class="co">// num of wheels: 4</span></a>
-<a class="sourceLine" id="cb113-22" title="22">    <span class="kw">$display</span>(<span class="st">&quot;num of wheels: %0d&quot;</span>, v.num_wheels());</a>
-<a class="sourceLine" id="cb113-23" title="23"><span class="kw">end</span></a>
-<a class="sourceLine" id="cb113-24" title="24"></a>
-<a class="sourceLine" id="cb113-25" title="25"><span class="kw">endmodule</span></a></code></pre></div>
+<div class="sourceCode" id="cb117"><pre class="sourceCode systemverilog"><code class="sourceCode systemverilog"><a class="sourceLine" id="cb117-1" title="1"><span class="kw">class</span> Vehicle;</a>
+<a class="sourceLine" id="cb117-2" title="2">    <span class="kw">function</span> <span class="kw">int</span> num_wheels();</a>
+<a class="sourceLine" id="cb117-3" title="3">        <span class="kw">return</span> <span class="dv">4</span>;</a>
+<a class="sourceLine" id="cb117-4" title="4">    <span class="kw">endfunction</span></a>
+<a class="sourceLine" id="cb117-5" title="5"><span class="kw">endclass</span></a>
+<a class="sourceLine" id="cb117-6" title="6"></a>
+<a class="sourceLine" id="cb117-7" title="7"><span class="kw">class</span> Bicycle <span class="kw">extends</span> Vehicle;</a>
+<a class="sourceLine" id="cb117-8" title="8">    <span class="kw">function</span> <span class="kw">int</span> num_wheels();</a>
+<a class="sourceLine" id="cb117-9" title="9">        <span class="kw">return</span> <span class="dv">2</span>;</a>
+<a class="sourceLine" id="cb117-10" title="10">    <span class="kw">endfunction</span></a>
+<a class="sourceLine" id="cb117-11" title="11"><span class="kw">endclass</span></a>
+<a class="sourceLine" id="cb117-12" title="12"></a>
+<a class="sourceLine" id="cb117-13" title="13"><span class="kw">module</span> top;</a>
+<a class="sourceLine" id="cb117-14" title="14"></a>
+<a class="sourceLine" id="cb117-15" title="15"><span class="kw">initial</span> <span class="kw">begin</span></a>
+<a class="sourceLine" id="cb117-16" title="16">    Bicycle bike;</a>
+<a class="sourceLine" id="cb117-17" title="17">    Vehicle v;</a>
+<a class="sourceLine" id="cb117-18" title="18">    bike = <span class="kw">new</span>();</a>
+<a class="sourceLine" id="cb117-19" title="19">    v = bike;</a>
+<a class="sourceLine" id="cb117-20" title="20">    <span class="co">// we will get</span></a>
+<a class="sourceLine" id="cb117-21" title="21">    <span class="co">// num of wheels: 4</span></a>
+<a class="sourceLine" id="cb117-22" title="22">    <span class="kw">$display</span>(<span class="st">&quot;num of wheels: %0d&quot;</span>, v.num_wheels());</a>
+<a class="sourceLine" id="cb117-23" title="23"><span class="kw">end</span></a>
+<a class="sourceLine" id="cb117-24" title="24"></a>
+<a class="sourceLine" id="cb117-25" title="25"><span class="kw">endmodule</span></a></code></pre></div>
 <p>Advanced linters may catch such errors, but most simulators will not issue a warning. Readers should always make sure adding proper modifiers such as <code>virtual</code>.</p>
 <h2 id="class-parametrization"><span class="header-section-number">5.4</span> Class Parametrization</h2>
 <p>Like <code>module</code> or <code>interface</code>, you can parametrize class types in a similar way to templates in C++. Unfortunately there is not much compiler elaboration supports so you cannot do much meta-programming in SystemVerilog. However, with <code>typedef</code> keyword, we can get most of the things done with class parametrization.</p>
 <h3 id="value-parametrization"><span class="header-section-number">5.4.1</span> Value Parametrization</h3>
 <p>The simplest way to parametrize a class is to parametrize the values. One usage for that is to parametrize the logic width or pre-allocated size of class variables, as shown below:</p>
-<div class="sourceCode" id="cb114"><pre class="sourceCode systemverilog"><code class="sourceCode systemverilog"><a class="sourceLine" id="cb114-1" title="1"><span class="kw">class</span> ClassA #(<span class="kw">int</span> width = <span class="dv">4</span>);</a>
-<a class="sourceLine" id="cb114-2" title="2">    <span class="kw">logic</span> [width<span class="dv">-1</span>:<span class="dv">0</span>] value;</a>
-<a class="sourceLine" id="cb114-3" title="3"><span class="kw">endclass</span></a></code></pre></div>
+<div class="sourceCode" id="cb118"><pre class="sourceCode systemverilog"><code class="sourceCode systemverilog"><a class="sourceLine" id="cb118-1" title="1"><span class="kw">class</span> ClassA #(<span class="kw">int</span> width = <span class="dv">4</span>);</a>
+<a class="sourceLine" id="cb118-2" title="2">    <span class="kw">logic</span> [width<span class="dv">-1</span>:<span class="dv">0</span>] value;</a>
+<a class="sourceLine" id="cb118-3" title="3"><span class="kw">endclass</span></a></code></pre></div>
 <p>To instantiate the class, we can do something similar to module instantiate with parameters:</p>
-<div class="sourceCode" id="cb115"><pre class="sourceCode systemverilog"><code class="sourceCode systemverilog"><a class="sourceLine" id="cb115-1" title="1">ClassA #(<span class="dv">10</span>) a1;</a>
-<a class="sourceLine" id="cb115-2" title="2"><span class="co">// or the following way with named parameter</span></a>
-<a class="sourceLine" id="cb115-3" title="3">ClassA #<span class="dt">(.width</span>(<span class="dv">10</span>)) a1;</a></code></pre></div>
+<div class="sourceCode" id="cb119"><pre class="sourceCode systemverilog"><code class="sourceCode systemverilog"><a class="sourceLine" id="cb119-1" title="1">ClassA #(<span class="dv">10</span>) a1;</a>
+<a class="sourceLine" id="cb119-2" title="2"><span class="co">// or the following way with named parameter</span></a>
+<a class="sourceLine" id="cb119-3" title="3">ClassA #<span class="dt">(.width</span>(<span class="dv">10</span>)) a1;</a></code></pre></div>
 <p>Value parametrization is useful in cases where the width/size of the variable or constant values that can only be set at compile time. For other values we recommend to use class constructor instead.</p>
 <h3 id="type-parametrization"><span class="header-section-number">5.4.2</span> Type Parametrization</h3>
 <p>SystemVerilog allows type parametrization for classes in a similar manner as generics in Java/C#. Below is an example of how to use class with type parametrization.</p>
-<div class="sourceCode" id="cb116"><pre class="sourceCode systemverilog"><code class="sourceCode systemverilog"><a class="sourceLine" id="cb116-1" title="1"><span class="kw">class</span> Node #(<span class="kw">type</span> T = <span class="kw">int</span>);</a>
-<a class="sourceLine" id="cb116-2" title="2">    <span class="kw">local</span> Node #(T) <span class="ot">next</span>;</a>
-<a class="sourceLine" id="cb116-3" title="3">    T value;</a>
-<a class="sourceLine" id="cb116-4" title="4"></a>
-<a class="sourceLine" id="cb116-5" title="5">    <span class="kw">function</span> <span class="kw">new</span>(Node #(T) next_node=<span class="kw">null</span>);</a>
-<a class="sourceLine" id="cb116-6" title="6">        <span class="ot">next</span> = next_node;</a>
-<a class="sourceLine" id="cb116-7" title="7">    <span class="kw">endfunction</span></a>
-<a class="sourceLine" id="cb116-8" title="8"></a>
-<a class="sourceLine" id="cb116-9" title="9"><span class="kw">endclass</span></a></code></pre></div>
+<div class="sourceCode" id="cb120"><pre class="sourceCode systemverilog"><code class="sourceCode systemverilog"><a class="sourceLine" id="cb120-1" title="1"><span class="kw">class</span> Node #(<span class="kw">type</span> T = <span class="kw">int</span>);</a>
+<a class="sourceLine" id="cb120-2" title="2">    <span class="kw">local</span> Node #(T) <span class="ot">next</span>;</a>
+<a class="sourceLine" id="cb120-3" title="3">    T value;</a>
+<a class="sourceLine" id="cb120-4" title="4"></a>
+<a class="sourceLine" id="cb120-5" title="5">    <span class="kw">function</span> <span class="kw">new</span>(Node #(T) next_node=<span class="kw">null</span>);</a>
+<a class="sourceLine" id="cb120-6" title="6">        <span class="ot">next</span> = next_node;</a>
+<a class="sourceLine" id="cb120-7" title="7">    <span class="kw">endfunction</span></a>
+<a class="sourceLine" id="cb120-8" title="8"></a>
+<a class="sourceLine" id="cb120-9" title="9"><span class="kw">endclass</span></a></code></pre></div>
 <p>In the example, we define a <code>Node</code> class that can be instantiated with variables types, e.g. <code>int</code> or even other classes. The type for <code>Node</code> class that has a parametrized type specified can be referred as <code>Node #(T)</code>, where <code>T</code> can be any type. To avoid duplicated code, we can use <code>typedef</code> to redefine the type as follows:</p>
-<div class="sourceCode" id="cb117"><pre class="sourceCode systemverilog"><code class="sourceCode systemverilog"><a class="sourceLine" id="cb117-1" title="1"><span class="kw">class</span> Node #(<span class="kw">type</span> T = <span class="kw">int</span>);</a>
-<a class="sourceLine" id="cb117-2" title="2">    <span class="kw">typedef</span> Node #(T) NodeT;</a>
-<a class="sourceLine" id="cb117-3" title="3">    T value;</a>
-<a class="sourceLine" id="cb117-4" title="4"></a>
-<a class="sourceLine" id="cb117-5" title="5">    <span class="kw">function</span> <span class="kw">new</span>(NodeT next_node=<span class="kw">null</span>);</a>
-<a class="sourceLine" id="cb117-6" title="6">        <span class="ot">next</span> = next_node;</a>
-<a class="sourceLine" id="cb117-7" title="7">    <span class="kw">endfunction</span></a>
-<a class="sourceLine" id="cb117-8" title="8"></a>
-<a class="sourceLine" id="cb117-9" title="9"><span class="kw">endclass</span></a></code></pre></div>
+<div class="sourceCode" id="cb121"><pre class="sourceCode systemverilog"><code class="sourceCode systemverilog"><a class="sourceLine" id="cb121-1" title="1"><span class="kw">class</span> Node #(<span class="kw">type</span> T = <span class="kw">int</span>);</a>
+<a class="sourceLine" id="cb121-2" title="2">    <span class="kw">typedef</span> Node #(T) NodeT;</a>
+<a class="sourceLine" id="cb121-3" title="3">    T value;</a>
+<a class="sourceLine" id="cb121-4" title="4"></a>
+<a class="sourceLine" id="cb121-5" title="5">    <span class="kw">function</span> <span class="kw">new</span>(NodeT next_node=<span class="kw">null</span>);</a>
+<a class="sourceLine" id="cb121-6" title="6">        <span class="ot">next</span> = next_node;</a>
+<a class="sourceLine" id="cb121-7" title="7">    <span class="kw">endfunction</span></a>
+<a class="sourceLine" id="cb121-8" title="8"></a>
+<a class="sourceLine" id="cb121-9" title="9"><span class="kw">endclass</span></a></code></pre></div>
 <p>We can use the same syntax as class with parametrized values to instantiate a class with parametrized types:</p>
-<div class="sourceCode" id="cb118"><pre class="sourceCode systemverilog"><code class="sourceCode systemverilog"><a class="sourceLine" id="cb118-1" title="1">Node #(<span class="kw">int</span>) node1;</a>
-<a class="sourceLine" id="cb118-2" title="2">Node #<span class="dt">(.T</span>(<span class="kw">string</span>)) node2;</a></code></pre></div>
+<div class="sourceCode" id="cb122"><pre class="sourceCode systemverilog"><code class="sourceCode systemverilog"><a class="sourceLine" id="cb122-1" title="1">Node #(<span class="kw">int</span>) node1;</a>
+<a class="sourceLine" id="cb122-2" title="2">Node #<span class="dt">(.T</span>(<span class="kw">string</span>)) node2;</a></code></pre></div>
 <p>Type checking for class with parametrized types happens at compile time and designers can use the error information from the compiler to fix their code.</p>
 <h2 id="interface-class"><span class="header-section-number">5.5</span> Interface Class</h2>
 <p>Interface class is an OOP concept borrowed from languages such as Java and C#. It defines public functions and other public information about the class. However, one major distinction between interface class and other class is that typically interface class does not have any implementation details (some recent change in some OOP languages may change this fact).</p>
 <p>To declare an interface class, we can use the following syntax:</p>
-<div class="sourceCode" id="cb119"><pre class="sourceCode systemverilog"><code class="sourceCode systemverilog"><a class="sourceLine" id="cb119-1" title="1"><span class="kw">interface</span> <span class="kw">class</span> IClassA;</a>
-<a class="sourceLine" id="cb119-2" title="2">    <span class="kw">pure</span> <span class="kw">virtual</span> <span class="kw">function</span> <span class="kw">void</span> foo();</a>
-<a class="sourceLine" id="cb119-3" title="3"><span class="kw">endinterface</span></a></code></pre></div>
+<div class="sourceCode" id="cb123"><pre class="sourceCode systemverilog"><code class="sourceCode systemverilog"><a class="sourceLine" id="cb123-1" title="1"><span class="kw">interface</span> <span class="kw">class</span> IClassA;</a>
+<a class="sourceLine" id="cb123-2" title="2">    <span class="kw">pure</span> <span class="kw">virtual</span> <span class="kw">function</span> <span class="kw">void</span> foo();</a>
+<a class="sourceLine" id="cb123-3" title="3"><span class="kw">endinterface</span></a></code></pre></div>
 <p>Notice that every functions in defined in the interface class should be <code>pure virtual</code>. Interface class can inherit from another interface class using the keyword <code>extends</code>, as shown below:</p>
-<div class="sourceCode" id="cb120"><pre class="sourceCode systemverilog"><code class="sourceCode systemverilog"><a class="sourceLine" id="cb120-1" title="1"><span class="kw">interface</span> <span class="kw">class</span> IClassB <span class="kw">extends</span> IClassA;</a>
-<a class="sourceLine" id="cb120-2" title="2">    <span class="kw">pure</span> <span class="kw">virtual</span> <span class="kw">function</span> bar();</a>
-<a class="sourceLine" id="cb120-3" title="3"><span class="kw">endinterface</span></a></code></pre></div>
+<div class="sourceCode" id="cb124"><pre class="sourceCode systemverilog"><code class="sourceCode systemverilog"><a class="sourceLine" id="cb124-1" title="1"><span class="kw">interface</span> <span class="kw">class</span> IClassB <span class="kw">extends</span> IClassA;</a>
+<a class="sourceLine" id="cb124-2" title="2">    <span class="kw">pure</span> <span class="kw">virtual</span> <span class="kw">function</span> bar();</a>
+<a class="sourceLine" id="cb124-3" title="3"><span class="kw">endinterface</span></a></code></pre></div>
 <p>For a class to implement the interface class, we can use the keyword <code>implements</code>, as shown below. A class can implement as many interface class as the designers see fit.</p>
-<div class="sourceCode" id="cb121"><pre class="sourceCode systemverilog"><code class="sourceCode systemverilog"><a class="sourceLine" id="cb121-1" title="1"><span class="kw">class</span> ClassA implements IClassA;</a>
-<a class="sourceLine" id="cb121-2" title="2">    <span class="kw">function</span> <span class="kw">void</span> foo();</a>
-<a class="sourceLine" id="cb121-3" title="3">        <span class="co">// actual logic here</span></a>
-<a class="sourceLine" id="cb121-4" title="4">    <span class="kw">endfunction</span></a>
-<a class="sourceLine" id="cb121-5" title="5"><span class="kw">endclass</span></a></code></pre></div>
+<div class="sourceCode" id="cb125"><pre class="sourceCode systemverilog"><code class="sourceCode systemverilog"><a class="sourceLine" id="cb125-1" title="1"><span class="kw">class</span> ClassA implements IClassA;</a>
+<a class="sourceLine" id="cb125-2" title="2">    <span class="kw">function</span> <span class="kw">void</span> foo();</a>
+<a class="sourceLine" id="cb125-3" title="3">        <span class="co">// actual logic here</span></a>
+<a class="sourceLine" id="cb125-4" title="4">    <span class="kw">endfunction</span></a>
+<a class="sourceLine" id="cb125-5" title="5"><span class="kw">endclass</span></a></code></pre></div>
 <p>You can also put other non-implementation related information in the interface class, such as enum definition, as shown below:</p>
-<div class="sourceCode" id="cb122"><pre class="sourceCode systemverilog"><code class="sourceCode systemverilog"><a class="sourceLine" id="cb122-1" title="1"><span class="kw">interface</span> <span class="kw">class</span> IEnum;</a>
-<a class="sourceLine" id="cb122-2" title="2">    <span class="kw">typedef</span> <span class="kw">enum</span> <span class="kw">int</span> {RED, GREEN, BLUE} color_t;</a>
-<a class="sourceLine" id="cb122-3" title="3">    <span class="kw">pure</span> <span class="kw">virtual</span> <span class="kw">function</span> color_t color();</a>
-<a class="sourceLine" id="cb122-4" title="4"><span class="kw">endinterface</span></a></code></pre></div>
+<div class="sourceCode" id="cb126"><pre class="sourceCode systemverilog"><code class="sourceCode systemverilog"><a class="sourceLine" id="cb126-1" title="1"><span class="kw">interface</span> <span class="kw">class</span> IEnum;</a>
+<a class="sourceLine" id="cb126-2" title="2">    <span class="kw">typedef</span> <span class="kw">enum</span> <span class="kw">int</span> {RED, GREEN, BLUE} color_t;</a>
+<a class="sourceLine" id="cb126-3" title="3">    <span class="kw">pure</span> <span class="kw">virtual</span> <span class="kw">function</span> color_t color();</a>
+<a class="sourceLine" id="cb126-4" title="4"><span class="kw">endinterface</span></a></code></pre></div>
 <p>As with normal class, interface class can also have parametrized types. However, there are some syntax restriction on how interface are used:</p>
 <ul>
 <li><p>An class cannot not implements/extends an interface class that has been forward declared. The following code describe an illegal usage</p>
-<div class="sourceCode" id="cb123"><pre class="sourceCode systemverilog"><code class="sourceCode systemverilog"><a class="sourceLine" id="cb123-1" title="1"><span class="kw">typedef</span> interface <span class="kw">class</span> IClassA;</a>
-<a class="sourceLine" id="cb123-2" title="2"></a>
-<a class="sourceLine" id="cb123-3" title="3"><span class="co">// this is illegal</span></a>
-<a class="sourceLine" id="cb123-4" title="4"><span class="kw">class</span> ClassA implements IClassA;</a>
-<a class="sourceLine" id="cb123-5" title="5"><span class="kw">endclass</span></a>
-<a class="sourceLine" id="cb123-6" title="6"></a>
-<a class="sourceLine" id="cb123-7" title="7"><span class="kw">interface</span> <span class="kw">class</span> IClassA;</a>
-<a class="sourceLine" id="cb123-8" title="8"><span class="kw">endinterface</span></a></code></pre></div></li>
+<div class="sourceCode" id="cb127"><pre class="sourceCode systemverilog"><code class="sourceCode systemverilog"><a class="sourceLine" id="cb127-1" title="1"><span class="kw">typedef</span> interface <span class="kw">class</span> IClassA;</a>
+<a class="sourceLine" id="cb127-2" title="2"></a>
+<a class="sourceLine" id="cb127-3" title="3"><span class="co">// this is illegal</span></a>
+<a class="sourceLine" id="cb127-4" title="4"><span class="kw">class</span> ClassA implements IClassA;</a>
+<a class="sourceLine" id="cb127-5" title="5"><span class="kw">endclass</span></a>
+<a class="sourceLine" id="cb127-6" title="6"></a>
+<a class="sourceLine" id="cb127-7" title="7"><span class="kw">interface</span> <span class="kw">class</span> IClassA;</a>
+<a class="sourceLine" id="cb127-8" title="8"><span class="kw">endinterface</span></a></code></pre></div></li>
 <li><p>Interface class cannot be used as a type parameter.</p></li>
 </ul>
                 </div>

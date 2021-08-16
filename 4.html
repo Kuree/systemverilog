@@ -761,8 +761,124 @@ reg1:     2 reg2:     1 reg3:     0</code></pre>
 </tbody>
 </table>
 </div>
-<p>Again, we will ignore strobe and tag information. Interested readers should check out the specification.</p>
-<p>The slave interface is symmetric with the master slave: <code>XX_I</code> from master will have a correspondence port <code>XX_O</code> in the slave and vice versa. In general, Wishbone interface is simpler than other bus interface such as Advanced Microcontroller Bus Architecture (AMBA), which is the reason why we can explain the protocol without lengthy details.</p>
+<p>Again, we will ignore tag information. Interested readers should check out the specification.</p>
+<p>The slave interface is symmetric with the master slave: <code>XX_I</code> from master will have a correspondence port <code>XX_O</code> in the slave and vice versa. In general, Wishbone interface is simpler than other bus interface such as Advanced Microcontroller Bus Architecture (AMBA), which is the reason why we can explain the protocol without lengthy details here.</p>
+<h3 id="wishbone-master-example"><span class="header-section-number">4.5.2</span> Wishbone Master Example</h3>
+<p>We present here a simplified version of master module, where the read write behavior is controlled via a simple interface. For any real-world practice, we need to connect the master to an IP that directly controls the master’s behavior. We also drop the tag, lock, and byte select interface for simplicity, but keep in mind that in a real IP interface we need to implement this as well! We will focus on register read write instead of block transfer; we will also drop corner case handling such as error and retry. Interested readers should try to implement block transfer and other missing features.</p>
+<p>First, we need to define the IO ports, where the width or the data is parametrized by <code>WIDTH</code>. We also need to add other parameterization for control and data signals.</p>
+<div class="sourceCode" id="cb101"><pre class="sourceCode systemverilog"><code class="sourceCode systemverilog"><a class="sourceLine" id="cb101-1" title="1"></a>
+<a class="sourceLine" id="cb101-2" title="2"><span class="kw">module</span> wb_master #(<span class="kw">parameter</span> WIDTH=<span class="dv">32</span>,</a>
+<a class="sourceLine" id="cb101-3" title="3">                   <span class="kw">parameter</span> ADDR_WIDTH=<span class="dv">16</span>) (</a>
+<a class="sourceLine" id="cb101-4" title="4">    <span class="kw">input</span>  <span class="kw">logic</span>                 CLK_I,</a>
+<a class="sourceLine" id="cb101-5" title="5">    <span class="kw">input</span>  <span class="kw">logic</span>[WIDTH<span class="dv">-1</span>:<span class="dv">0</span>]      DAT_I,</a>
+<a class="sourceLine" id="cb101-6" title="6">    <span class="kw">output</span> <span class="kw">logic</span>[WIDTH<span class="dv">-1</span>:<span class="dv">0</span>]      DAT_O,</a>
+<a class="sourceLine" id="cb101-7" title="7">    <span class="kw">input</span>  <span class="kw">logic</span>                 RST_I,</a>
+<a class="sourceLine" id="cb101-8" title="8"></a>
+<a class="sourceLine" id="cb101-9" title="9">    <span class="kw">input</span>  <span class="kw">logic</span>                 ACK_I,</a>
+<a class="sourceLine" id="cb101-10" title="10">    <span class="kw">output</span> <span class="kw">logic</span>[ADDR_WIDTH<span class="dv">-1</span>:<span class="dv">0</span>] ADR_O,</a>
+<a class="sourceLine" id="cb101-11" title="11">    <span class="kw">output</span> <span class="kw">logic</span>                 CYC_O,</a>
+<a class="sourceLine" id="cb101-12" title="12">    <span class="kw">input</span>  <span class="kw">logic</span>                 STALL_I,</a>
+<a class="sourceLine" id="cb101-13" title="13">    <span class="kw">output</span> <span class="kw">logic</span>                 STB_O,</a>
+<a class="sourceLine" id="cb101-14" title="14">    <span class="kw">output</span> <span class="kw">logic</span>                 WE_O</a>
+<a class="sourceLine" id="cb101-15" title="15"></a>
+<a class="sourceLine" id="cb101-16" title="16">    <span class="co">// external controls</span></a>
+<a class="sourceLine" id="cb101-17" title="17">    <span class="kw">input</span>  <span class="kw">logic</span>                 write,</a>
+<a class="sourceLine" id="cb101-18" title="18">    <span class="kw">input</span>  <span class="kw">logic</span>                 enable,</a>
+<a class="sourceLine" id="cb101-19" title="19">    <span class="kw">input</span>  <span class="kw">logic</span>[ADDR_WIDTH<span class="dv">-1</span>:<span class="dv">0</span>] addr,</a>
+<a class="sourceLine" id="cb101-20" title="20">    <span class="kw">input</span>  <span class="kw">logic</span>[WIDTH<span class="dv">-1</span>:<span class="dv">0</span>]      wdata,</a>
+<a class="sourceLine" id="cb101-21" title="21">    <span class="kw">output</span> <span class="kw">logic</span>[WIDTH<span class="dv">-1</span>:<span class="dv">0</span>]      rdata,</a>
+<a class="sourceLine" id="cb101-22" title="22">    <span class="kw">output</span> <span class="kw">logic</span>                 ready,</a>
+<a class="sourceLine" id="cb101-23" title="23">    <span class="kw">output</span> <span class="kw">logic</span>                 ack</a>
+<a class="sourceLine" id="cb101-24" title="24">);</a></code></pre></div>
+<p>Notice that due to the naming convention, <code>STALL_I</code> is essentially slave’s ready signal, and <code>STB_O</code> is the valid signal. With that in mind, we can quickly sketch out the logic for sending commands based on the controls signals. Notice that in Wishbone, every output will be registered. Notice that since we need to wait for the client to acknowledge the transition, we need a FSM to determine the transmission state (we will use 2-block FSM to implement this). Since we are only interested in one single register transfer, there is no need to keep track of the number of words transferred.</p>
+<div class="sourceCode" id="cb102"><pre class="sourceCode systemverilog"><code class="sourceCode systemverilog"><a class="sourceLine" id="cb102-1" title="1"></a>
+<a class="sourceLine" id="cb102-2" title="2"><span class="kw">typedef</span> <span class="kw">enum</span> <span class="kw">logic</span> {</a>
+<a class="sourceLine" id="cb102-3" title="3">    IDLE,</a>
+<a class="sourceLine" id="cb102-4" title="4">    BUSY</a>
+<a class="sourceLine" id="cb102-5" title="5">} State;</a>
+<a class="sourceLine" id="cb102-6" title="6"></a>
+<a class="sourceLine" id="cb102-7" title="7">State <span class="ot">state</span>;</a></code></pre></div>
+<p>Based on the state, we have three different outputs:</p>
+<div class="sourceCode" id="cb103"><pre class="sourceCode systemverilog"><code class="sourceCode systemverilog"><a class="sourceLine" id="cb103-1" title="1"><span class="kw">always_comb</span> <span class="kw">begin</span></a>
+<a class="sourceLine" id="cb103-2" title="2">    <span class="kw">unique</span> <span class="kw">case</span> (<span class="ot">state</span>)</a>
+<a class="sourceLine" id="cb103-3" title="3">        IDLE: <span class="kw">begin</span></a>
+<a class="sourceLine" id="cb103-4" title="4">            CYC_O = <span class="dv">0</span>;</a>
+<a class="sourceLine" id="cb103-5" title="5">            STB_O = <span class="dv">0</span>;</a>
+<a class="sourceLine" id="cb103-6" title="6">        <span class="kw">end</span></a>
+<a class="sourceLine" id="cb103-7" title="7">        BUSY: <span class="kw">begin</span></a>
+<a class="sourceLine" id="cb103-8" title="8">            CYC_O = <span class="dv">1</span>;</a>
+<a class="sourceLine" id="cb103-9" title="9">            STB_O = <span class="dv">1</span>;</a>
+<a class="sourceLine" id="cb103-10" title="10">        <span class="kw">end</span></a>
+<a class="sourceLine" id="cb103-11" title="11">    <span class="kw">endcase</span></a>
+<a class="sourceLine" id="cb103-12" title="12"><span class="kw">end</span></a></code></pre></div>
+<p>We then need to change the state based on the control signals. Since we are only interested in one word transfer, we start the transaction when the external control signal <code>enable</code> is high and the slave is ready. Based on whether it is a read or write request, we set the WB control data differently. After initiate the transaction, the master enter busy state, which waits for the slave to acknowledge back. After that the master signals the external client the end of transaction and returns back to idle state.</p>
+<div class="sourceCode" id="cb104"><pre class="sourceCode systemverilog"><code class="sourceCode systemverilog"><a class="sourceLine" id="cb104-1" title="1"><span class="kw">always_ff</span> @(<span class="kw">posedge</span> CLK_I) <span class="kw">begin</span></a>
+<a class="sourceLine" id="cb104-2" title="2">    <span class="co">// reset on high</span></a>
+<a class="sourceLine" id="cb104-3" title="3">    <span class="kw">if</span> (RST_I) <span class="kw">begin</span></a>
+<a class="sourceLine" id="cb104-4" title="4">        <span class="ot">state</span> &lt;= IDLE;</a>
+<a class="sourceLine" id="cb104-5" title="5"></a>
+<a class="sourceLine" id="cb104-6" title="6">        <span class="co">// reset all registered outputs</span></a>
+<a class="sourceLine" id="cb104-7" title="7">        ADDR_O &lt;= <span class="dv">0</span>;</a>
+<a class="sourceLine" id="cb104-8" title="8">        WE_O &lt;= <span class="dv">0</span>;</a>
+<a class="sourceLine" id="cb104-9" title="9">        DATA_O &lt;= <span class="dv">0</span>;</a>
+<a class="sourceLine" id="cb104-10" title="10"></a>
+<a class="sourceLine" id="cb104-11" title="11">        <span class="co">// external control signal</span></a>
+<a class="sourceLine" id="cb104-12" title="12">        ack &lt;= <span class="dv">0</span>;</a>
+<a class="sourceLine" id="cb104-13" title="13">        ready &lt;= <span class="dv">1</span>;</a>
+<a class="sourceLine" id="cb104-14" title="14">    <span class="kw">end</span></a>
+<a class="sourceLine" id="cb104-15" title="15">    <span class="kw">else</span> <span class="kw">begin</span></a>
+<a class="sourceLine" id="cb104-16" title="16">        <span class="kw">unique</span> <span class="kw">case</span> (<span class="ot">state</span>)</a>
+<a class="sourceLine" id="cb104-17" title="17">            IDLE: <span class="kw">begin</span></a>
+<a class="sourceLine" id="cb104-18" title="18">                <span class="co">// only when the we&#39;re asked to send data</span></a>
+<a class="sourceLine" id="cb104-19" title="19">                <span class="co">// and slave is ready</span></a>
+<a class="sourceLine" id="cb104-20" title="20">                <span class="kw">if</span> (enable &amp;&amp; !STALL_I) <span class="kw">begin</span></a>
+<a class="sourceLine" id="cb104-21" title="21">                    ADDR_O &lt;= addr;</a>
+<a class="sourceLine" id="cb104-22" title="22">                    <span class="co">// write request</span></a>
+<a class="sourceLine" id="cb104-23" title="23">                    <span class="kw">if</span> (write) <span class="kw">begin</span></a>
+<a class="sourceLine" id="cb104-24" title="24">                        DATA_O &lt;= wdata;</a>
+<a class="sourceLine" id="cb104-25" title="25">                        WE_O &lt;= <span class="dv">1</span>;</a>
+<a class="sourceLine" id="cb104-26" title="26">                    <span class="kw">end</span> <span class="kw">else</span> <span class="kw">begin</span></a>
+<a class="sourceLine" id="cb104-27" title="27">                        DATA_O &lt;= <span class="dv">0</span>;</a>
+<a class="sourceLine" id="cb104-28" title="28">                        WE_O &lt;= <span class="dv">0</span>;</a>
+<a class="sourceLine" id="cb104-29" title="29">                    <span class="kw">end</span></a>
+<a class="sourceLine" id="cb104-30" title="30"></a>
+<a class="sourceLine" id="cb104-31" title="31">                    SEL_O &lt;= <span class="dv">1</span>;</a>
+<a class="sourceLine" id="cb104-32" title="32">                    <span class="ot">state</span> &lt;= BUSY;</a>
+<a class="sourceLine" id="cb104-33" title="33">                    <span class="co">// external control signal</span></a>
+<a class="sourceLine" id="cb104-34" title="34">                    ready &lt;= <span class="dv">0</span>;</a>
+<a class="sourceLine" id="cb104-35" title="35">                    ack &lt;= <span class="dv">0</span>;</a>
+<a class="sourceLine" id="cb104-36" title="36">                <span class="kw">end</span></a>
+<a class="sourceLine" id="cb104-37" title="37">                <span class="kw">else</span> <span class="kw">begin</span></a>
+<a class="sourceLine" id="cb104-38" title="38">                    <span class="co">// external control signal</span></a>
+<a class="sourceLine" id="cb104-39" title="39">                    ready &lt;= <span class="dv">1</span>;</a>
+<a class="sourceLine" id="cb104-40" title="40">                    ack &lt;= <span class="dv">0</span>;</a>
+<a class="sourceLine" id="cb104-41" title="41">                <span class="kw">end</span></a>
+<a class="sourceLine" id="cb104-42" title="42">            <span class="kw">end</span></a>
+<a class="sourceLine" id="cb104-43" title="43">            BUSY: <span class="kw">begin</span></a>
+<a class="sourceLine" id="cb104-44" title="44">                <span class="co">// wait for slave ack</span></a>
+<a class="sourceLine" id="cb104-45" title="45">                <span class="kw">if</span> (ACK_I) <span class="kw">begin</span></a>
+<a class="sourceLine" id="cb104-46" title="46">                    <span class="co">// we good</span></a>
+<a class="sourceLine" id="cb104-47" title="47">                    <span class="ot">state</span> &lt;= IDLE;</a>
+<a class="sourceLine" id="cb104-48" title="48">                    DATA_O &lt;= <span class="dv">0</span>;</a>
+<a class="sourceLine" id="cb104-49" title="49"></a>
+<a class="sourceLine" id="cb104-50" title="50">                    <span class="co">// we assume control client will hold this signal until response gets back</span></a>
+<a class="sourceLine" id="cb104-51" title="51">                    <span class="kw">if</span> (enable) <span class="kw">begin</span></a>
+<a class="sourceLine" id="cb104-52" title="52">                        ack &lt;= <span class="dv">1</span>;</a>
+<a class="sourceLine" id="cb104-53" title="53">                        <span class="kw">if</span> (!write) <span class="kw">begin</span></a>
+<a class="sourceLine" id="cb104-54" title="54">                            <span class="co">// if it&#39;s a read</span></a>
+<a class="sourceLine" id="cb104-55" title="55">                            wdata &lt;= DAT_I;</a>
+<a class="sourceLine" id="cb104-56" title="56">                        <span class="kw">end</span></a>
+<a class="sourceLine" id="cb104-57" title="57">                        <span class="kw">else</span> <span class="kw">begin</span></a>
+<a class="sourceLine" id="cb104-58" title="58">                            wdata &lt;= <span class="dv">0</span>;</a>
+<a class="sourceLine" id="cb104-59" title="59">                        <span class="kw">end</span></a>
+<a class="sourceLine" id="cb104-60" title="60">                    <span class="kw">end</span></a>
+<a class="sourceLine" id="cb104-61" title="61">                <span class="kw">end</span></a>
+<a class="sourceLine" id="cb104-62" title="62">            <span class="kw">end</span></a>
+<a class="sourceLine" id="cb104-63" title="63">        <span class="kw">endcase</span></a>
+<a class="sourceLine" id="cb104-64" title="64">    <span class="kw">end</span></a>
+<a class="sourceLine" id="cb104-65" title="65"><span class="kw">end</span></a></code></pre></div>
+<h3 id="wishbone-slave-example"><span class="header-section-number">4.5.3</span> Wishbone Slave Example</h3>
+<h3 id="interconnect-and-arbiter"><span class="header-section-number">4.5.4</span> Interconnect and Arbiter</h3>
                 </div>
             </div>
         </div>
