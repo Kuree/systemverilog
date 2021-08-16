@@ -1,0 +1,33 @@
+package dog;
+import "DPI-C" function chandle dog_ctor();
+import "DPI-C" function void dog_dctor(chandle dog); 
+import "DPI-C" function void dog_run(chandle dog, int distance);
+import "DPI-C" function int dog_distance(chandle dog);
+
+
+class Dog;
+    local static chandle handles[$];
+    local chandle handle;
+
+    function new();
+        handle = dog_ctor();
+        handles.push_back(handle);
+    endfunction
+
+    function void run(int distance);
+        dog_run(handle, distance);
+    endfunction
+
+
+    function int distance();
+        return dog_distance(handle);
+    endfunction
+
+    static function final_();
+        foreach(handles[i]) begin
+            dog_dctor(handles[i]);
+        end
+    endfunction
+
+endclass
+endpackage
