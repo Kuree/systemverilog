@@ -530,6 +530,13 @@
 <a class="sourceLine" id="cb194-17" title="17"></a>
 <a class="sourceLine" id="cb194-18" title="18"><span class="kw">endmodule</span></a></code></pre></div>
 <p>We should see <code>42</code> printed out. Notice that although SystemVerilog is objected-oriented language like C++, it has garbage collection. The simulator needs to clean up unused objects, instead of programmers. As a result, we need to manually call clean up methods to delete any object created from C++. There are several ways to do it, and the example above shows an approach that only clean up at the end of simulation. In this case we hold every objects created in SystemVerilog into an queue. Once we’re done with the simulation, we call the destructor to clean up the memory.</p>
+<h3 id="performance-tips-for-dpi"><span class="header-section-number">9.2.6</span> Performance Tips for DPI</h3>
+<p>Although DPI is very useful in RTL design and verification, it has some performance impact on simulation. Here are some tips on how to speed up simulation that heavily relies on DPI function calls:</p>
+<ol type="1">
+<li>Avoid using context DPI as much as possible. If a user context is required, try to pass in a raw <code>chandle</code> to obtain the context.</li>
+<li>Batch up calls using an array. If the DPI is streaming in data to the backend, try to use batch the data up using arrays.</li>
+<li>If the DPI function is complex but not required to control execution flow, try to implement it in a different thread. The main DPI threads returns immediately after dispatching the task. Notice that this requires proper concurrent programming techniques, but still worth the effort if the DPI performance is not expected.</li>
+</ol>
                 </div>
             </div>
         </div>
