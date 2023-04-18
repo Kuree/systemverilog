@@ -30,7 +30,7 @@ jobs:
         name: PDF_book
         path: systemverilog.pdf
     - name: Update latest tag
-      uses: richardsimko/update-tag@master
+      uses: richardsimko/update-tag@v1
       with:
         tag_name: latest
       env:
